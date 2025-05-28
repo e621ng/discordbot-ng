@@ -5,6 +5,7 @@ import { Database } from '../shared/Database';
 import crypto from 'crypto';
 import session from 'express-session';
 import fs from 'fs';
+import path from 'path';
 
 declare module 'express-session' {
   interface SessionData {
@@ -17,7 +18,7 @@ declare module 'express-session' {
 const DEV_BASE_URL = `http://localhost:${config.PORT}`;
 const PROD_BASE_URL = 'https://discord.e621.net';
 
-const PAGE_TEMPLATE = fs.readFileSync('./templates/page.html', { encoding: 'utf-8' });
+const PAGE_TEMPLATE = fs.readFileSync(path.join(__dirname, 'templates', 'page.html'), { encoding: 'utf-8' });
 
 const oauth = new DiscordOAuth2({
   clientId: config.DISCORD_CLIENT_ID!,
