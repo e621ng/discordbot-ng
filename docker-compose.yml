@@ -1,0 +1,10 @@
+services:
+  discordbotrewrite:
+    restart: always
+    build: .
+    network_mode: host
+    env_file: '.env'
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data

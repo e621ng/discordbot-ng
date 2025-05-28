@@ -1,0 +1,152 @@
+import express, { Request, Response } from 'express';
+import DiscordOAuth2 from 'discord-oauth2';
+import { config } from './config';
+import { Database } from './shared/Database';
+import crypto from 'crypto';
+import session from 'express-session';
+
+declare module 'express-session' {
+  interface SessionData {
+    username: string;
+    userId: string;
+    oauthState: string;
+  }
+}
+
+const DEV_BASE_URL = `http://localhost:${config.PORT}`;
+const PROD_BASE_URL = 'https://discord.e621.net';
+
+const oauth = new DiscordOAuth2({
+  clientId: config.DISCORD_CLIENT_ID!,
+  clientSecret: config.DISCORD_CLIENT_SECRET!,
+  redirectUri: `${config.DEV_MODE ? DEV_BASE_URL : PROD_BASE_URL}/callback`,
+  credentials: Buffer.from(`${config.DISCORD_CLIENT_ID!}:${config.DISCORD_CLIENT_SECRET!}`).toString('base64')
+});
+
+async function joinGuild(code: string, userId: string, username: string) {
+  if (Number.isNaN(userId)) return false;
+  if (!username) return false;
+
+  const id = Number(userId);
+
+  const tokenResponse = await oauth.tokenRequest({
+    code,
+    scope: 'identify guilds.join',
+    grantType: 'authorization_code'
+  });
+
+  const user = await oauth.getUser(tokenResponse.access_token);
+
+  await Database.putUser(id, user);
+
+  await oauth.addMember({
+    accessToken: tokenResponse.access_token,
+    botToken: config.DISCORD_TOKEN!,
+    guildId: config.DISCORD_GUILD_ID!,
+    userId: user.id,
+    nickname: username
+  });
+
+  await oauth.revokeToken(tokenResponse.access_token);
+
+  return true;
+}
+
+async function handleInitial(req: Request, res: Response): Promise<any> {
+  const { username, user_id, time, hash } = req.query;
+
+  if (!username || !user_id || !time || !hash) {
+    return res.sendStatus(400);
+  }
+
+  if (Date.now() / 1000 > Number(time)) {
+    return res.status(403).send('You took too long to authorize the request. Please try again.');
+  }
+
+  const authString = `${username} ${user_id} ${time} ${config.LINK_SECRET}`;
+
+  const digest = crypto.createHash('sha256').update(authString).digest('hex');
+
+  if (hash != digest) {
+    console.error(`Bad auth: ${hash} ${digest}`);
+    return res.sendStatus(403);
+  }
+
+  const oauthState = crypto.randomBytes(16).toString('hex');
+
+  req.session.username = username as string;
+  req.session.userId = user_id as string;
+  req.session.oauthState = oauthState;
+
+  req.session.save((e) => {
+    if (e) {
+      console.error('Error saving session:');
+      console.error(e);
+      return res.sendStatus(500);
+    }
+
+    res.redirect(oauth.generateAuthUrl({
+      state: oauthState,
+      scope: ['identify', 'guilds.join']
+    }));
+  });
+}
+
+async function handleCallback(req: Request, res: Response): Promise<any> {
+  if (!req.session.userId || !req.session.username || !req.session.oauthState) {
+    return res.sendStatus(403);
+  }
+
+  const state = req.query.state as string;
+
+  if (state != req.session.oauthState) {
+    return res.sendStatus(403);
+  }
+
+  const code = req.query.code as string;
+
+  const userId = req.session.userId;
+  const username = req.session.username;
+
+  req.session.destroy((e) => {
+    if (e) console.error(e);
+  });
+
+  try {
+    if (!await joinGuild(code, userId, username)) {
+      console.error(`Error joining user: ${username} (${userId})`);
+      return res.sendStatus(500);
+    }
+  } catch (e) {
+    console.error(e);
+    return res.sendStatus(500);
+  }
+
+  res.sendStatus(200);
+}
+
+export function initializeDiscordJoiner() {
+  const app = express();
+
+  app.use(session({
+    secret: config.DISCORD_CLIENT_SECRET!,
+    cookie: {
+      secure: !config.DEV_MODE,
+      httpOnly: !config.DEV_MODE,
+      sameSite: false
+    },
+    resave: false,
+    saveUninitialized: false
+  }));
+
+  app.get('/', handleInitial);
+  app.get('/callback', handleCallback);
+
+  app.listen(config.PORT, (error) => {
+    if (error) {
+      throw error;
+    }
+
+    console.log(`Listening on port ${config.PORT}`);
+  });
+}

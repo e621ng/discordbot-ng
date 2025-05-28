@@ -1,0 +1,1 @@
+export const ticketCooldownMap = new Map<string, number>();
