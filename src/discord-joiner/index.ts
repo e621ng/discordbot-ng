@@ -1,9 +1,10 @@
 import express, { Request, Response } from 'express';
 import DiscordOAuth2 from 'discord-oauth2';
-import { config } from './config';
-import { Database } from './shared/Database';
+import { config } from '../config';
+import { Database } from '../shared/Database';
 import crypto from 'crypto';
 import session from 'express-session';
+import fs from 'fs';
 
 declare module 'express-session' {
   interface SessionData {
@@ -15,6 +16,8 @@ declare module 'express-session' {
 
 const DEV_BASE_URL = `http://localhost:${config.PORT}`;
 const PROD_BASE_URL = 'https://discord.e621.net';
+
+const PAGE_TEMPLATE = fs.readFileSync('./templates/page.html', { encoding: 'utf-8' });
 
 const oauth = new DiscordOAuth2({
   clientId: config.DISCORD_CLIENT_ID!,
@@ -56,11 +59,11 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
   const { username, user_id, time, hash } = req.query;
 
   if (!username || !user_id || !time || !hash) {
-    return res.sendStatus(400);
+    return sendBadRequest(res);
   }
 
   if (Date.now() / 1000 > Number(time)) {
-    return res.status(403).send('You took too long to authorize the request. Please try again.');
+    return render(res, 403, 'You took too long to authorize the request. Please try again.');
   }
 
   const authString = `${username} ${user_id} ${time} ${config.LINK_SECRET}`;
@@ -69,7 +72,7 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
 
   if (hash != digest) {
     console.error(`Bad auth: ${hash} ${digest}`);
-    return res.sendStatus(403);
+    return sendForbidden(res);
   }
 
   const oauthState = crypto.randomBytes(16).toString('hex');
@@ -82,7 +85,7 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
     if (e) {
       console.error('Error saving session:');
       console.error(e);
-      return res.sendStatus(500);
+      return sendInteralServerError(res);
     }
 
     res.redirect(oauth.generateAuthUrl({
@@ -94,13 +97,13 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
 
 async function handleCallback(req: Request, res: Response): Promise<any> {
   if (!req.session.userId || !req.session.username || !req.session.oauthState) {
-    return res.sendStatus(403);
+    return sendForbidden(res);
   }
 
   const state = req.query.state as string;
 
   if (state != req.session.oauthState) {
-    return res.sendStatus(403);
+    return sendForbidden(res);
   }
 
   const code = req.query.code as string;
@@ -115,14 +118,30 @@ async function handleCallback(req: Request, res: Response): Promise<any> {
   try {
     if (!await joinGuild(code, userId, username)) {
       console.error(`Error joining user: ${username} (${userId})`);
-      return res.sendStatus(500);
+      return sendInteralServerError(res);
     }
   } catch (e) {
     console.error(e);
-    return res.sendStatus(500);
+    return sendInteralServerError(res);
   }
 
-  res.sendStatus(200);
+  render(res, 200, 'Success', `You have been added to the server. <a href="https://discord.com/channels/${config.DISCORD_GUILD_ID}">See you there.</a>`);
+}
+
+function sendInteralServerError(res: Response) {
+  render(res, 500, 'Internal Server Error');
+}
+
+function sendForbidden(res: Response) {
+  render(res, 403, 'Forbidden');
+}
+
+function sendBadRequest(res: Response) {
+  render(res, 400, 'Bad Request');
+}
+
+function render(res: Response, code: number, title: string = '', message: string = '') {
+  res.status(code).setHeader('Content-Type', 'text/html').send(PAGE_TEMPLATE.replaceAll('{{ title }}', title).replaceAll('{{ message }}', message));
 }
 
 export function initializeDiscordJoiner() {
