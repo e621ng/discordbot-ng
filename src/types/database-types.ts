@@ -31,3 +31,11 @@ export type TicketPhrase = {
   user_id: string
   phrase: string
 }
+
+export type Warning = {
+  id: number
+  user_id: string
+  reason: string
+  mod_id: string
+  timestamp: string
+}

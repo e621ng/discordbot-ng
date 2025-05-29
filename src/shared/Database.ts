@@ -3,7 +3,7 @@ import { open, Database as SqliteDatabase } from 'sqlite';
 import { config } from '../config';
 import DiscordOAuth2 from 'discord-oauth2';
 import { serializeMessage, wait } from '../utils';
-import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase } from '../types';
+import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Warning } from '../types';
 import { Message } from '../events';
 
 const DB_SCHEMA = `
@@ -52,6 +52,14 @@ const DB_SCHEMA = `
 			user_id TEXT NOT NULL,
       phrase TEXT NOT NULL
 		);
+
+    CREATE TABLE IF NOT EXISTS warnings (
+      id INTEGER PRIMARY KEY,
+      user_id TEXT,
+      reason TEXT,
+      mod_id TEXT,
+      timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
 `;
 
 export class Database {
@@ -75,6 +83,8 @@ export class Database {
     console.log('SQLite database ensured');
   }
 
+  // -- START WHOIS --
+
   static async getE621Ids(discordId: string): Promise<number[]> {
     const ids = await Database.db.all<{ user_id: number }[]>('SELECT DISTINCT user_id FROM discord_names WHERE discord_id = ?', discordId);
 
@@ -87,7 +97,7 @@ export class Database {
     return ids.map(r => r.discord_id);
   }
 
-  static async getCombinedIds(id: string) {
+  static async getCombinedIds(id: string): Promise<{ userId: string, discordId: string }[]> {
     const ids = await Database.db.all<{ discord_id: string, user_id: number }[]>(`
         WITH RECURSIVE rec AS (
             SELECT DISTINCT d1.user_id, d1.discord_id, 1 AS depth FROM discord_names d1 WHERE d1.user_id = ? or d1.discord_id = ?
@@ -98,18 +108,22 @@ export class Database {
             WHERE depth <= 5 AND rec.depth = depth
         ) SELECT DISTINCT user_id, discord_id FROM rec`, id, id);
 
-    return ids.map(r => ({ user_id: r.user_id.toString(), discord_id: r.discord_id }));
+    return ids.map(r => ({ userId: r.user_id.toString(), discordId: r.discord_id }));
   }
 
   static async putUser(id: number, user: DiscordOAuth2.User) {
     await Database.db.run('INSERT INTO discord_names(user_id, discord_id, discord_username) VALUES (?, ?, ?)', id, user.id, user.username);
   }
 
+  // -- END WHOIS --
+
+  // -- START SETTINGS --
+
   static async getGuildSettings(guildId: string): Promise<GuildSettings | undefined> {
     return await Database.db.get<GuildSettings>('SELECT * FROM settings WHERE guild_id = ?', guildId);
   }
 
-  static async addGuild(guildId: string) {
+  static async putGuild(guildId: string) {
     await Database.db.run('INSERT INTO settings(guild_id) VALUES (?)', guildId);
   }
 
@@ -149,7 +163,7 @@ export class Database {
     return settings.staff_categories.split(',');
   }
 
-  static async addGuildStaffCategory(guildId: string, categoryId: string) {
+  static async putGuildStaffCategory(guildId: string, categoryId: string) {
     const categories = await Database.getGuildStaffCategories(guildId);
 
     categories.push(categoryId);
@@ -173,6 +187,10 @@ export class Database {
 
     return true;
   }
+
+  // -- END SETTINGS --
+
+  // START MESSAGE LOGS --
 
   static async putMessage(message: Message): Promise<boolean> {
     try {
@@ -206,6 +224,10 @@ export class Database {
     }
   }
 
+  // -- END MESSAGE LOGS --
+
+  // -- START TICKETS --
+
   static async putTicket(ticketId: number, messageId: string) {
     await Database.db.run('INSERT INTO tickets(id, message_id) VALUES (?, ?)', ticketId, messageId);
   }
@@ -215,7 +237,7 @@ export class Database {
     return ticket?.message_id;
   }
 
-  static async addTicketPhrase(userId: string, phrase: string) {
+  static async putTicketPhrase(userId: string, phrase: string) {
     await Database.db.run('INSERT INTO ticket_phrases(user_id, phrase) VALUES (?, ?)', userId, phrase);
   }
 
@@ -234,4 +256,24 @@ export class Database {
       cb(ticketPhrase);
     });
   }
+
+  // -- END TICKETS --
+
+  // -- START WARNINGS --
+
+  static async putWarning(userId: string, reason: string, modId: string) {
+    await Database.db.run('INSERT INTO warnings(user_id, reason, mod_id) VALUES (?, ?, ?)', userId, reason, modId);
+  }
+
+  static async removeWarning(id: number): Promise<boolean> {
+    const res = await Database.db.run('DELETE from warnings WHERE id = ?', id);
+
+    return (res.changes ?? 0) > 0;
+  }
+
+  static async getWarnings(userId: string): Promise<Warning[]> {
+    return await Database.db.all<Warning[]>('SELECT * from warnings WHERE user_id = ?', userId);
+  }
+
+  // -- END WARNINGS --
 }

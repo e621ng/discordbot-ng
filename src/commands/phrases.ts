@@ -147,7 +147,7 @@ async function dumpPhrases(interaction: ChatInputCommandInteraction) {
 }
 
 async function addPhrase(interaction: ChatInputCommandInteraction, phrase: string, group: SubcommandGroup) {
-  await Database.addTicketPhrase(group == 'admin' ? 'admin' : interaction.user.id, phrase);
+  await Database.putTicketPhrase(group == 'admin' ? 'admin' : interaction.user.id, phrase);
   interaction.reply(`Phrases matching "${phrase}" will now alert ${group == 'admin' ? 'admins' : 'you'}.`);
 }
 
