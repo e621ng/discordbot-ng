@@ -1,6 +1,6 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { getE621User } from '../utils';
+import { channelIsInStaffCategory, getE621User } from '../utils';
 import { config } from '../config';
 
 export default {
@@ -24,28 +24,31 @@ export default {
         .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
+    if (await channelIsInStaffCategory(interaction.channel as GuildBasedChannel)) await interaction.deferReply();
+    else await interaction.deferReply({flags: [MessageFlags.Ephemeral]});
+
     const username = interaction.options.getString('username');
     const id = interaction.options.getString('id');
 
     if (!username && !id) {
-      return interaction.reply({ content: 'No username or id given.', flags: [MessageFlags.Ephemeral] });
+      return interaction.editReply({ content: 'No username or id given.' });
     }
 
     try {
       const e621User = await getE621User((id ?? username) as string);
 
       if (!e621User) {
-        return interaction.reply('I got lost along the way. Who again?');
+        return interaction.editReply('I got lost along the way. Who again?');
       }
 
       const results = await Database.getDiscordIds(e621User.id);
 
       const mappedResults = results.map(id => `- <@${id}>\n`);
-      interaction.reply(`[${e621User.name}](${config.E621_BASE_URL}/users/${e621User.id})<${e621User.id}>'s discord account(s):\n${mappedResults}`);
+      interaction.editReply(`[${e621User.name}](${config.E621_BASE_URL}/users/${e621User.id})<${e621User.id}>'s discord account(s):\n${mappedResults}`);
     } catch (e) {
       console.error(e);
 
-      interaction.reply('I got lost in the net.');
+      interaction.editReply('I got lost in the net.');
     }
   }
 };
