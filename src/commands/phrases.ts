@@ -1,4 +1,4 @@
-import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, User } from 'discord.js';
 import { Database } from '../shared/Database';
 import { getE621User } from '../utils';
 import { config } from '../config';
@@ -8,7 +8,7 @@ const MIN_PHRASE_LENGTH = 1;
 const MAX_PHRASE_LENGTH = 512;
 
 type SubcommandGroup = 'admin' | 'personal';
-type Subcommand = 'add' | 'remove' | 'list' | 'dump';
+type Subcommand = 'add' | 'remove' | 'list' | 'dump' | 'purge';
 
 export default {
   name: 'phrases',
@@ -92,13 +92,21 @@ export default {
       subcommand
         .setName('dump')
         .setDescription('List all notification phrases.')
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('purge')
+        .setDescription("Purge a user's phrases.")
+        .addUserOption(option =>
+          option
+            .setName('user')
+            .setDescription('The user to purge the phrases of.')
+            .setRequired(true)
+        )
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     const subcommandGroup: SubcommandGroup | null = interaction.options.getSubcommandGroup() as SubcommandGroup;
     const subcommand: Subcommand | null = interaction.options.getSubcommand() as Subcommand;
-    if (subcommand == 'dump') {
-      return dumpPhrases(interaction);
-    }
 
     switch (subcommand) {
       case 'add':
@@ -107,6 +115,10 @@ export default {
         return removePhrase(interaction, interaction.options.getNumber('phrase', true), subcommandGroup!);
       case 'list':
         return listPhrases(interaction, subcommandGroup!);
+      case 'dump':
+        return dumpPhrases(interaction);
+      case 'purge':
+        return purgePhrases(interaction, interaction.options.getUser('user', true));
     }
   },
   autoComplete: async function (client: Client, interaction: AutocompleteInteraction) {
@@ -127,6 +139,12 @@ export default {
     })));
   }
 };
+
+async function purgePhrases(interaction: ChatInputCommandInteraction, user: User) {
+  const count = await Database.removeAllTicketPhrasesFor(user.id);
+
+  interaction.reply(`${count} phrases purged.`);
+}
 
 async function dumpPhrases(interaction: ChatInputCommandInteraction) {
   let content = '';

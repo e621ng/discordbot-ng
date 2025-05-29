@@ -245,6 +245,10 @@ export class Database {
     await Database.db.run('DELETE from ticket_phrases WHERE id = ?', id);
   }
 
+  static async removeAllTicketPhrasesFor(id: string): Promise<number> {
+    return (await Database.db.run('DELETE from ticket_phrases WHERE user_id = ?', id)).changes!;
+  }
+
   static async getTicketPhrasesFor(userId: string): Promise<TicketPhrase[]> {
     return await Database.db.all<TicketPhrase[]>('SELECT * from ticket_phrases WHERE user_id = ?', userId);
   }
