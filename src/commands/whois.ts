@@ -1,7 +1,5 @@
 import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { Database } from '../shared/Database';
-import { getE621User } from '../utils';
-import { config } from '../config';
+import { handleWhoIsInteraction } from '../utils';
 
 export default {
   name: 'whois',
@@ -33,31 +31,6 @@ export default {
 
     const idToUse = (user?.id ?? id) as string;
 
-    const results = await Database.getE621Ids(idToUse);
-
-    if (results.length > 0) {
-      const mappedResults = results.map(e => `- ${config.E621_BASE_URL}/users/${e}\n`);
-
-      const alts: string[] = [];
-
-      for (const e621Id of results) {
-        const discordIds = await Database.getDiscordIds(e621Id);
-
-        for (const discordId of discordIds) {
-          if (discordId != idToUse && !alts.includes(discordId)) alts.push(discordId);
-        }
-      }
-
-      let content = `<@${idToUse}>'s e621 account(s):\n${mappedResults}`;
-
-      if (alts.length > 0) {
-        const mappedAlts = alts.map(id => `- <@${id}>\n`);
-        content += `\n\nDiscord alts found:\n${mappedAlts}`;
-      }
-
-      interaction.reply(content);
-    } else {
-      interaction.reply('No e621 accounts found for this user');
-    }
+    handleWhoIsInteraction(interaction, idToUse);
   }
 };
