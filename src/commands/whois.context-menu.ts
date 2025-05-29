@@ -1,5 +1,5 @@
-import { ApplicationIntegrationType, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, ContextMenuCommandBuilder, ApplicationCommandType, ContextMenuCommandInteraction, UserContextMenuCommandInteraction } from 'discord.js';
-import { handleWhoIsInteraction } from '../utils';
+import { ApplicationIntegrationType, Client, InteractionContextType, PermissionFlagsBits, ContextMenuCommandBuilder, ApplicationCommandType, UserContextMenuCommandInteraction, GuildBasedChannel } from 'discord.js';
+import { channelIsInStaffCategory, handleWhoIsInteraction } from '../utils';
 
 export default {
   name: 'whois',
@@ -12,6 +12,6 @@ export default {
   handler: async function (client: Client, interaction: UserContextMenuCommandInteraction) {
     const idToUse = interaction.targetUser.id;
 
-    handleWhoIsInteraction(interaction, idToUse, true);
+    handleWhoIsInteraction(interaction, idToUse, !(await channelIsInStaffCategory(interaction.channel as GuildBasedChannel)));
   }
 };

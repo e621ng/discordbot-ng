@@ -3,6 +3,9 @@ import { config } from '../config';
 import { Database } from '../shared/Database';
 
 export async function handleWhoIsInteraction(interaction: CommandInteraction, idToUse: string, ephemeral = false) {
+  if (ephemeral) await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+  else await interaction.deferReply();
+
   const results = await Database.getE621Ids(idToUse);
 
   if (results.length > 0) {
@@ -25,10 +28,8 @@ export async function handleWhoIsInteraction(interaction: CommandInteraction, id
       content += `\n\nDiscord alts found:\n${mappedAlts}`;
     }
 
-    if (ephemeral) interaction.reply({ content, flags: [MessageFlags.Ephemeral] });
-    else interaction.reply(content);
+    interaction.editReply(content);
   } else {
-    if (ephemeral) interaction.reply({ content: 'No e621 accounts found for this user', flags: [MessageFlags.Ephemeral] });
-    else interaction.reply('No e621 accounts found for this user');
+    interaction.editReply('No e621 accounts found for this user');
   }
 }

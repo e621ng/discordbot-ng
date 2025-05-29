@@ -1,5 +1,5 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { handleWhoIsInteraction } from '../utils';
+import { ApplicationIntegrationType, BitFieldResolvable, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { channelIsInStaffCategory, handleWhoIsInteraction } from '../utils';
 
 export default {
   name: 'whois',
@@ -31,6 +31,6 @@ export default {
 
     const idToUse = (user?.id ?? id) as string;
 
-    handleWhoIsInteraction(interaction, idToUse);
+    handleWhoIsInteraction(interaction, idToUse, !(await channelIsInStaffCategory(interaction.channel as GuildBasedChannel)));
   }
 };
