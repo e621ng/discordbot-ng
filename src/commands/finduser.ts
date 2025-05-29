@@ -24,7 +24,9 @@ export default {
         .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    if (await channelIsInStaffCategory(interaction.channel as GuildBasedChannel)) await interaction.deferReply();
+    const isStaffChannel = await channelIsInStaffCategory(interaction.channel as GuildBasedChannel);
+
+    if (isStaffChannel) await interaction.deferReply();
     else await interaction.deferReply({flags: [MessageFlags.Ephemeral]});
 
     const username = interaction.options.getString('username');
