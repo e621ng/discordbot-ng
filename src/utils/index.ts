@@ -11,5 +11,5 @@ export * from './refresh-commands';
 export * from './string-utils';
 export * from './ticket-utils';
 export * from './wait';
-export * from './whois';
 export * from './warning-utils';
+export * from './whois';
