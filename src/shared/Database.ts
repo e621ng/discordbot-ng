@@ -3,7 +3,7 @@ import { open, Database as SqliteDatabase } from 'sqlite';
 import { config } from '../config';
 import DiscordOAuth2 from 'discord-oauth2';
 import { serializeMessage, wait } from '../utils';
-import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Warning } from '../types';
+import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note } from '../types';
 import { Message } from '../events';
 
 const DB_SCHEMA = `
@@ -53,7 +53,7 @@ const DB_SCHEMA = `
       phrase TEXT NOT NULL
 		);
 
-    CREATE TABLE IF NOT EXISTS warnings (
+    CREATE TABLE IF NOT EXISTS notes (
       id INTEGER PRIMARY KEY,
       user_id TEXT,
       reason TEXT,
@@ -263,21 +263,21 @@ export class Database {
 
   // -- END TICKETS --
 
-  // -- START WARNINGS --
+  // -- START NOTES --
 
-  static async putWarning(userId: string, reason: string, modId: string) {
-    await Database.db.run('INSERT INTO warnings(user_id, reason, mod_id) VALUES (?, ?, ?)', userId, reason, modId);
+  static async putNote(userId: string, reason: string, modId: string) {
+    await Database.db.run('INSERT INTO notes(user_id, reason, mod_id) VALUES (?, ?, ?)', userId, reason, modId);
   }
 
-  static async removeWarning(id: number): Promise<boolean> {
-    const res = await Database.db.run('DELETE from warnings WHERE id = ?', id);
+  static async removeNote(id: number): Promise<boolean> {
+    const res = await Database.db.run('DELETE from notes WHERE id = ?', id);
 
     return (res.changes ?? 0) > 0;
   }
 
-  static async getWarnings(userId: string): Promise<Warning[]> {
-    return await Database.db.all<Warning[]>('SELECT * from warnings WHERE user_id = ?', userId);
+  static async getNotes(userId: string): Promise<Note[]> {
+    return await Database.db.all<Note[]>('SELECT * from notes WHERE user_id = ?', userId);
   }
 
-  // -- END WARNINGS --
+  // -- END NOTES --
 }

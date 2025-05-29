@@ -32,7 +32,7 @@ export type TicketPhrase = {
   phrase: string
 }
 
-export type Warning = {
+export type Note = {
   id: number
   user_id: string
   reason: string
