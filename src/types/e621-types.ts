@@ -119,10 +119,23 @@ export type Ticket = {
   target?: string
   status: 'pending' | 'partial' | 'approved'
   category: 'blip' | 'comment' | 'dmail' | 'forum' | 'pool' | 'post' | 'set' | 'user' | 'wiki'
-  reason: 'string'
+  reason: string
 };
 
 export type TicketUpdate = {
   action: 'claim' | 'create' | 'unclaim' | 'update'
   ticket: Ticket
+};
+
+export type Ban = {
+  id: number
+  user_id: number
+  banner_id: number
+  expires_at: string
+  reason: string
+};
+
+export type BanUpdate = {
+  action: 'create' | 'update' | 'delete'
+  ban: Ban
 };

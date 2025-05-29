@@ -1,10 +1,10 @@
 import { createClient } from '@redis/client';
-import { Database } from '../shared/Database';
+import { Database } from './Database';
 import { config } from '../config';
 import { APIEmbedField, Client, EmbedAuthorOptions, EmbedBuilder, SendableChannels, TextBasedChannel } from 'discord.js';
-import { humanizeCapitalization } from './string-utils';
-import { Ticket, TicketPhrase, TicketUpdate } from '../types';
-import { shouldAlert } from './ticket-utils';
+import { humanizeCapitalization } from '../utils/string-utils';
+import { BanUpdate, Ticket, TicketPhrase, TicketUpdate } from '../types';
+import { shouldAlert } from '../utils/ticket-utils';
 
 const MAX_DESCRIPTION_LENGTH = 500;
 
@@ -21,10 +21,51 @@ export async function openRedisClient(url: string, discClient: Client) {
 
   console.log('Connected to redis database');
 
-  await client.subscribe('ticket_updates', updateHandler);
+  await client.subscribe(['ticket_updates', 'ban_updates'], updateHandler);
 }
 
-async function updateHandler(update: string, channel: string) {
+function updateHandler(data: string, channel: string) {
+  switch (channel) {
+    case 'ticket_updates':
+      return ticketUpdateHandler(data);
+    case 'ban_updates':
+      return banUpdateHandler(data);
+  }
+}
+
+async function banUpdateHandler(update: string) {
+  const data: BanUpdate = JSON.parse(update);
+
+  if (data.action == 'create') {
+    banDiscordAccounts(data);
+  } else if (data.action == 'delete') {
+    unbanDiscordAccounts(data);
+  }
+}
+
+async function banDiscordAccounts(data: BanUpdate) {
+  const guild = await discordClient.guilds.fetch(config.DISCORD_GUILD_ID!);
+
+  const discordIds = await Database.getDiscordIds(data.ban.user_id);
+
+  for (const id of discordIds) {
+    await guild.bans.create(id, {
+      reason: data.ban.reason
+    });
+  }
+}
+
+async function unbanDiscordAccounts(data: BanUpdate) {
+  const guild = await discordClient.guilds.fetch(config.DISCORD_GUILD_ID!);
+
+  const discordIds = await Database.getDiscordIds(data.ban.user_id);
+
+  for (const id of discordIds) {
+    await guild.bans.remove(id);
+  }
+}
+
+async function ticketUpdateHandler(update: string) {
   const data: TicketUpdate = JSON.parse(update);
 
   if (data.action == 'create') {

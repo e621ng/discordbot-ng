@@ -2,7 +2,6 @@ export * from './array-utils';
 export * from './audit-log-utils';
 export * from './channel-utils';
 export * from './commands';
-export * from './e621-ticket-listener';
 export * from './e621-utils';
 export * from './message-logger';
 export * from './message-utils';

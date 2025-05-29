@@ -2,11 +2,12 @@ import 'source-map-support/register';
 import { Client as DiscordClient, GatewayIntentBits, Guild, MessageFlags, Partials } from 'discord.js';
 import { config } from './config';
 import { Handler } from './types';
-import { initIfNecessary, loadHandlersFrom, openRedisClient, refreshCommands } from './utils';
+import { initIfNecessary, loadHandlersFrom, refreshCommands } from './utils';
 import { initializeDiscordJoiner } from './discord-joiner';
 import { Database } from './shared/Database';
 import { handleAuditLogCreate, handleBulkMessageDelete, handleGuildCreate, handleMemberJoin, handleMessageCreate, handleMessageDelete, handleMessageUpdate, handleThreadCreate, handleVoiceStateUpdate } from './events';
 import { ticketCooldownMap } from './shared/ticket-cooldown';
+import { openRedisClient } from './shared/RedisClient';
 
 let ready = false;
 
