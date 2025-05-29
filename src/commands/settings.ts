@@ -65,12 +65,14 @@ export default {
         .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+
     let response = '';
 
     const settings = await Database.getGuildSettings(interaction.guildId!);
 
     if (!settings) {
-      await Database.addGuild(interaction.guildId!);
+      await Database.putGuild(interaction.guildId!);
     }
 
     const generalChannel = interaction.options.getChannel('general-channel');
@@ -132,7 +134,7 @@ export default {
     const addCategory = interaction.options.getChannel('add-staff-category');
     if (addCategory) {
       if (addCategory.type == ChannelType.GuildCategory) {
-        await Database.addGuildStaffCategory(interaction.guildId!, addCategory.id);
+        await Database.putGuildStaffCategory(interaction.guildId!, addCategory.id);
 
         response += `Added ${addCategory.toString()} as a staff category.\n`;
       } else {
@@ -153,8 +155,8 @@ export default {
       }
     }
 
-    if (response.length == 0) return interaction.reply({ content: 'No settings provided.', flags: [MessageFlags.Ephemeral] });
+    if (response.length == 0) return interaction.editReply({ content: 'No settings provided.' });
 
-    interaction.reply({ content: response, flags: [MessageFlags.Ephemeral] });
+    interaction.editReply({ content: response });
   }
 };

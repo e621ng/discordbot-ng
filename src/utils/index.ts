@@ -1,5 +1,6 @@
 export * from './array-utils';
 export * from './audit-log-utils';
+export * from './channel-utils';
 export * from './commands';
 export * from './e621-ticket-listener';
 export * from './e621-utils';
@@ -11,3 +12,4 @@ export * from './string-utils';
 export * from './ticket-utils';
 export * from './wait';
 export * from './whois';
+export * from './warning-utils';

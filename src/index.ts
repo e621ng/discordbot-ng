@@ -1,5 +1,5 @@
 import 'source-map-support/register';
-import { Client as DiscordClient, GatewayIntentBits, Guild, Partials } from 'discord.js';
+import { Client as DiscordClient, GatewayIntentBits, Guild, MessageFlags, Partials } from 'discord.js';
 import { config } from './config';
 import { Handler } from './types';
 import { initIfNecessary, loadHandlersFrom, openRedisClient, refreshCommands } from './utils';
@@ -52,7 +52,7 @@ client.on('interactionCreate', async (interaction) => {
     )
       interaction.reply({
         content: 'Bot is still starting up. Please wait a few seconds.',
-        ephemeral: true,
+        flags: [MessageFlags.Ephemeral],
       });
 
     return;
@@ -84,7 +84,7 @@ client.on('interactionCreate', async (interaction) => {
 
     for (const button of buttons) {
       if (id == button.name) {
-        button.handler(client, interaction, interaction.customId.split('_')[1]);
+        button.handler(client, interaction, ...interaction.customId.split('_').slice(1));
         return;
       }
     }
@@ -94,7 +94,7 @@ client.on('interactionCreate', async (interaction) => {
 
     for (const modal of modals) {
       if (id == modal.name) {
-        modal.handler(client, interaction, interaction.customId.split('_')[1]);
+        modal.handler(client, interaction, ...interaction.customId.split('_').slice(1));
         return;
       }
     }
@@ -104,7 +104,7 @@ client.on('interactionCreate', async (interaction) => {
 
     for (const menu of menus) {
       if (id == menu.name) {
-        menu.handler(client, interaction, interaction.customId.split('_')[1]);
+        menu.handler(client, interaction, ...interaction.customId.split('_').slice(1));
         return;
       }
     }
@@ -151,5 +151,6 @@ client.on('threadCreate', handleThreadCreate);
 client.on('voiceStateUpdate', handleVoiceStateUpdate);
 
 client.on('error', console.error);
+process.on('uncaughtException', console.error);
 
 client.login(config.DISCORD_TOKEN);

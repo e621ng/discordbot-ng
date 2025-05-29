@@ -5,6 +5,7 @@ import { getE621Post, getE621PostByMd5, getPostUrl, hasBlacklistedTags } from '.
 import { Database } from '../shared/Database';
 import { logDeletion, logEdit } from '../utils/message-logger';
 import { isEdited } from '../utils/message-utils';
+import { channelIsInStaffCategory } from '../utils';
 
 export type Message<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<DiscordMessage<InGuild>>;
 export type Partial = OmitPartialGroupDMChannel<PartialMessage>;
@@ -142,12 +143,11 @@ async function wikiPageHandler(message: Message, matchedGroups: RegExpExecArray[
 }
 
 async function blacklistIfNecessary(message: Message, posts: E621Post[]): Promise<boolean> {
-  const staffCategories = await Database.getGuildStaffCategories(message.guildId!);
-
   const blacklistedIds: number[] = [];
 
   const channel = await message.channel.fetch() as GuildTextBasedChannel;
 
+  const isStaffChannel = await channelIsInStaffCategory(channel);
 
   for (const post of posts) {
     if (hasBlacklistedTags(post)) {
@@ -159,7 +159,7 @@ async function blacklistIfNecessary(message: Message, posts: E621Post[]): Promis
 
   await message.delete();
 
-  if (channel.parentId && staffCategories.includes(channel.parentId)) {
+  if (channel.parentId && isStaffChannel) {
     await message.channel.send({
       content: `_sucks message into the void._ ${message.author.toString()} nono, don't post links to ${blacklistedIds.length == 1 ? `post ${blacklistedIds[0]}` : `posts \`${blacklistedIds.join('`, `')}\``}. See rule #5.b for more details.`,
       allowedMentions: {
