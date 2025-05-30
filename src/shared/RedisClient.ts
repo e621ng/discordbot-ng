@@ -37,33 +37,46 @@ async function banUpdateHandler(update: string) {
   const data: BanUpdate = JSON.parse(update);
 
   if (data.action == 'create') {
-    banDiscordAccounts(data);
-  } else if (data.action == 'delete') {
-    unbanDiscordAccounts(data);
+    kickDiscordAccounts(data);
   }
+  // else if (data.action == 'delete') {
+  //   // unbanDiscordAccounts(data);
+  // }
 }
 
-async function banDiscordAccounts(data: BanUpdate) {
+async function kickDiscordAccounts(data: BanUpdate) {
   const guild = await discordClient.guilds.fetch(config.DISCORD_GUILD_ID!);
 
   const discordIds = await Database.getDiscordIds(data.ban.user_id);
 
   for (const id of discordIds) {
-    await guild.bans.create(id, {
-      reason: data.ban.reason
-    });
+    const member = await guild.members.fetch(id);
+
+    if (member) await member.kick(data.ban.reason);
   }
 }
 
-async function unbanDiscordAccounts(data: BanUpdate) {
-  const guild = await discordClient.guilds.fetch(config.DISCORD_GUILD_ID!);
+// async function banDiscordAccounts(data: BanUpdate) {
+//   const guild = await discordClient.guilds.fetch(config.DISCORD_GUILD_ID!);
 
-  const discordIds = await Database.getDiscordIds(data.ban.user_id);
+//   const discordIds = await Database.getDiscordIds(data.ban.user_id);
 
-  for (const id of discordIds) {
-    await guild.bans.remove(id);
-  }
-}
+//   for (const id of discordIds) {
+//     await guild.bans.create(id, {
+//       reason: data.ban.reason
+//     });
+//   }
+// }
+
+// async function unbanDiscordAccounts(data: BanUpdate) {
+//   const guild = await discordClient.guilds.fetch(config.DISCORD_GUILD_ID!);
+
+//   const discordIds = await Database.getDiscordIds(data.ban.user_id);
+
+//   for (const id of discordIds) {
+//     await guild.bans.remove(id);
+//   }
+// }
 
 async function ticketUpdateHandler(update: string) {
   const data: TicketUpdate = JSON.parse(update);
