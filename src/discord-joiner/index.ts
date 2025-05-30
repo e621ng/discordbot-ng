@@ -98,12 +98,14 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
 
 async function handleCallback(req: Request, res: Response): Promise<any> {
   if (!req.session.userId || !req.session.username || !req.session.oauthState) {
+    console.error('Session details missing on discord joining');
     return sendForbidden(res, 'Session details missing');
   }
 
   const state = req.query.state as string;
 
   if (state != req.session.oauthState) {
+    console.error('OAuth state mismatch on discord joining');
     return sendForbidden(res, 'OAuth state mismatch');
   }
 
@@ -129,16 +131,16 @@ async function handleCallback(req: Request, res: Response): Promise<any> {
   render(res, 200, 'Success', `You have been added to the server. <a href="https://discord.com/channels/${config.DISCORD_GUILD_ID}">See you there.</a>`);
 }
 
-function sendInteralServerError(res: Response, message = 'Internal Server Error') {
-  render(res, 500, message);
+function sendInteralServerError(res: Response, message: string = '') {
+  render(res, 500, 'Internal Server Error', message);
 }
 
-function sendForbidden(res: Response, message = 'Forbidden') {
-  render(res, 403, message);
+function sendForbidden(res: Response, message: string = '') {
+  render(res, 403, 'Forbidden', message);
 }
 
-function sendBadRequest(res: Response, message = 'Bad Request') {
-  render(res, 400, message);
+function sendBadRequest(res: Response, message: string = '') {
+  render(res, 400, 'Bad Request', message);
 }
 
 function render(res: Response, code: number, title: string = '', message: string = '') {
