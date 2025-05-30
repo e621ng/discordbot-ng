@@ -156,6 +156,8 @@ export function initializeDiscordJoiner() {
 
   const Store = MemoryStore(session);
 
+  app.set('trust proxy', 1);
+
   app.use(session({
     secret: config.DISCORD_CLIENT_SECRET!,
     cookie: {
