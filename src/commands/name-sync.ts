@@ -18,6 +18,8 @@ export default {
         .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
+    await interaction.deferReply({flags: [MessageFlags.Ephemeral]});
+
     const id = interaction.options.getInteger('id');
 
     const availableIds = await Database.getE621Ids(interaction.user.id);
@@ -31,22 +33,26 @@ export default {
     }
 
     if (!e621User) {
-      return interaction.reply({ content: "Couldn't figure out what your name was. Please contact an administrator.", flags: [MessageFlags.Ephemeral] });
+      return interaction.editReply("Couldn't figure out what your name was. Please contact an administrator.");
     }
 
     const guild = await client.guilds.fetch(config.DISCORD_GUILD_ID!);
 
     if (!guild) {
-      return interaction.reply({ content: 'An error has occurred. Please try again later', flags: [MessageFlags.Ephemeral] });
+      return interaction.editReply('An error has occurred. Please try again later.');
     }
 
     const member = await guild.members.fetch(interaction.user.id);
 
-    if (!member) {
-      return interaction.reply({ content: 'An error has occurred. Please try again later', flags: [MessageFlags.Ephemeral] });
+    if (!member || !guild.members.me) {
+      return interaction.editReply('An error has occurred. Please try again later.');
+    }
+
+    if (member.roles.highest.comparePositionTo(guild.members.me.roles.highest) > 0) {
+      return interaction.editReply('I am unable to set your nickname as your role is higher than mine.');
     }
 
     await member.setNickname(e621User.name);
-    interaction.reply({ content: `Nickname set to: ${e621User.name}`, flags: [MessageFlags.Ephemeral] });
+    interaction.editReply(`Nickname set to: ${e621User.name}`);
   }
 };
