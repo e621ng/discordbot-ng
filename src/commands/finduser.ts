@@ -27,7 +27,7 @@ export default {
     const isStaffChannel = await channelIsInStaffCategory(interaction.channel as GuildBasedChannel);
 
     if (isStaffChannel) await interaction.deferReply();
-    else await interaction.deferReply({flags: [MessageFlags.Ephemeral]});
+    else await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const username = interaction.options.getString('username');
     const id = interaction.options.getString('id');
