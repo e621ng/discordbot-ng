@@ -40,6 +40,12 @@ export default {
         .setDescription('Set the voice logs channel.')
         .setRequired(false)
     )
+    .addChannelOption(option =>
+      option
+        .setName('new-member-channel')
+        .setDescription('Set the new member logs channel.')
+        .setRequired(false)
+    )
     .addRoleOption(option =>
       option
         .setName('admin-role')
@@ -113,6 +119,14 @@ export default {
       await Database.setGuildVoiceLogsChannelId(interaction.guildId!, voiceLogsChannel.id);
 
       response += `Voice logs channel set to ${voiceLogsChannel}.\n`;
+    }
+
+    const newMemberLogsChannel = interaction.options.getChannel('new-member-channel');
+
+    if (newMemberLogsChannel) {
+      await Database.setGuildNewMemberLogsChannel(interaction.guildId!, newMemberLogsChannel.id);
+
+      response += `New member logs channel set to ${newMemberLogsChannel}.\n`;
     }
 
     const adminRole = interaction.options.getRole('admin-role');

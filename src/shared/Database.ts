@@ -147,6 +147,10 @@ export class Database {
     await Database.db.run('UPDATE settings SET voice_logs_channel_id = ? WHERE guild_id = ?', id, guildId);
   }
 
+  static async setGuildNewMemberLogsChannel(guildId: string, id: string) {
+    await Database.db.run('UPDATE settings SET new_member_channel_id = ? WHERE guild_id = ?', id, guildId);
+  }
+
   static async setGuildAdminRole(guildId: string, id: string) {
     await Database.db.run('UPDATE settings SET admin_role_id = ? WHERE guild_id = ?', id, guildId);
   }
