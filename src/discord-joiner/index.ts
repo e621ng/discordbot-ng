@@ -60,7 +60,7 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
   const { username, user_id, time, hash } = req.query;
 
   if (!username || !user_id || !time || !hash) {
-    return sendBadRequest(res);
+    return sendBadRequest(res, 'Missing parameters');
   }
 
   if (Date.now() / 1000 > Number(time)) {
@@ -73,7 +73,7 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
 
   if (hash != digest) {
     console.error(`Bad auth: ${hash} ${digest}`);
-    return sendForbidden(res);
+    return sendForbidden(res, 'Bad auth');
   }
 
   const oauthState = crypto.randomBytes(16).toString('hex');
@@ -98,13 +98,13 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
 
 async function handleCallback(req: Request, res: Response): Promise<any> {
   if (!req.session.userId || !req.session.username || !req.session.oauthState) {
-    return sendForbidden(res);
+    return sendForbidden(res, 'Session details missing');
   }
 
   const state = req.query.state as string;
 
   if (state != req.session.oauthState) {
-    return sendForbidden(res);
+    return sendForbidden(res, 'OAuth state mismatch');
   }
 
   const code = req.query.code as string;
@@ -119,7 +119,7 @@ async function handleCallback(req: Request, res: Response): Promise<any> {
   try {
     if (!await joinGuild(code, userId, username)) {
       console.error(`Error joining user: ${username} (${userId})`);
-      return sendInteralServerError(res);
+      return sendInteralServerError(res, 'Unable to join user to guild.');
     }
   } catch (e) {
     console.error(e);
@@ -129,16 +129,16 @@ async function handleCallback(req: Request, res: Response): Promise<any> {
   render(res, 200, 'Success', `You have been added to the server. <a href="https://discord.com/channels/${config.DISCORD_GUILD_ID}">See you there.</a>`);
 }
 
-function sendInteralServerError(res: Response) {
-  render(res, 500, 'Internal Server Error');
+function sendInteralServerError(res: Response, message = 'Internal Server Error') {
+  render(res, 500, message);
 }
 
-function sendForbidden(res: Response) {
-  render(res, 403, 'Forbidden');
+function sendForbidden(res: Response, message = 'Forbidden') {
+  render(res, 403, message);
 }
 
-function sendBadRequest(res: Response) {
-  render(res, 400, 'Bad Request');
+function sendBadRequest(res: Response, message = 'Bad Request') {
+  render(res, 400, message);
 }
 
 function render(res: Response, code: number, title: string = '', message: string = '') {
