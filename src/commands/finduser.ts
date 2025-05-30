@@ -1,6 +1,6 @@
 import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { channelIsInStaffCategory, getE621User } from '../utils';
+import { channelIsInStaffCategory, getDiscordAlts, getE621User } from '../utils';
 import { config } from '../config';
 
 export default {
@@ -29,6 +29,8 @@ export default {
     if (isStaffChannel) await interaction.deferReply();
     else await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
+    if (!interaction.guild) return interaction.editReply('This command must be used in a server');
+
     const username = interaction.options.getString('username');
     const id = interaction.options.getString('id');
 
@@ -43,10 +45,9 @@ export default {
         return interaction.editReply('I got lost along the way. Who again?');
       }
 
-      const results = await Database.getDiscordIds(e621User.id);
+      const content = await getDiscordAlts(e621User.id, interaction.guild, 1, [e621User.id]);
 
-      const mappedResults = results.map(id => `- <@${id}>\n`);
-      interaction.editReply(`[${e621User.name}](${config.E621_BASE_URL}/users/${e621User.id})<${e621User.id}>'s discord account(s):\n${mappedResults}`);
+      interaction.editReply(`[${e621User.name}](${config.E621_BASE_URL}/users/${e621User.id})<${e621User.id}>'s e621 and discord account(s):\n${content}`);
     } catch (e) {
       console.error(e);
 
