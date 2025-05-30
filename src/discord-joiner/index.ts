@@ -4,6 +4,7 @@ import { config } from '../config';
 import { Database } from '../shared/Database';
 import crypto from 'crypto';
 import session from 'express-session';
+import MemoryStore from 'memorystore';
 import fs from 'fs';
 import path from 'path';
 
@@ -150,13 +151,19 @@ function render(res: Response, code: number, title: string = '', message: string
 export function initializeDiscordJoiner() {
   const app = express();
 
+  const Store = MemoryStore(session);
+
   app.use(session({
     secret: config.DISCORD_CLIENT_SECRET!,
     cookie: {
       secure: !config.DEV_MODE,
       httpOnly: !config.DEV_MODE,
-      sameSite: false
+      sameSite: false,
+      maxAge: 300000
     },
+    store: new Store({
+      checkPeriod: 600000,
+    }),
     resave: false,
     saveUninitialized: false
   }));
