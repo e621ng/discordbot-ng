@@ -63,7 +63,11 @@ export async function handleMessageUpdate(oldMessage: Message | PartialMessage, 
 
   const loggedMessage = await Database.getMessageWithRetry(newMessage.id);
 
-  if (!loggedMessage) return;
+  if (!loggedMessage) {
+    if (newMessage.inGuild()) await Database.putMessage(newMessage);
+
+    return;
+  }
 
   if (newMessage.inGuild() && isEdited(loggedMessage, newMessage)) {
     await Database.putMessage(newMessage);
