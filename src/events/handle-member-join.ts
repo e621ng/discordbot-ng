@@ -45,9 +45,14 @@ async function getDiscordAlts(e621Id: number, guild: Guild, depth = 1, ignore: n
   for (const discordId of discordIds) {
     const alts = await getE621Alts(discordId, guild, depth + 1, ignore);
 
-    const banned = await guild.bans.fetch(discordId);
+    let banned = false;
 
-    content += `${'- '.repeat(depth)}<@${discordId}>${banned ? ' [BANNED]' : ''}\n${alts}`;
+    // It's either this or fetch all the bans and sift through them for every discord alt.
+    try {
+      banned = !!(await guild.bans.fetch(discordId));
+    } catch (e) { }
+
+    if (alts || banned) content += `${'- '.repeat(depth)}<@${discordId}>${banned ? ' [BANNED]' : ''}\n${alts}`;
   }
 
   return content;
