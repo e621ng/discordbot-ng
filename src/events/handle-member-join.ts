@@ -1,6 +1,7 @@
-import { GuildMember, GuildTextBasedChannel } from 'discord.js';
+import { Guild, GuildMember, GuildTextBasedChannel } from 'discord.js';
 import { Database } from '../shared/Database';
 import { config } from '../config';
+import { userIsBanned } from '../utils';
 
 export async function handleMemberJoin(member: GuildMember) {
   const guildSettings = await Database.getGuildSettings(member.guild.id);
@@ -9,14 +10,14 @@ export async function handleMemberJoin(member: GuildMember) {
     const channel = await member.guild.channels.fetch(guildSettings.new_member_channel_id) as GuildTextBasedChannel;
 
     if (channel) {
-      const content = `${member.toString()}'s e621 and discord account(s):\n${await getE621Alts(member.id)}`;
+      const content = `${member.toString()}'s e621 and discord account(s):\n${await getE621Alts(member.id, member.guild)}`;
 
       channel.send(content).catch(console.error);
     }
   }
 }
 
-async function getE621Alts(discordId: string, depth = 1, ignore: number[] = []): Promise<string> {
+async function getE621Alts(discordId: string, guild: Guild, depth = 1, ignore: number[] = []): Promise<string> {
   const e621UserIds = await Database.getE621Ids(discordId);
 
   const toIgnore = ignore.concat(e621UserIds);
@@ -25,21 +26,28 @@ async function getE621Alts(discordId: string, depth = 1, ignore: number[] = []):
 
   for (const e621Id of e621UserIds) {
     if (ignore.includes(e621Id)) continue;
-    content += `${'- '.repeat(depth)}${config.E621_BASE_URL}/users/${e621Id}\n${await getDiscordAlts(e621Id, depth + 1, toIgnore)}`;
+
+    const alts = await getDiscordAlts(e621Id, guild, depth + 1, toIgnore);
+
+    const banned = await userIsBanned(e621Id);
+
+    content += `${'- '.repeat(depth)}${config.E621_BASE_URL}/users/${e621Id}${banned ? ' [BANNED]' : ''}\n${alts}`;
   }
 
   return content;
 }
 
-async function getDiscordAlts(e621Id: number, depth = 1, ignore: number[] = []): Promise<string> {
+async function getDiscordAlts(e621Id: number, guild: Guild, depth = 1, ignore: number[] = []): Promise<string> {
   const discordIds = await Database.getDiscordIds(e621Id);
 
   let content = '';
 
   for (const discordId of discordIds) {
-    const alts = await getE621Alts(discordId, depth + 1, ignore);
+    const alts = await getE621Alts(discordId, guild, depth + 1, ignore);
 
-    if (alts) content += `${'- '.repeat(depth)}<@${discordId}>\n${alts}`;
+    const banned = await guild.bans.fetch(discordId);
+
+    content += `${'- '.repeat(depth)}<@${discordId}>${banned ? ' [BANNED]' : ''}\n${alts}`;
   }
 
   return content;
