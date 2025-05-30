@@ -84,8 +84,6 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
   req.session.oauthState = oauthState;
 
   req.session.save((e) => {
-    console.log('Session details saved:');
-    console.log(req.session);
     if (e) {
       console.error('Error saving session:');
       console.error(e);
@@ -101,8 +99,6 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
 
 async function handleCallback(req: Request, res: Response): Promise<any> {
   if (!req.session.userId || !req.session.username || !req.session.oauthState) {
-    console.error('Session details missing on discord joining. Session:');
-    console.error(req.session);
     return sendForbidden(res, 'Session details missing');
   }
 
