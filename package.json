@@ -24,6 +24,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "build": "npx tsc"
+    "build": "npx tsc && npm run copyfiles",
+    "copyfiles": "npx copyfiles -u 1 \"./src/**/*.html\" ./dist"
   }
 }
