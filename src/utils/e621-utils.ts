@@ -1,5 +1,7 @@
+import { Guild } from 'discord.js';
 import { config } from '../config';
 import { E621Post, E621User } from '../types';
+import { Database } from '../shared/Database';
 
 const BLACKLISTED_TAGS: string[] = [];
 const BLACKLISTED_NONSAFE_TAGS: string[] = ['young'];
@@ -62,4 +64,54 @@ export function getPostUrl(post: E621Post): string {
 export async function userIsBanned(idOrName: string | number): Promise<boolean> {
   const user = await getE621User(idOrName);
   return user?.is_banned ?? false;
+}
+
+type AltData = {
+  type: 'e621' | 'discord'
+  thisId: number | string
+  banned: boolean
+  alts: AltData[]
+};
+
+export async function comprehensiveAltLookupFromDiscord(discordId: string, guild: Guild): Promise<AltData> {
+  return getE621Alts(discordId, guild);
+}
+
+export async function comprehensiveAltLookupFromE621(e621Id: number, guild: Guild): Promise<AltData> {
+  return getDiscordAlts(e621Id, guild);
+}
+
+async function getE621Alts(discordId: string, guild: Guild, depth = 1, ignore: number[] = []): Promise<AltData> {
+  const e621UserIds = await Database.getE621Ids(discordId);
+
+  const toIgnore = ignore.concat(e621UserIds);
+
+  let banned = false;
+
+  // It's either this or fetch all the bans and sift through them for every discord alt.
+  try {
+    banned = !!(await guild.bans.fetch(discordId));
+  } catch (e) { }
+
+  const data: AltData = { type: 'discord', thisId: discordId, banned, alts: [] };
+
+  for (const e621Id of e621UserIds) {
+    if (ignore.includes(e621Id)) continue;
+
+    data.alts.push(await getDiscordAlts(e621Id, guild, depth + 1, toIgnore));
+  }
+
+  return data;
+}
+
+async function getDiscordAlts(e621Id: number, guild: Guild, depth = 1, ignore: number[] = []): Promise<AltData> {
+  const discordIds = await Database.getDiscordIds(e621Id);
+
+  const data: AltData = { type: 'e621', thisId: e621Id, banned: await userIsBanned(e621Id), alts: [] };
+
+  for (const discordId of discordIds) {
+    data.alts.push(await getE621Alts(discordId, guild, depth + 1, ignore));
+  }
+
+  return data;
 }
