@@ -1,8 +1,6 @@
 import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, MessageActionRowComponentBuilder, time } from 'discord.js';
 import { Database } from '../shared/Database';
-import { Note } from '../types';
-
-type MessageContent = { content: string, components: ActionRowBuilder<ButtonBuilder>[] };
+import { MessageContent, Note } from '../types';
 
 const NOTES_PER_PAGE = 5;
 

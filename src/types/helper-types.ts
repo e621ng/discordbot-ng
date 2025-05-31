@@ -1,4 +1,6 @@
-import { APIRole, PermissionsBitField, TextChannel } from 'discord.js';
+import { ActionRowBuilder, APIRole, ButtonBuilder, EmbedBuilder, PermissionsBitField, TextChannel } from 'discord.js';
+
+export type MessageContent = { content?: string, embeds?: EmbedBuilder[], components: ActionRowBuilder<ButtonBuilder>[] };
 
 export type RoleChangeLog = {
   key: '$add' | '$remove',
