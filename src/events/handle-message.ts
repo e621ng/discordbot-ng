@@ -17,6 +17,8 @@ const imageRegex = new RegExp('!?https?://(?:.*@)?static[0-9]*\\.(?:e621|e926)\\
 const postRegex_DEV = new RegExp('!?https?://(?:.*@)?localhost:3000/+posts/+([0-9]+)', 'gi');
 const imageRegex_DEV = new RegExp('!?https?://(?:.*@)?localhost:3000/+data/+(?:sample/+|preview/+|)[\\da-f]{2}/+[\\da-f]{2}/+([\\da-f]{32})\\.[\\da-z]+', 'gi');
 
+const md5Regex = new RegExp('^([a-f0-9]{32}).(?:png|apng|jpg|jpeg|gif|webm|mp4)$', 'gi');
+
 const postIDRegex = new RegExp('post #([0-9]+)', 'gi');
 const userIDRegex = new RegExp('user #([0-9]+)', 'gi');
 const forumTopicIDRegex = new RegExp('topic #([0-9]+)', 'gi');
@@ -78,6 +80,21 @@ export async function handleMessageCreate(message: Message) {
       if (response === false) return;
 
       if (response !== true) responses.push(response as string);
+    }
+  }
+
+  for (const attachment of message.attachments.values()) {
+    const match = md5Regex.exec(attachment.name);
+    md5Regex.lastIndex = 0;
+
+    if (match) {
+      const post = await getE621PostByMd5(match[1]);
+
+      if (post) {
+        if (await blacklistIfNecessary(message, [post])) return;
+
+        responses.push(`<${getPostUrl(post)}>`);
+      }
     }
   }
 

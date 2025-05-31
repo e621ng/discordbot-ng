@@ -34,11 +34,11 @@ export async function getE621User(idOrName: string | number): Promise<E621User |
 }
 
 export async function getE621Post(id: string | number): Promise<E621Post | null> {
-  return (await request(`/posts/${id}`)).post as E621Post;
+  return (await request(`/posts/${id}`))?.post as E621Post ?? null;
 }
 
 export async function getE621PostByMd5(md5: string): Promise<E621Post | null> {
-  return (await request('/posts', { md5 })).post as E621Post;
+  return (await request('/posts', { md5 }))?.post as E621Post ?? null;
 }
 
 export function hasBlacklistedTags(post: E621Post): boolean {
