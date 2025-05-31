@@ -1,5 +1,5 @@
 import { ButtonInteraction, Client} from 'discord.js';
-import { getNoteMessage } from '../utils/note-utils';
+import { getNoteMessage } from '../utils';
 
 export default {
   name: 'note-previous',

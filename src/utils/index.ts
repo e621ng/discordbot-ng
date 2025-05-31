@@ -8,6 +8,7 @@ export * from './message-logger';
 export * from './message-utils';
 export * from './ms-to-human';
 export * from './note-utils';
+export * from './record-utils';
 export * from './refresh-commands';
 export * from './string-utils';
 export * from './ticket-utils';
