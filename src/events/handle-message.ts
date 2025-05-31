@@ -18,6 +18,15 @@ const postRegex_DEV = new RegExp('!?https?://(?:.*@)?localhost:3000/+posts/+([0-
 const imageRegex_DEV = new RegExp('!?https?://(?:.*@)?localhost:3000/+data/+(?:sample/+|preview/+|)[\\da-f]{2}/+[\\da-f]{2}/+([\\da-f]{32})\\.[\\da-z]+', 'gi');
 
 const postIDRegex = new RegExp('post #([0-9]+)', 'gi');
+const userIDRegex = new RegExp('user #([0-9]+)', 'gi');
+const forumTopicIDRegex = new RegExp('topic #([0-9]+)', 'gi');
+const commentIDRegex = new RegExp('comment #([0-9]+)', 'gi');
+const blipIDRegex = new RegExp('blip #([0-9]+)', 'gi');
+const poolIDRegex = new RegExp('pool #([0-9]+)', 'gi');
+const setIDRegex = new RegExp('set #([0-9]+)', 'gi');
+const takedownIDRegex = new RegExp('takedown #([0-9]+)', 'gi');
+const recordIDRegex = new RegExp('record #([0-9]+)', 'gi');
+const ticketIDRegex = new RegExp('ticket #([0-9]+)', 'gi');
 const tagSearchRegex = '(?:[\\S]| )+?';
 const wikiLinkRegex = new RegExp(`\\[\\[(${tagSearchRegex})]]`, 'gi');
 const searchLinkRegex = new RegExp(`{{(${tagSearchRegex})}}`, 'gi');
@@ -28,6 +37,15 @@ const regexTesters = [
   { runInDev: true, regex: postRegex_DEV, handler: postHandler },
   { runInDev: true, regex: imageRegex_DEV, handler: imageHandler },
   { runInDev: true, regex: postIDRegex, handler: postIdHandler },
+  { runInDev: true, regex: userIDRegex, handler: idHandler.bind(null, 'users') },
+  { runInDev: true, regex: forumTopicIDRegex, handler: idHandler.bind(null, 'forum_topics') },
+  { runInDev: true, regex: commentIDRegex, handler: idHandler.bind(null, 'comments') },
+  { runInDev: true, regex: blipIDRegex, handler: idHandler.bind(null, 'blips') },
+  { runInDev: true, regex: poolIDRegex, handler: idHandler.bind(null, 'pools') },
+  { runInDev: true, regex: setIDRegex, handler: idHandler.bind(null, 'post_sets') },
+  { runInDev: true, regex: takedownIDRegex, handler: idHandler.bind(null, 'takedowns') },
+  { runInDev: true, regex: recordIDRegex, handler: idHandler.bind(null, 'user_feedbacks') },
+  { runInDev: true, regex: ticketIDRegex, handler: idHandler.bind(null, 'tickets') },
   { runInDev: true, regex: wikiLinkRegex, handler: wikiPageHandler },
   { runInDev: true, regex: searchLinkRegex, handler: searchHandler }
 ];
@@ -37,6 +55,8 @@ const uniqueRegexMatches = (g, i, a) => a.findIndex(v => v[1] == g[1]) == i;
 export async function handleMessageCreate(message: Message) {
   if (message.author.bot) return;
   if (message.inGuild()) await Database.putMessage(message);
+
+  const responses: string[] = [];
 
   for (const test of regexTesters) {
     if (config.DEV_MODE && !test.runInDev) continue;
@@ -53,8 +73,16 @@ export async function handleMessageCreate(message: Message) {
       }
       test.regex.lastIndex = 0;
 
-      if (!await test.handler(message, matches.filter(uniqueRegexMatches))) return;
+      const response = await test.handler(message, matches.filter(uniqueRegexMatches));
+
+      if (response === false) return;
+
+      if (response !== true) responses.push(response as string);
     }
+  }
+
+  if (responses.length > 0) {
+    await message.reply(responses.join('\n'));
   }
 }
 
@@ -75,6 +103,8 @@ export async function handleMessageUpdate(oldMessage: Message | PartialMessage, 
   }
 
   if (loggedMessage.content == newMessage.content) return;
+
+  const responses: string[] = [];
 
   for (const test of regexTesters) {
     if (config.DEV_MODE && !test.runInDev) continue;
@@ -103,8 +133,18 @@ export async function handleMessageUpdate(oldMessage: Message | PartialMessage, 
         if (!oldMatches.find(m => m[1] == newMatch[1])) properMatches.push(newMatch);
       }
 
-      if (properMatches.length > 0 && !await test.handler(newMessage, properMatches.filter(uniqueRegexMatches))) return;
+      if (properMatches.length == 0) continue;
+
+      const response = await test.handler(newMessage, properMatches.filter(uniqueRegexMatches));
+
+      if (response === false) return;
+
+      if (response !== true) responses.push(response as string);
     }
+  }
+
+  if (responses.length > 0) {
+    await newMessage.reply(responses.join('\n'));
   }
 }
 
@@ -122,26 +162,26 @@ export async function handleBulkMessageDelete(messages: ReadonlyCollection<strin
   }
 }
 
-async function searchHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<boolean> {
+async function searchHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
   let content = '';
 
   for (const group of matchedGroups) {
     content += `<${config.E621_BASE_URL}/posts?tags=${encodeURIComponent(group[1])}>\n`;
   }
 
-  await message.reply(content.trim());
+  if (content.trim().length > 0) return content.trim();
 
   return true;
 }
 
-async function wikiPageHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<boolean> {
+async function wikiPageHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
   let content = '';
 
   for (const group of matchedGroups) {
     content += `<${config.E621_BASE_URL}/wiki_pages/${encodeURIComponent(group[1])}>\n`;
   }
 
-  await message.reply(content.trim());
+  if (content.trim().length > 0) return content.trim();
 
   return true;
 }
@@ -182,7 +222,7 @@ async function blacklistIfNecessary(message: Message, posts: E621Post[]): Promis
   return true;
 }
 
-async function postIdHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<boolean> {
+async function postIdHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
   if (!message.guildId) return true;
 
   const posts: E621Post[] = [];
@@ -200,12 +240,22 @@ async function postIdHandler(message: Message, matchedGroups: RegExpExecArray[])
 
   const content = posts.map(post => getPostUrl(post)).join('\n');
 
-  if (content.length > 0) await message.reply(content);
+  if (content.trim().length > 0) return content.trim();
 
   return true;
 }
 
-async function postHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<boolean> {
+async function idHandler(path: string, message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
+  if (!message.guildId) return true;
+
+  const content = matchedGroups.map(m => `${config.E621_BASE_URL}/${path}/${m[1]}`).join('\n');
+
+  if (content.trim().length > 0) return content.trim();
+
+  return true;
+}
+
+async function postHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
   if (!message.guildId) return true;
 
   const posts: E621Post[] = [];
@@ -224,7 +274,7 @@ async function postHandler(message: Message, matchedGroups: RegExpExecArray[]): 
   return true;
 }
 
-async function imageHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<boolean> {
+async function imageHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
   if (!message.guildId) return true;
 
   const posts: E621Post[] = [];
@@ -242,7 +292,7 @@ async function imageHandler(message: Message, matchedGroups: RegExpExecArray[]):
 
   const content = posts.map(post => getPostUrl(post)).join('\n');
 
-  if (content.length > 0) await message.reply(content);
+  if (content.trim().length > 0) return content.trim();
 
   return true;
 }
