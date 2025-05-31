@@ -9,7 +9,7 @@ export default {
     .setDescription('Change server settings.')
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild)
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .addChannelOption(option =>
       option
         .setName('general-channel')
