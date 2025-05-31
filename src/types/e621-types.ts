@@ -139,3 +139,17 @@ export type BanUpdate = {
   action: 'create' | 'update' | 'delete'
   ban: Ban
 };
+
+export type RecordCategory = 'positive' | 'negative' | 'neutral'
+
+export type Record = {
+  id: number
+  user_id: number
+  creator_id: number
+  created_at: string
+  body: string
+  category: RecordCategory
+  updated_at: string
+  updater_id: number
+  is_deleted: boolean
+}

@@ -31,11 +31,13 @@ const client = new DiscordClient({
 });
 
 const commands: Handler[] = [];
+const contextMenus: Handler[] = [];
 const buttons: Handler[] = [];
 const modals: Handler[] = [];
 const menus: Handler[] = [];
 
 loadHandlersFrom('commands', commands);
+loadHandlersFrom('context-menus', contextMenus);
 loadHandlersFrom('buttons', buttons);
 loadHandlersFrom('modals', modals);
 loadHandlersFrom('menus', menus);
@@ -59,9 +61,17 @@ client.on('interactionCreate', async (interaction) => {
     return;
   }
 
-  if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
-    // Handle chat and context menu commands.
+  if (interaction.isChatInputCommand()) {
+    // Handle chat
     for (const command of commands) {
+      if (interaction.commandName == command.name) {
+        command.handler(client, interaction);
+        return;
+      }
+    }
+  } else if (interaction.isContextMenuCommand()) {
+    // Handle context menu commands.
+    for (const command of contextMenus) {
       if (interaction.commandName == command.name) {
         command.handler(client, interaction);
         return;

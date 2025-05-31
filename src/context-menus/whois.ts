@@ -2,9 +2,9 @@ import { ApplicationIntegrationType, Client, InteractionContextType, PermissionF
 import { channelIsInStaffCategory, handleWhoIsInteraction } from '../utils';
 
 export default {
-  name: 'whois-context',
+  name: 'Whois',
   data: new ContextMenuCommandBuilder()
-    .setName('whois-context')
+    .setName('Whois')
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
