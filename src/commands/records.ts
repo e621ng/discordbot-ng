@@ -1,5 +1,5 @@
 import { ApplicationIntegrationType, BitFieldResolvable, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { channelIsInStaffCategory, handleWhoIsInteraction } from '../utils';
+import { channelIsInStaffCategory, deferInteraction, handleWhoIsInteraction } from '../utils';
 import { getRecordMessageFromDiscordId } from '../utils/record-utils';
 
 export default {
@@ -23,10 +23,7 @@ export default {
         .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    const isStaffChannel = await channelIsInStaffCategory(interaction.channel as GuildBasedChannel);
-
-    if (isStaffChannel) await interaction.deferReply();
-    else await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+    await deferInteraction(interaction);
 
     if (!interaction.guild) return interaction.editReply('This command must be used in a server');
 

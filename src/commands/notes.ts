@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType, ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { channelIsInStaffCategory } from '../utils';
+import { channelIsInStaffCategory, deferInteraction } from '../utils';
 import { getNoteMessage } from '../utils/note-utils';
 
 export default {
@@ -61,10 +61,7 @@ export default {
     const subcommand = interaction.options.getSubcommand(true);
     const user = interaction.options.getUser('user', true);
 
-    const isStaffChannel = await channelIsInStaffCategory(interaction.channel as GuildBasedChannel);
-
-    if (isStaffChannel) await interaction.deferReply();
-    else await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+    await deferInteraction(interaction);
 
     if (subcommand == 'add') {
       const reason = interaction.options.getString('reason', true);

@@ -4,6 +4,7 @@ export * from './audit-log-utils';
 export * from './channel-utils';
 export * from './commands';
 export * from './e621-utils';
+export * from './interaction-utils';
 export * from './message-logger';
 export * from './message-utils';
 export * from './ms-to-human';

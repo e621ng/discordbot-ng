@@ -1,6 +1,6 @@
 import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { channelIsInStaffCategory, getDiscordAlts, getE621User } from '../utils';
+import { channelIsInStaffCategory, deferInteraction, getDiscordAlts, getE621User } from '../utils';
 import { config } from '../config';
 
 export default {
@@ -24,10 +24,7 @@ export default {
         .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    const isStaffChannel = await channelIsInStaffCategory(interaction.channel as GuildBasedChannel);
-
-    if (isStaffChannel) await interaction.deferReply();
-    else await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+    await deferInteraction(interaction);
 
     if (!interaction.guild) return interaction.editReply('This command must be used in a server');
 
