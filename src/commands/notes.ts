@@ -68,17 +68,15 @@ export default {
 
       await Database.putNote(user.id, reason, interaction.user.id);
 
-      if (isStaffChannel) interaction.editReply('Added note.');
-      else interaction.editReply({ content: 'Added note.' });
+      interaction.editReply('Added note.');
     } else if (subcommand == 'remove') {
       const noteId = interaction.options.getInteger('note', true);
 
       if (await Database.removeNote(noteId)) {
-        if (isStaffChannel) interaction.editReply('Removed note.');
-        else interaction.editReply({ content: 'Removed note.' });
+        interaction.editReply('Removed note.');
+
       } else {
-        if (isStaffChannel) interaction.editReply('Note not found.');
-        else interaction.editReply({ content: 'Note not found.' });
+        interaction.editReply('Note not found.');
       }
     } else if (subcommand == 'list') {
       const noteMessage = await getNoteMessage(user.id, 1);
