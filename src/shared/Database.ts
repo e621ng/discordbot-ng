@@ -3,7 +3,7 @@ import { open, Database as SqliteDatabase } from 'sqlite';
 import { config } from '../config';
 import DiscordOAuth2 from 'discord-oauth2';
 import { serializeMessage, wait } from '../utils';
-import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note } from '../types';
+import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban } from '../types';
 import { Message } from '../events';
 
 const DB_SCHEMA = `
@@ -59,6 +59,12 @@ const DB_SCHEMA = `
       reason TEXT,
       mod_id TEXT,
       timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS bans (
+      id INTEGER PRIMARY KEY,
+      user_id TEXT,
+      expires_at datetime
     );
 `;
 
@@ -284,4 +290,24 @@ export class Database {
   }
 
   // -- END NOTES --
+
+  // -- START BANS --
+
+  static async putBan(userId: string, expiresAt: Date) {
+    await Database.db.run('INSERT INTO bans(user_id, expires_at) VALUES (?, ?)', userId, expiresAt);
+  }
+
+  static async getExpiredBans(date: Date): Promise<Ban[]> {
+    return await Database.db.all<Ban[]>('SELECT * from bans WHERE expires_at <= ?', date);
+  }
+
+  static async pruneExpiredBans(date: Date) {
+    await Database.db.all<Ban[]>('DELETE from bans WHERE expires_at <= ?', date);
+  }
+
+  static async removeBan(userId: string) {
+    await Database.db.run('DELETE from bans WHERE user_id = ?', userId);
+  }
+
+  // -- END BANS --
 }

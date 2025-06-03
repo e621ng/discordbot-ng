@@ -1,4 +1,5 @@
 export * from './handle-audit-log-create';
+export * from './handle-ban-remove';
 export * from './handle-guild-create';
 export * from './handle-member-join';
 export * from './handle-message';

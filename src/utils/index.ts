@@ -1,6 +1,7 @@
 export * from './alt-utils';
 export * from './array-utils';
 export * from './audit-log-utils';
+export * from './ban-utils';
 export * from './channel-utils';
 export * from './commands';
 export * from './e621-utils';

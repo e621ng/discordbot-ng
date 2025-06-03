@@ -39,3 +39,9 @@ export type Note = {
   mod_id: string
   timestamp: string
 }
+
+export type Ban = {
+  id: number
+  user_id: string
+  expires_at: string
+}

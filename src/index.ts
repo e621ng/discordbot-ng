@@ -2,11 +2,11 @@ import 'source-map-support/register';
 import { Client as DiscordClient, GatewayIntentBits, Guild, MessageFlags, Partials } from 'discord.js';
 import { config } from './config';
 import { Handler } from './types';
-import { initIfNecessary, loadHandlersFrom, refreshCommands } from './utils';
+import { checkExpiredBans, initIfNecessary, loadHandlersFrom, refreshCommands } from './utils';
 import { initializeDiscordJoiner } from './discord-joiner';
 import { Database } from './shared/Database';
-import { handleAuditLogCreate, handleBulkMessageDelete, handleGuildCreate, handleMemberJoin, handleMessageCreate, handleMessageDelete, handleMessageUpdate, handleThreadCreate, handleVoiceStateUpdate } from './events';
-import { ticketCooldownMap } from './shared/ticket-cooldown';
+import { handleAuditLogCreate, handleBanRemove, handleBulkMessageDelete, handleGuildCreate, handleMemberJoin, handleMessageCreate, handleMessageDelete, handleMessageUpdate, handleThreadCreate, handleVoiceStateUpdate } from './events';
+import { pruneOldTickets, ticketCooldownMap } from './shared/ticket-cooldown';
 import { openRedisClient } from './shared/RedisClient';
 
 let ready = false;
@@ -138,13 +138,11 @@ client.on('ready', async () => {
   await initializeDiscordJoiner();
 
   // Prune ticket cooldowns that are expired every day
-  setInterval(() => {
-    const keys = Array.from(ticketCooldownMap.keys());
-    for (const key of keys) {
-      if (Date.now() >= ticketCooldownMap.get(key)!)
-        ticketCooldownMap.delete(key);
-    }
-  }, 8.64e+7);
+  setInterval(pruneOldTickets, 8.64e+7);
+
+  // Check for expired bans every 5 minutes
+  checkExpiredBans(client);
+  setInterval(checkExpiredBans.bind(null, client), 300000);
 
   ready = true;
 
@@ -152,6 +150,7 @@ client.on('ready', async () => {
 });
 
 client.on('guildAuditLogEntryCreate', handleAuditLogCreate);
+client.on('guildBanRemove', handleBanRemove);
 client.on('guildCreate', handleGuildCreate);
 client.on('guildMemberAdd', handleMemberJoin);
 client.on('messageCreate', handleMessageCreate);
