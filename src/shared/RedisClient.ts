@@ -2,7 +2,7 @@ import { createClient } from '@redis/client';
 import { Database } from './Database';
 import { config } from '../config';
 import { APIEmbedField, Client, EmbedAuthorOptions, EmbedBuilder, SendableChannels, TextBasedChannel } from 'discord.js';
-import { blipIDRegex, commentIDRegex, forumTopicIDRegex, humanizeCapitalization, poolIDRegex, postIDRegex, shouldAlert, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
+import { blipIDRegex, commentIDRegex, forumTopicIDRegex, humanizeCapitalization, poolIDRegex, postIDRegex, shouldAlert, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex, getE621Post, hasBlacklistedTags } from '../utils';
 import { BanUpdate, Ticket, TicketPhrase, TicketUpdate } from '../types';
 
 // TODO: Condense this and the message event handler regex array.
@@ -29,6 +29,13 @@ const linkReplacers = [
   },
   {
     regex: postIDRegex,
+    tester: async (postId: string, before: string, after: string) => {
+      const post = await getE621Post(postId);
+      if (!post) return { allowed: true, before, after };
+      const allowed = !hasBlacklistedTags(post);
+
+      return { allowed, before, after };
+    },
     replacement: '/posts/{match}',
     encodeURI: false
   },
@@ -182,19 +189,29 @@ function getURL(ticket: Ticket): string {
   return `${config.E621_BASE_URL}/tickets/${ticket.id}`;
 }
 
-function getLinks(input: string, limit: number = Number.MAX_SAFE_INTEGER): string {
+async function getLinks(input: string, limit: number = Number.MAX_SAFE_INTEGER): Promise<string> {
   const length = input.length;
 
   const replacedIndexes: { start: number, end: number }[] = [];
+  const checks: Promise<{ allowed: boolean, before: string, after: string }>[] = [];
 
   for (const replacer of linkReplacers) {
     input = input.replaceAll(replacer.regex, (match, group1) => {
       const replaced = `[${match}](${config.E621_BASE_URL}${(replacer.replacement).replace('{match}', replacer.encodeURI ? encodeURIComponent(group1) : group1)})`;
+      if (replacer.tester) checks.push(replacer.tester(group1, match, replaced));
       const start = input.indexOf(match);
       replacedIndexes.push({ start, end: start + replaced.length });
 
       return replaced;
     });
+  }
+
+  const values = await Promise.all(checks);
+
+  for (const check of values) {
+    if (!check.allowed) {
+      input = input.replace(check.after, check.before);
+    }
   }
 
   if (length > limit) {
@@ -210,8 +227,8 @@ function getLinks(input: string, limit: number = Number.MAX_SAFE_INTEGER): strin
   return input;
 }
 
-function getDescription(ticket: Ticket): string {
-  return ticket.reason.length <= MAX_DESCRIPTION_LENGTH ? getLinks(ticket.reason) : getLinks(ticket.reason, MAX_DESCRIPTION_LENGTH);
+async function getDescription(ticket: Ticket): Promise<string> {
+  return ticket.reason.length <= MAX_DESCRIPTION_LENGTH ? await getLinks(ticket.reason) : await getLinks(ticket.reason, MAX_DESCRIPTION_LENGTH);
 }
 
 function getAuthor(ticket: Ticket): EmbedAuthorOptions {
@@ -249,11 +266,11 @@ function getFields(ticket: Ticket): APIEmbedField[] {
   ];
 }
 
-function createEmbedFromTicket(ticket: Ticket): EmbedBuilder {
+async function createEmbedFromTicket(ticket: Ticket): Promise<EmbedBuilder> {
   return new EmbedBuilder()
     .setTitle(getTitle(ticket))
     .setURL(getURL(ticket))
-    .setDescription(getDescription(ticket))
+    .setDescription(await getDescription(ticket))
     .setAuthor(getAuthor(ticket))
     .setColor(getColor(ticket))
     .setFields(...getFields(ticket));
@@ -270,7 +287,7 @@ async function postTicket(data: TicketUpdate) {
 
   const ticket = data.ticket;
 
-  const embed = createEmbedFromTicket(ticket);
+  const embed = await createEmbedFromTicket(ticket);
 
   const message = await channel.send({ embeds: [embed] });
 
@@ -290,10 +307,10 @@ async function updateTicket(data: TicketUpdate) {
 
   const messageId = await Database.getTicketMessageId(data.ticket.id);
 
-  if (!messageId) return;
+  if (!messageId) return postTicket(data);
 
   const message = await channel.messages.fetch(messageId);
-  const embed = createEmbedFromTicket(data.ticket);
+  const embed = await createEmbedFromTicket(data.ticket);
 
   if (!message) {
     const newMessage = await channel.send({ embeds: [embed] });
