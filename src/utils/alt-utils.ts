@@ -46,7 +46,7 @@ export async function getDiscordAlts(e621Id: number, guild: Guild, depth = 1, ig
       banned = !!(await guild.bans.fetch(discordId));
     } catch (e) { }
 
-    if (alts || banned) content += `${'- '.repeat(depth)}<@${discordId}>${banned ? ' [BANNED]' : ''}\n${alts}`;
+    content += `${'- '.repeat(depth)}<@${discordId}>${banned ? ' [BANNED]' : ''}\n${alts}`;
   }
 
   return content;
