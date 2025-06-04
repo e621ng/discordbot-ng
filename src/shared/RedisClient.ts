@@ -315,8 +315,9 @@ async function updateTicket(data: TicketUpdate) {
   const message = await channel.messages.fetch(messageId);
   const embed = await createEmbedFromTicket(data.ticket);
 
-  if (!message) {
+  if (!message || message.author.id != config.DISCORD_CLIENT_ID) {
     const newMessage = await channel.send({ embeds: [embed] });
+    await Database.removeTicket(data.ticket.id);
     await Database.putTicket(data.ticket.id, newMessage.id);
   } else {
     await message.edit({ embeds: [embed] });

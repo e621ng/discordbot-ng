@@ -242,6 +242,10 @@ export class Database {
     await Database.db.run('INSERT INTO tickets(id, message_id) VALUES (?, ?)', ticketId, messageId);
   }
 
+  static async removeTicket(ticketId: number) {
+    await Database.db.run('DELETE from tickets WHERE id = ?', ticketId);
+  }
+
   static async getTicketMessageId(ticketId: number): Promise<string | undefined> {
     const ticket = await Database.db.get<Pick<TicketMessage, 'message_id'>>('SELECT message_id FROM tickets WHERE id = ?', ticketId);
     return ticket?.message_id;
