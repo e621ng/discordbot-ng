@@ -36,9 +36,9 @@ async function sendMovedMessage(channel: GuildTextBasedChannel, member: GuildMem
 async function getVoiceLogsChannel(guild: Guild): Promise<GuildTextBasedChannel | undefined> {
   const settings = await Database.getGuildSettings(guild.id);
 
-  if (!settings || !settings.event_logs_channel_id) return;
+  if (!settings || !settings.voice_logs_channel_id) return;
 
-  const channel = await guild.channels.fetch(settings.event_logs_channel_id);
+  const channel = await guild.channels.fetch(settings.voice_logs_channel_id);
 
   if (!channel || !channel.isSendable()) return;
 
