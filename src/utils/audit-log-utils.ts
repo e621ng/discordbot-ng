@@ -173,5 +173,5 @@ function formatPermissionChange(oldPermissions: PermissionsString[], newPermissi
 }
 
 function formatMessagePin(data: PinExtras, guild: Guild): string {
-  return `Message: https://discord.com/${guild.id}/${data.channel.id}/${data.messageId}`;
+  return `Message: [${data.messageId}](https://discord.com/${guild.id}/${data.channel.id}/${data.messageId})`;
 }
