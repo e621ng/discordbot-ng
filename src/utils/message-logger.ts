@@ -65,7 +65,7 @@ function getMainEmbeds(loggedMessage: LoggedMessage, newMessage: Message<true>):
     },
     {
       name: 'Message',
-      value: newMessage.toString(),
+      value: `[${newMessage.id}](${newMessage.url})`,
       inline: true
     },
   ];
