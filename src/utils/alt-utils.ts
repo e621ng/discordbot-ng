@@ -25,7 +25,7 @@ export async function getE621Alts(discordId: string, guild: Guild, depth = 1, ig
 
     const banned = await userIsBanned(e621Id);
 
-    content += `${'- '.repeat(depth)}${config.E621_BASE_URL}/users/${e621Id}${banned ? ' [BANNED]' : ''}\n${alts}`;
+    content += `${' '.repeat((depth - 1) * 2)}- ${config.E621_BASE_URL}/users/${e621Id}${banned ? ' [BANNED]' : ''}\n${alts}`;
   }
 
   return content;
@@ -46,7 +46,7 @@ export async function getDiscordAlts(e621Id: number, guild: Guild, depth = 1, ig
       banned = !!(await guild.bans.fetch(discordId));
     } catch (e) { }
 
-    content += `${'- '.repeat(depth)}<@${discordId}>${banned ? ' [BANNED]' : ''}\n${alts}`;
+    content += `${' '.repeat((depth - 1) * 2)}- <@${discordId}>${banned ? ' [BANNED]' : ''}\n${alts}`;
   }
 
   return content;
