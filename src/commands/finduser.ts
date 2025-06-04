@@ -13,30 +13,19 @@ export default {
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .addStringOption(option =>
       option
-        .setName('username')
-        .setDescription('The e621 username to find the discord user of.')
-        .setRequired(false)
-    )
-    .addStringOption(option =>
-      option
-        .setName('id')
-        .setDescription('The e621 user id to find the discord user of.')
-        .setRequired(false)
+        .setName('user')
+        .setDescription('The e621 username or e621 id to find the discord user of.')
+        .setRequired(true)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await deferInteraction(interaction);
 
     if (!interaction.guild) return interaction.editReply('This command must be used in a server');
 
-    const username = interaction.options.getString('username');
-    const id = interaction.options.getString('id');
-
-    if (!username && !id) {
-      return interaction.editReply({ content: 'No username or id given.' });
-    }
+    const user = interaction.options.getString('user', true);
 
     try {
-      const e621User = await getE621User((id ?? username) as string);
+      const e621User = await getE621User(user);
 
       if (!e621User) {
         return interaction.editReply('I got lost along the way. Who again?');
