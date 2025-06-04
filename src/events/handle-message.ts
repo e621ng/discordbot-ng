@@ -293,7 +293,7 @@ async function imageHandler(message: Message, matchedGroups: RegExpExecArray[]):
 
   if (await blacklistIfNecessary(message, posts)) return false;
 
-  const content = posts.map(post => getPostUrl(post)).join('\n');
+  const content = posts.map(post => `<${getPostUrl(post)}>`).join('\n');
 
   if (content.trim().length > 0) return content.trim();
 
