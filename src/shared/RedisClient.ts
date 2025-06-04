@@ -82,7 +82,10 @@ let discordClient: Client;
 
 export async function openRedisClient(url: string, discClient: Client) {
   const client = await createClient({
-    url: `redis://${url}`
+    url: `redis://${url}`,
+    socket: {
+      reconnectStrategy: 60000
+    }
   });
 
   await client.connect();
