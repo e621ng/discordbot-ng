@@ -51,8 +51,8 @@ export function hasBlacklistedTags(post: E621Post): boolean {
 }
 
 export function getPostUrl(post: E621Post): string {
-  if (post.rating == 's') return `${config.E926_BASE_URL}/post/${post.id}`;
-  return `${config.E621_BASE_URL}/post/${post.id}`;
+  if (post.rating == 's') return `${config.E926_BASE_URL}/posts/${post.id}`;
+  return `${config.E621_BASE_URL}/posts/${post.id}`;
 }
 
 export async function userIsBanned(idOrName: string | number): Promise<boolean> {
