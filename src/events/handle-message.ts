@@ -5,7 +5,7 @@ import { getE621Post, getE621PostByMd5, getPostUrl, hasBlacklistedTags } from '.
 import { Database } from '../shared/Database';
 import { logDeletion, logEdit } from '../utils/message-logger';
 import { isEdited } from '../utils/message-utils';
-import { channelIsInStaffCategory } from '../utils';
+import { blipIDRegex, channelIsInStaffCategory, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
 
 export type Message<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<DiscordMessage<InGuild>>;
 export type Partial = OmitPartialGroupDMChannel<PartialMessage>;
@@ -18,20 +18,6 @@ const postRegex_DEV = new RegExp('!?https?://(?:.*@)?localhost:3000/+posts/+([0-
 const imageRegex_DEV = new RegExp('!?https?://(?:.*@)?localhost:3000/+data/+(?:sample/+|preview/+|)[\\da-f]{2}/+[\\da-f]{2}/+([\\da-f]{32})\\.[\\da-z]+', 'gi');
 
 const md5Regex = new RegExp('^([a-f0-9]{32}).(?:png|apng|jpg|jpeg|gif|webm|mp4)$', 'gi');
-
-const postIDRegex = new RegExp('post #([0-9]+)', 'gi');
-const userIDRegex = new RegExp('user #([0-9]+)', 'gi');
-const forumTopicIDRegex = new RegExp('topic #([0-9]+)', 'gi');
-const commentIDRegex = new RegExp('comment #([0-9]+)', 'gi');
-const blipIDRegex = new RegExp('blip #([0-9]+)', 'gi');
-const poolIDRegex = new RegExp('pool #([0-9]+)', 'gi');
-const setIDRegex = new RegExp('set #([0-9]+)', 'gi');
-const takedownIDRegex = new RegExp('takedown #([0-9]+)', 'gi');
-const recordIDRegex = new RegExp('record #([0-9]+)', 'gi');
-const ticketIDRegex = new RegExp('ticket #([0-9]+)', 'gi');
-const tagSearchRegex = '(?:[\\S]| )+?';
-const wikiLinkRegex = new RegExp(`\\[\\[(${tagSearchRegex})]]`, 'gi');
-const searchLinkRegex = new RegExp(`{{(${tagSearchRegex})}}`, 'gi');
 
 const regexTesters = [
   { runInDev: false, regex: postRegex, handler: postHandler },

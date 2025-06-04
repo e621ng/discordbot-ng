@@ -12,6 +12,7 @@ export * from './ms-to-human';
 export * from './note-utils';
 export * from './record-utils';
 export * from './refresh-commands';
+export * from './search-regex';
 export * from './string-utils';
 export * from './ticket-utils';
 export * from './wait';
