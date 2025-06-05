@@ -8,6 +8,18 @@ export type RoleChangeLog = {
   new?: Pick<APIRole, 'id' | 'name'>[]
 }
 
+type ApplicationCommandPermission = {
+  type: 1 | 2 | 3,
+  permission: boolean,
+  id: string
+}
+
+export type ApplicationCommandPermissionChangeLog = {
+  key: sting,
+  old?: ApplicationCommandPermission,
+  new?: ApplicationCommandPermission
+}
+
 export type TimeoutChangeLog = {
   key: 'communication_disabled_until',
   old?: string,

@@ -1,5 +1,5 @@
 import { AuditLogChange, AuditLogEvent, AuditLogOptionsType, GuildAuditLogsEntry, APIRole, time, TimestampStyles, PermissionsBitField, PermissionsString, Guild } from 'discord.js';
-import { PermissionsChangeLog, PinExtras, RoleChangeLog, TimeoutChangeLog } from '../types';
+import { ApplicationCommandPermissionChangeLog, PermissionsChangeLog, PinExtras, RoleChangeLog, TimeoutChangeLog } from '../types';
 import { getArrayDifference } from './array-utils';
 
 export const enum TargetType {
@@ -55,7 +55,7 @@ export function formatSnowflake(snowflake: string, targetType: TargetType): stri
 }
 
 export function formatChanges(entry: GuildAuditLogsEntry): string {
-  return entry.changes.map(c => formatChange(c)).filter(e => e).join('\n');
+  return entry.changes.map(c => formatChange(c, entry)).filter(e => e).join('\n');
 }
 
 export function formatExtras(entry: GuildAuditLogsEntry, guild: Guild): string {
@@ -90,7 +90,11 @@ export function formatExtras(entry: GuildAuditLogsEntry, guild: Guild): string {
   return '';
 }
 
-function formatChange(change: AuditLogChange): string | undefined {
+function formatChange(change: AuditLogChange, entry: GuildAuditLogsEntry): string | undefined {
+  if (entry.action == AuditLogEvent.ApplicationCommandPermissionUpdate) {
+    return formatApplicationPermissionsUpdate(change as ApplicationCommandPermissionChangeLog);
+  }
+
   switch (change.key) {
     case '$add':
     case '$remove':
@@ -112,6 +116,16 @@ function formatChange(change: AuditLogChange): string | undefined {
     return `Set ${change.key} with value ${change.old} to default/null`;
 
   return `Set ${change.key} from ${change.old} to ${change.new}`;
+}
+
+function formatApplicationPermissionsUpdate(change: ApplicationCommandPermissionChangeLog): string | undefined {
+  if (change.new !== undefined && change.old === undefined)
+    return `${change.new.permission ? 'Allowed' : 'Denied'} access ${change.new.type == 3 ? 'in' : (change.new.permission ? 'to' : 'from')} ${formatSnowflake(change.new.id, change.new.type)} for command: ${change.key}`;
+
+  if (change.new === undefined && change.old !== undefined)
+    return `Removed permission overrides from ${formatSnowflake(change.old.id, change.old.type)} for command: ${change.key}`;
+
+  return `Updated permission overrides ${change.new!.type == 3 ? 'in' : 'for'} ${formatSnowflake(change.new!.id, change.new!.type)}: ${change.new!.permission ? 'allowed access to' : 'revoked access to'} command: ${change.key}`;
 }
 
 function formatMemberRoleChange(change: RoleChangeLog): string | undefined {
