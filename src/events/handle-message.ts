@@ -1,7 +1,7 @@
-import { AllowedMentionsTypes, Message as DiscordMessage, GuildBasedChannel, GuildTextBasedChannel, OmitPartialGroupDMChannel, PartialMessage, ReadonlyCollection } from 'discord.js';
+import { AllowedMentionsTypes, Message as DiscordMessage, GuildBasedChannel, GuildTextBasedChannel, OmitPartialGroupDMChannel, PartialMessage, ReadonlyCollection, spoiler } from 'discord.js';
 import { config } from '../config';
 import { E621Post } from '../types';
-import { getE621Post, getE621PostByMd5, getPostUrl, hasBlacklistedTags } from '../utils/e621-utils';
+import { getE621Post, getE621PostByMd5, getPostUrl, PostAction, spoilerOrBlacklist } from '../utils/e621-utils';
 import { Database } from '../shared/Database';
 import { logDeletion, logEdit } from '../utils/message-logger';
 import { isEdited } from '../utils/message-utils';
@@ -205,7 +205,7 @@ async function blacklistIfNecessary(message: Message, posts: E621Post[]): Promis
   const isStaffChannel = await channelIsInStaffCategory(channel);
 
   for (const post of posts) {
-    if (hasBlacklistedTags(post)) {
+    if (spoilerOrBlacklist(post).action == PostAction.Blacklist) {
       blacklistedIds.push(post.id);
     }
   }
@@ -256,8 +256,9 @@ async function postIdHandler(message: Message, matchedGroups: RegExpExecArray[])
   const sfw = await channelIsSafe(message.channel as GuildBasedChannel);
 
   const content = posts.map((post) => {
+    const shouldSpoiler = spoilerOrBlacklist(post);
     if (sfw && post.rating != 's') return ` [NSFW] <${getPostUrl(post)}>`;
-    return getPostUrl(post);
+    return shouldSpoiler.action == PostAction.Spoiler ? `${spoiler(getPostUrl(post))} (${shouldSpoiler.tag})` : getPostUrl(post);
   }).join('\n');
 
   if (content.trim().length > 0) return content.trim();

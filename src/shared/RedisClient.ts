@@ -2,7 +2,7 @@ import { createClient } from '@redis/client';
 import { Database } from './Database';
 import { config } from '../config';
 import { APIEmbedField, Client, EmbedAuthorOptions, EmbedBuilder, SendableChannels, TextBasedChannel } from 'discord.js';
-import { blipIDRegex, commentIDRegex, forumTopicIDRegex, humanizeCapitalization, poolIDRegex, postIDRegex, shouldAlert, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex, getE621Post, hasBlacklistedTags } from '../utils';
+import { blipIDRegex, commentIDRegex, forumTopicIDRegex, humanizeCapitalization, poolIDRegex, postIDRegex, shouldAlert, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex, getE621Post, spoilerOrBlacklist, PostAction } from '../utils';
 import { BanUpdate, Ticket, TicketPhrase, TicketUpdate } from '../types';
 
 // TODO: Condense this and the message event handler regex array.
@@ -32,7 +32,7 @@ const linkReplacers = [
     tester: async (postId: string, before: string, after: string) => {
       const post = await getE621Post(postId);
       if (!post) return { allowed: true, before, after };
-      const allowed = !hasBlacklistedTags(post);
+      const allowed = spoilerOrBlacklist(post).action != PostAction.Blacklist;
 
       return { allowed, before, after };
     },

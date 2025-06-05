@@ -6,6 +6,9 @@ import { Database } from '../shared/Database';
 const BLACKLISTED_TAGS: string[] = [];
 const BLACKLISTED_NONSAFE_TAGS: string[] = ['young'];
 
+const SPOILERED_TAGS: string[] = ['gore', 'scat', 'watersports'];
+const SPOILERED_NONSAFE_TAGS: string[] = [];
+
 const USER_AGENT = 'E621DiscordBot';
 
 async function request(path: string, query?: { [name: string]: string }): Promise<any> {
@@ -41,13 +44,26 @@ export async function getE621PostByMd5(md5: string): Promise<E621Post | null> {
   return (await request('/posts', { md5 }))?.post as E621Post ?? null;
 }
 
-export function hasBlacklistedTags(post: E621Post): boolean {
-  for (const tags of Object.values(post.tags)) {
-    if (tags.some(t => BLACKLISTED_TAGS.includes(t))) return true;
-    if (post.rating != 's' && tags.some(t => BLACKLISTED_NONSAFE_TAGS.includes(t))) return true;
+export const enum PostAction {
+  NoAction = 0,
+  Spoiler = 1,
+  Blacklist = 2
+}
+
+export function spoilerOrBlacklist(post: E621Post): { action: PostAction, tag: string } {
+  const tags = Object.values(post.tags).flat();
+
+  for (const tag of tags) {
+    if (BLACKLISTED_TAGS.includes(tag)) return { action: PostAction.Blacklist, tag };
+    if (post.rating != 's' && BLACKLISTED_NONSAFE_TAGS.includes(tag)) return { action: PostAction.Blacklist, tag };
   }
 
-  return false;
+  for (const tag of tags) {
+    if (SPOILERED_TAGS.includes(tag)) return { action: PostAction.Spoiler, tag };
+    if (post.rating != 's' && SPOILERED_NONSAFE_TAGS.includes(tag)) return { action: PostAction.Spoiler, tag };
+  }
+
+  return { action: PostAction.NoAction, tag: '' };
 }
 
 export function getPostUrl(post: E621Post): string {
