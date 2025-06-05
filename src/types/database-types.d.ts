@@ -19,7 +19,11 @@ export type GuildSettings = {
   admin_role_id?: string
   private_help_role_id?: string
   staff_categories?: string
+  safe_channels?: string
+  link_skip_channels?: string
 }
+
+export type GuildArraySetting = 'staff_categories' | 'safe_channels' | 'link_skip_channels';
 
 export type TicketMessage = {
   id: number

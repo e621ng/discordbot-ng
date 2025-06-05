@@ -3,7 +3,7 @@ import { open, Database as SqliteDatabase } from 'sqlite';
 import { config } from '../config';
 import DiscordOAuth2 from 'discord-oauth2';
 import { serializeMessage, wait } from '../utils';
-import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban } from '../types';
+import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting } from '../types';
 import { Message } from '../events';
 
 const DB_SCHEMA = `
@@ -25,7 +25,9 @@ const DB_SCHEMA = `
         voice_logs_channel_id TEXT,
         admin_role_id TEXT,
         private_help_role_id TEXT,
-        staff_categories TEXT
+        staff_categories TEXT,
+        safe_channels TEXT,
+        link_skip_channels TEXT
     );
 
     CREATE TABLE IF NOT EXISTS messages (
@@ -165,35 +167,37 @@ export class Database {
     await Database.db.run('UPDATE settings SET private_help_role_id = ? WHERE guild_id = ?', id, guildId);
   }
 
-  static async getGuildStaffCategories(guildId: string): Promise<string[]> {
-    const settings = await Database.db.get<{ staff_categories: string }>('SELECT staff_categories FROM settings WHERE guild_id = ?', guildId);
+  // Since "setting" has guaranteed values and is never set by the user, this shouldn't cause any security issues.
+  // But it does allow me to skip rewriting this a bunch.
+  static async getGuildArraySetting(setting: GuildArraySetting, guildId: string): Promise<string[]> {
+    const settings = await Database.db.get<{ [setting]: string }>(`SELECT ${setting} FROM settings WHERE guild_id = ?`, guildId);
 
-    if (!settings || !settings.staff_categories) return [];
+    if (!settings || !settings[setting]) return [];
 
-    return settings.staff_categories.split(',');
+    return settings[setting].split(',');
   }
 
-  static async putGuildStaffCategory(guildId: string, categoryId: string) {
-    const categories = await Database.getGuildStaffCategories(guildId);
+  static async putGuildArraySetting(setting: GuildArraySetting, guildId: string, value: string) {
+    const values = await Database.getGuildArraySetting(setting, guildId);
 
-    categories.push(categoryId);
+    if (values.indexOf(value) == -1) values.push(value);
 
-    const newString = categories.join(',');
+    const newString = values.join(',');
 
-    await Database.db.run('UPDATE settings SET staff_categories = ? WHERE guild_id = ?', newString, guildId);
+    await Database.db.run(`UPDATE settings SET ${setting} = ? WHERE guild_id = ?`, newString, guildId);
   }
 
-  static async removeGuildStaffCategory(guildId: string, categoryId: string): Promise<boolean> {
-    const categories = await Database.getGuildStaffCategories(guildId);
+  static async removeGuildArraySetting(setting: GuildArraySetting, guildId: string, value: string): Promise<boolean> {
+    const values = await Database.getGuildArraySetting(setting, guildId);
 
-    const index = categories.indexOf(categoryId);
+    const index = values.indexOf(value);
     if (index == -1) return false;
 
-    categories.splice(index, 1);
+    values.splice(index, 1);
 
-    const newString = categories.join(',');
+    const newString = values.join(',');
 
-    await Database.db.run('UPDATE settings SET staff_categories = ? WHERE guild_id = ?', newString, guildId);
+    await Database.db.run(`UPDATE settings SET ${setting} = ? WHERE guild_id = ?`, newString, guildId);
 
     return true;
   }

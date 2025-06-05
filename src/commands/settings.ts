@@ -69,6 +69,30 @@ export default {
         .setName('remove-staff-category')
         .setDescription('Remove a category from staff categories.')
         .setRequired(false)
+    )
+    .addChannelOption(option =>
+      option
+        .setName('add-safe-channel')
+        .setDescription('Add a SFW channel.')
+        .setRequired(false)
+    )
+    .addChannelOption(option =>
+      option
+        .setName('remove-safe-channel')
+        .setDescription('Remove a SFW channel.')
+        .setRequired(false)
+    )
+    .addChannelOption(option =>
+      option
+        .setName('add-link-skip-channel')
+        .setDescription('Add a link skip channel.')
+        .setRequired(false)
+    )
+    .addChannelOption(option =>
+      option
+        .setName('remove-link-skip-channel')
+        .setDescription('Remove a link skip channel.')
+        .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
@@ -148,7 +172,7 @@ export default {
     const addCategory = interaction.options.getChannel('add-staff-category');
     if (addCategory) {
       if (addCategory.type == ChannelType.GuildCategory) {
-        await Database.putGuildStaffCategory(interaction.guildId!, addCategory.id);
+        await Database.putGuildArraySetting('staff_categories', interaction.guildId!, addCategory.id);
 
         response += `Added ${addCategory.toString()} as a staff category.\n`;
       } else {
@@ -159,13 +183,61 @@ export default {
     const removeCategory = interaction.options.getChannel('remove-staff-category');
     if (removeCategory) {
       if (removeCategory.type == ChannelType.GuildCategory) {
-        if (await Database.removeGuildStaffCategory(interaction.guildId!, removeCategory.id)) {
+        if (await Database.removeGuildArraySetting('staff_categories', interaction.guildId!, removeCategory.id)) {
           response += `Removed ${removeCategory.toString()} as a staff category\n`;
         } else {
           response += `Error removing staff category: ${removeCategory.toString()} isn't a staff category.`;
         }
       } else {
         response += `Error removing staff category: ${removeCategory.toString()} isn't a category.`;
+      }
+    }
+
+    const addSafeChannel = interaction.options.getChannel('add-safe-channel');
+    if (addSafeChannel) {
+      if (addSafeChannel.type == ChannelType.GuildText) {
+        await Database.putGuildArraySetting('safe_channels', interaction.guildId!, addSafeChannel.id);
+
+        response += `Added ${addSafeChannel.toString()} as a SFW cannel.\n`;
+      } else {
+        response += `Error adding SFW channel: ${addSafeChannel.toString()} isn't a text channel.`;
+      }
+    }
+
+    const removeSafeChannel = interaction.options.getChannel('remove-safe-channel');
+    if (removeSafeChannel) {
+      if (removeSafeChannel.type == ChannelType.GuildText) {
+        if (await Database.removeGuildArraySetting('safe_channels', interaction.guildId!, removeSafeChannel.id)) {
+          response += `Removed ${removeSafeChannel.toString()} as a safe channel\n`;
+        } else {
+          response += `Error removing safe channel: ${removeSafeChannel.toString()} isn't a safe channel.`;
+        }
+      } else {
+        response += `Error removing safe channel: ${removeSafeChannel.toString()} isn't a text channel.`;
+      }
+    }
+
+    const addLinkSkipChannel = interaction.options.getChannel('add-link-skip-channel');
+    if (addLinkSkipChannel) {
+      if (addLinkSkipChannel.type == ChannelType.GuildText) {
+        await Database.putGuildArraySetting('link_skip_channels', interaction.guildId!, addLinkSkipChannel.id);
+
+        response += `Added ${addLinkSkipChannel.toString()} as a link skip channel.\n`;
+      } else {
+        response += `Error adding link skip channel: ${addLinkSkipChannel.toString()} isn't a text channel.`;
+      }
+    }
+
+    const removeLinkSkipChannel = interaction.options.getChannel('remove-link-skip-channel');
+    if (removeLinkSkipChannel) {
+      if (removeLinkSkipChannel.type == ChannelType.GuildText) {
+        if (await Database.removeGuildArraySetting('link_skip_channels', interaction.guildId!, removeLinkSkipChannel.id)) {
+          response += `Removed ${removeLinkSkipChannel.toString()} as a staff category\n`;
+        } else {
+          response += `Error removing link skip channel: ${removeLinkSkipChannel.toString()} isn't a link skip channel.`;
+        }
+      } else {
+        response += `Error removing link skip channel: ${removeLinkSkipChannel.toString()} isn't a text channel.`;
       }
     }
 

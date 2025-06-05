@@ -1,11 +1,11 @@
-import { AllowedMentionsTypes, Message as DiscordMessage, GuildTextBasedChannel, OmitPartialGroupDMChannel, PartialMessage, ReadonlyCollection } from 'discord.js';
+import { AllowedMentionsTypes, Message as DiscordMessage, GuildBasedChannel, GuildTextBasedChannel, OmitPartialGroupDMChannel, PartialMessage, ReadonlyCollection } from 'discord.js';
 import { config } from '../config';
 import { E621Post } from '../types';
 import { getE621Post, getE621PostByMd5, getPostUrl, hasBlacklistedTags } from '../utils/e621-utils';
 import { Database } from '../shared/Database';
 import { logDeletion, logEdit } from '../utils/message-logger';
 import { isEdited } from '../utils/message-utils';
-import { blipIDRegex, channelIsInStaffCategory, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
+import { blipIDRegex, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
 
 export type Message<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<DiscordMessage<InGuild>>;
 export type Partial = OmitPartialGroupDMChannel<PartialMessage>;
@@ -166,6 +166,10 @@ export async function handleBulkMessageDelete(messages: ReadonlyCollection<strin
 }
 
 async function searchHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
+  const skip = await channelIgnoresLinks(message.channel as GuildBasedChannel);
+
+  if (skip) return true;
+
   let content = '';
 
   for (const group of matchedGroups) {
@@ -178,6 +182,10 @@ async function searchHandler(message: Message, matchedGroups: RegExpExecArray[])
 }
 
 async function wikiPageHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
+  const skip = await channelIgnoresLinks(message.channel as GuildBasedChannel);
+
+  if (skip) return true;
+
   let content = '';
 
   for (const group of matchedGroups) {
@@ -241,7 +249,16 @@ async function postIdHandler(message: Message, matchedGroups: RegExpExecArray[])
 
   if (await blacklistIfNecessary(message, posts)) return false;
 
-  const content = posts.map(post => getPostUrl(post)).join('\n');
+  const skip = await channelIgnoresLinks(message.channel as GuildBasedChannel);
+
+  if (skip) return true;
+
+  const sfw = await channelIsSafe(message.channel as GuildBasedChannel);
+
+  const content = posts.map((post) => {
+    if (sfw && post.rating != 's') return ` [NSFW] <${getPostUrl(post)}>`;
+    return getPostUrl(post);
+  }).join('\n');
 
   if (content.trim().length > 0) return content.trim();
 
@@ -250,6 +267,10 @@ async function postIdHandler(message: Message, matchedGroups: RegExpExecArray[])
 
 async function idHandler(path: string, message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
   if (!message.guildId) return true;
+
+  const skip = await channelIgnoresLinks(message.channel as GuildBasedChannel);
+
+  if (skip) return true;
 
   const content = matchedGroups.map(m => `${config.E621_BASE_URL}/${path}/${m[1]}`).join('\n');
 
@@ -292,6 +313,10 @@ async function imageHandler(message: Message, matchedGroups: RegExpExecArray[]):
   }
 
   if (await blacklistIfNecessary(message, posts)) return false;
+
+  const skip = await channelIgnoresLinks(message.channel as GuildBasedChannel);
+
+  if (skip) return true;
 
   const content = posts.map(post => `<${getPostUrl(post)}>`).join('\n');
 
