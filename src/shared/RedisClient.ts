@@ -125,7 +125,7 @@ async function kickDiscordAccounts(data: BanUpdate) {
   for (const id of discordIds) {
     const member = await guild.members.fetch(id);
 
-    if (member) await member.kick(data.ban.reason);
+    if (member) await member.kick(`Banned from e621 by: https://e621.net/users/${data.ban.banner_id}. Reason:\n${data.ban.reason}`);
   }
 }
 
