@@ -5,6 +5,7 @@ export * from './ban-utils';
 export * from './channel-utils';
 export * from './commands';
 export * from './e621-utils';
+export * from './file-utils';
 export * from './interaction-utils';
 export * from './message-logger';
 export * from './message-utils';

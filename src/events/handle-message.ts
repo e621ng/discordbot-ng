@@ -5,7 +5,7 @@ import { getE621Post, getE621PostByMd5, getPostUrl, PostAction, spoilerOrBlackli
 import { Database } from '../shared/Database';
 import { logDeletion, logEdit } from '../utils/message-logger';
 import { isEdited } from '../utils/message-utils';
-import { blipIDRegex, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
+import { ALLOWED_MIMETYPES, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
 
 export type Message<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<DiscordMessage<InGuild>>;
 export type Partial = OmitPartialGroupDMChannel<PartialMessage>;
@@ -73,14 +73,21 @@ export async function handleMessageCreate(message: Message) {
     const match = md5Regex.exec(attachment.name);
     md5Regex.lastIndex = 0;
 
-    if (match) {
-      const post = await getE621PostByMd5(match[1]);
+    let md5;
 
-      if (post) {
-        if (await blacklistIfNecessary(message, [post])) return;
+    if (match) md5 = match[1];
+    else if (ALLOWED_MIMETYPES.includes(attachment.contentType!)) {
+      md5 = await calculateMD5FromURL(attachment.url);
+    }
 
-        responses.push(`<${getPostUrl(post)}>`);
-      }
+    if (!md5) continue;
+
+    const post = await getE621PostByMd5(md5);
+
+    if (post) {
+      if (await blacklistIfNecessary(message, [post])) return;
+
+      responses.push(`<${getPostUrl(post)}>`);
     }
   }
 
