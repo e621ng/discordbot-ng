@@ -6,7 +6,7 @@ import { Database } from '../shared/Database';
 const BLACKLISTED_TAGS: string[] = [];
 const BLACKLISTED_NONSAFE_TAGS: string[] = ['young'];
 
-const SPOILERED_TAGS: string[] = ['gore', 'scat', 'watersports'];
+const SPOILERED_TAGS: string[] = ['gore', 'feces', 'watersports'];
 const SPOILERED_NONSAFE_TAGS: string[] = [];
 
 const USER_AGENT = 'E621DiscordBot';
