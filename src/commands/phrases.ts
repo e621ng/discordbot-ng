@@ -141,9 +141,11 @@ export default {
 };
 
 async function purgePhrases(interaction: ChatInputCommandInteraction, user: User) {
+  const phrases: TicketPhrase[] = [];
+  await Database.getAllTicketPhrases(phrases.push);
   const count = await Database.removeAllTicketPhrasesFor(user.id);
 
-  interaction.reply(`${count} phrases purged.`);
+  interaction.reply(`Purged the following phrases (${count}): ${phrases.map(p => `\`${p.phrase}\``).join('\n')}`);
 }
 
 async function dumpPhrases(interaction: ChatInputCommandInteraction) {
