@@ -1,11 +1,8 @@
 import { AllowedMentionsTypes, Message as DiscordMessage, GuildBasedChannel, GuildTextBasedChannel, OmitPartialGroupDMChannel, PartialMessage, ReadonlyCollection, spoiler } from 'discord.js';
 import { config } from '../config';
 import { E621Post } from '../types';
-import { getE621Post, getE621PostByMd5, getPostUrl, PostAction, spoilerOrBlacklist } from '../utils/e621-utils';
 import { Database } from '../shared/Database';
-import { logDeletion, logEdit } from '../utils/event-log-utils';
-import { isEdited } from '../utils/message-utils';
-import { ALLOWED_MIMETYPES, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
+import { ALLOWED_MIMETYPES, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, forumTopicIDRegex, getE621Post, getE621PostByMd5, getPostUrl, isEdited, isInSpoilerTags, logDeletion, logEdit, poolIDRegex, PostAction, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, spoilerOrBlacklist, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
 
 export type Message<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<DiscordMessage<InGuild>>;
 export type Partial = OmitPartialGroupDMChannel<PartialMessage>;
@@ -243,18 +240,21 @@ async function blacklistIfNecessary(message: Message, posts: E621Post[]): Promis
 async function postIdHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
   if (!message.guildId) return true;
 
-  const posts: E621Post[] = [];
+  const posts: { post: E621Post, spoilered: boolean }[] = [];
 
   for (const match of matchedGroups) {
     try {
       const post = await getE621Post(match[1]);
-      if (post) posts.push(post);
+      if (post) posts.push({
+        spoilered: isInSpoilerTags(message.content, match.index),
+        post
+      });
     } catch (e) {
       console.error(e);
     }
   }
 
-  if (await blacklistIfNecessary(message, posts)) return false;
+  if (await blacklistIfNecessary(message, posts.map(p => p.post))) return false;
 
   const skip = await channelIgnoresLinks(message.channel as GuildBasedChannel);
 
@@ -262,10 +262,13 @@ async function postIdHandler(message: Message, matchedGroups: RegExpExecArray[])
 
   const sfw = await channelIsSafe(message.channel as GuildBasedChannel);
 
-  const content = posts.map((post) => {
-    const shouldSpoiler = spoilerOrBlacklist(post);
-    if (sfw && post.rating != 's') return ` [NSFW] <${getPostUrl(post)}>`;
-    return shouldSpoiler.action == PostAction.Spoiler ? `${spoiler(getPostUrl(post))} (${shouldSpoiler.tag})` : getPostUrl(post);
+  const content = posts.map((postData) => {
+    if (sfw && postData.post.rating != 's') return ` [NSFW] <${getPostUrl(postData.post)}>`;
+
+    const shouldSpoiler = spoilerOrBlacklist(postData.post);
+    if (shouldSpoiler.action == PostAction.Spoiler) return `${spoiler(getPostUrl(postData.post))} (${shouldSpoiler.tag})`;
+
+    return postData.spoilered ? `[User Provided Spoiler] ${spoiler(getPostUrl(postData.post))}` : getPostUrl(postData.post);
   }).join('\n');
 
   if (content.trim().length > 0) return content.trim();
