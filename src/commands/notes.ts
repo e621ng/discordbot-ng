@@ -87,7 +87,7 @@ export default {
 
       await Database.putNote(user.id, reason, interaction.user.id);
 
-      interaction.editReply('Added note.');
+      interaction.editReply(`Note added to ${user}.\n\nReason:\n${reason}`);
     } else if (subcommand == 'remove') {
       const user = interaction.options.getUser('user', true);
       const noteId = interaction.options.getInteger('note', true);
