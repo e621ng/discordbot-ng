@@ -11,7 +11,7 @@ function getNoteText(note: Note): string {
 }
 
 export async function getNoteMessage(userId: string, page: number): Promise<MessageContent | null> {
-  const notes = await Database.getNotes(userId);
+  const notes = (await Database.getNotes(userId)).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   page = page - 1;
 
