@@ -22,6 +22,7 @@ export default {
         .setName('reason')
         .setDescription('The reason for the ban')
         .setRequired(false)
+        .setMaxLength(400)
     )
     .addNumberOption(option =>
       option

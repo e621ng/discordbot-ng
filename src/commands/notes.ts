@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType, ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { channelIsInStaffCategory, deferInteraction } from '../utils';
+import { channelIsInStaffCategory, deferInteraction, logCustomEvent } from '../utils';
 import { getNoteMessage } from '../utils/note-utils';
 
 export default {
@@ -66,18 +66,58 @@ export default {
     if (subcommand == 'add') {
       const reason = interaction.options.getString('reason', true);
 
+      logCustomEvent(interaction.guild!, {
+        title: 'Note Added',
+        description: null,
+        color: 0x00FF00,
+        timestamp: new Date(),
+        fields: [
+          {
+            name: 'User',
+            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+            inline: true
+          },
+          {
+            name: 'Note',
+            value: reason,
+            inline: true
+          }
+        ]
+      });
+
       await Database.putNote(user.id, reason, interaction.user.id);
 
       interaction.editReply('Added note.');
     } else if (subcommand == 'remove') {
+      const user = interaction.options.getUser('user', true);
       const noteId = interaction.options.getInteger('note', true);
 
-      if (await Database.removeNote(noteId)) {
-        interaction.editReply('Removed note.');
+      const notes = await Database.getNotes(user.id);
+      const note = notes.find(n => n.id == noteId);
 
-      } else {
-        interaction.editReply('Note not found.');
-      }
+      if (!note) return interaction.editReply('Note not found.');
+
+      logCustomEvent(interaction.guild!, {
+        title: 'Note Removed',
+        description: null,
+        color: 0xFF0000,
+        timestamp: new Date(),
+        fields: [
+          {
+            name: 'User',
+            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+            inline: true
+          },
+          {
+            name: 'Note',
+            value: `${note.reason}\nBy: <@${note.mod_id}>`,
+            inline: true
+          }
+        ]
+      });
+
+      await Database.removeNote(noteId);
+      interaction.editReply('Removed note.');
     } else if (subcommand == 'list') {
       const noteMessage = await getNoteMessage(user.id, 1);
 

@@ -21,6 +21,7 @@ export default {
         .setName('reason')
         .setDescription('The reason for the softban')
         .setRequired(false)
+        .setMaxLength(400)
     )
     .addNumberOption(option =>
       option

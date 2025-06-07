@@ -259,6 +259,10 @@ export class Database {
     await Database.db.run('INSERT INTO ticket_phrases(user_id, phrase) VALUES (?, ?)', userId, phrase);
   }
 
+  static async getTicketPhrase(id: number): Promise<TicketPhrase | undefined> {
+    return await Database.db.get<TicketPhrase>('SELECT * FROM ticket_phrases WHERE id = ?', id);
+  }
+
   static async removeTicketPhrase(id: number) {
     await Database.db.run('DELETE from ticket_phrases WHERE id = ?', id);
   }

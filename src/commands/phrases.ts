@@ -1,6 +1,6 @@
 import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, User } from 'discord.js';
 import { Database } from '../shared/Database';
-import { getE621User } from '../utils';
+import { getE621User, logCustomEvent } from '../utils';
 import { config } from '../config';
 import { TicketPhrase } from '../types';
 
@@ -142,7 +142,32 @@ export default {
 
 async function purgePhrases(interaction: ChatInputCommandInteraction, user: User) {
   const phrases: TicketPhrase[] = await Database.getTicketPhrasesFor(user.id);
+
   const count = await Database.removeAllTicketPhrasesFor(user.id);
+
+  logCustomEvent(interaction.guild!, {
+    title: 'Ticket Phrases Purged',
+    description: null,
+    color: 0xFF0000,
+    timestamp: new Date(),
+    fields: [
+      {
+        name: 'User',
+        value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+        inline: true
+      },
+      {
+        name: 'Target User',
+        value: `<@${user.id}>\n${user.username}`,
+        inline: true
+      },
+      {
+        name: 'Count',
+        value: count.toString(),
+        inline: true
+      }
+    ]
+  });
 
   interaction.reply(`Purged the following phrases (${count}): ${phrases.map(p => `\`${p.phrase}\``).join('\n')}`);
 }
@@ -167,11 +192,55 @@ async function dumpPhrases(interaction: ChatInputCommandInteraction) {
 
 async function addPhrase(interaction: ChatInputCommandInteraction, phrase: string, group: SubcommandGroup) {
   await Database.putTicketPhrase(group == 'admin' ? 'admin' : interaction.user.id, phrase);
+
+  logCustomEvent(interaction.guild!, {
+    title: `${group == 'admin' ? 'Admin ' : ''}Ticket Phrase Added`,
+    description: null,
+    color: 0x00FF00,
+    timestamp: new Date(),
+    fields: [
+      {
+        name: 'User',
+        value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+        inline: true
+      },
+      {
+        name: 'Phrase',
+        value: phrase,
+        inline: true
+      }
+    ]
+  });
+
   interaction.reply(`Phrases matching "${phrase}" will now alert ${group == 'admin' ? 'admins' : 'you'}.`);
 }
 
 async function removePhrase(interaction: ChatInputCommandInteraction, phraseId: number, group: SubcommandGroup) {
+  const phrase = await Database.getTicketPhrase(phraseId);
+
+  if (!phrase) return interaction.reply('Phrase not found');
+
   await Database.removeTicketPhrase(phraseId);
+
+  logCustomEvent(interaction.guild!, {
+    title: `${group == 'admin' ? 'Admin ' : ''}Ticket Phrase Removed`,
+    description: null,
+    color: 0xFF0000,
+    timestamp: new Date(),
+    fields: [
+      {
+        name: 'User',
+        value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+        inline: true
+      },
+      {
+        name: 'Phrase',
+        value: phrase.phrase,
+        inline: true
+      }
+    ]
+  });
+
   interaction.reply(`Phrase will no longer alert ${group == 'admin' ? 'admins' : 'you'}.`);
 }
 

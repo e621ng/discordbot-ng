@@ -7,7 +7,7 @@ export * from './commands';
 export * from './e621-utils';
 export * from './file-utils';
 export * from './interaction-utils';
-export * from './message-logger';
+export * from './event-log-utils';
 export * from './message-utils';
 export * from './ms-to-human';
 export * from './note-utils';

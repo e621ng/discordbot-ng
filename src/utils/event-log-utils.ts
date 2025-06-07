@@ -1,17 +1,21 @@
-import { APIEmbedField, Channel, EmbedBuilder, GuildTextBasedChannel, messageLink } from 'discord.js';
+import { APIEmbedField, Channel, EmbedBuilder, Guild, GuildTextBasedChannel, messageLink, TextBasedChannel } from 'discord.js';
 import { Database } from '../shared/Database';
 import { Message } from '../events';
 import { deserializeMessagePart, getModifiedAttachments, getModifiedStickers } from './message-utils';
 import { LoggedMessage } from '../types';
 
+type CustomEventLogData = {
+  title: string
+  description: string | null
+  color: number | null
+  timestamp: Date | number | null
+  fields: APIEmbedField[] | null
+}
+
 export async function logEdit(loggedMessage: LoggedMessage, newMessage: Message<true>) {
-  const settings = await Database.getGuildSettings(newMessage.guildId);
+  const channel = await getEventLogChannel(newMessage.guild);
 
-  if (!settings || !settings.event_logs_channel_id) return;
-
-  const channel = await newMessage.guild.channels.fetch(settings.event_logs_channel_id);
-
-  if (!channel || !channel.isSendable()) return;
+  if (!channel) return;
 
   const fields: APIEmbedField[] = [];
   fields.push(...getMainEmbeds(loggedMessage, newMessage));
@@ -27,13 +31,9 @@ export async function logEdit(loggedMessage: LoggedMessage, newMessage: Message<
 }
 
 export async function logDeletion(loggedMessage: LoggedMessage, deletedMessage: Message<true>) {
-  const settings = await Database.getGuildSettings(deletedMessage.guildId);
+  const channel = await getEventLogChannel(deletedMessage.guild);
 
-  if (!settings || !settings.event_logs_channel_id) return;
-
-  const channel = await deletedMessage.guild.channels.fetch(settings.event_logs_channel_id);
-
-  if (!channel || !channel.isSendable()) return;
+  if (!channel) return;
 
   const fields: APIEmbedField[] = [];
   fields.push(...getMainEmbeds(loggedMessage, deletedMessage));
@@ -46,6 +46,33 @@ export async function logDeletion(loggedMessage: LoggedMessage, deletedMessage: 
     .addFields(...fields);
 
   channel.send({ embeds: [embed] });
+}
+
+export async function logCustomEvent(guild: Guild, data: CustomEventLogData) {
+  const channel = await getEventLogChannel(guild);
+
+  if (!channel) return;
+
+  const embed = new EmbedBuilder()
+    .setTitle(data.title)
+    .setColor(data.color)
+    .setTimestamp(data.timestamp);
+
+  if (data.fields) embed.addFields(...data.fields);
+
+  channel.send({ embeds: [embed] });
+}
+
+async function getEventLogChannel(guild: Guild): Promise<GuildTextBasedChannel | null> {
+  const settings = await Database.getGuildSettings(guild.id);
+
+  if (!settings || !settings.event_logs_channel_id) return null;
+
+  const channel = await guild.channels.fetch(settings.event_logs_channel_id);
+
+  if (!channel || !channel.isSendable()) return null;
+
+  return channel;
 }
 
 function getMainEmbeds(loggedMessage: LoggedMessage, newMessage: Message<true>): APIEmbedField[] {

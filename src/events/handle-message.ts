@@ -3,7 +3,7 @@ import { config } from '../config';
 import { E621Post } from '../types';
 import { getE621Post, getE621PostByMd5, getPostUrl, PostAction, spoilerOrBlacklist } from '../utils/e621-utils';
 import { Database } from '../shared/Database';
-import { logDeletion, logEdit } from '../utils/message-logger';
+import { logDeletion, logEdit } from '../utils/event-log-utils';
 import { isEdited } from '../utils/message-utils';
 import { ALLOWED_MIMETYPES, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
 
