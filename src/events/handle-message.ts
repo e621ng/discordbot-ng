@@ -268,7 +268,7 @@ async function postIdHandler(message: Message, matchedGroups: RegExpExecArray[])
     const shouldSpoiler = spoilerOrBlacklist(postData.post);
     if (shouldSpoiler.action == PostAction.Spoiler) return `${spoiler(getPostUrl(postData.post))} (${shouldSpoiler.tag})`;
 
-    return postData.spoilered ? `[User Provided Spoiler] ${spoiler(getPostUrl(postData.post))}` : getPostUrl(postData.post);
+    return postData.spoilered ? spoiler(getPostUrl(postData.post)) : getPostUrl(postData.post);
   }).join('\n');
 
   if (content.trim().length > 0) return content.trim();
