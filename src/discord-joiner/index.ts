@@ -64,7 +64,7 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
     return sendBadRequest(res, 'Missing parameters');
   }
 
-  if (Date.now() / 1000 > Number(time)) {
+  if (Number.isNaN(time) || Date.now() / 1000 > Number(time)) {
     return render(res, 403, 'You took too long to authorize the request. Please try again.');
   }
 
