@@ -1,6 +1,7 @@
 export * from './alt-utils';
 export * from './array-utils';
 export * from './audit-log-utils';
+export * from './ban-events';
 export * from './ban-utils';
 export * from './channel-utils';
 export * from './commands';
@@ -15,6 +16,7 @@ export * from './record-utils';
 export * from './refresh-commands';
 export * from './search-regex';
 export * from './string-utils';
+export * from './ticket-events';
 export * from './ticket-utils';
 export * from './wait';
 export * from './whois';
