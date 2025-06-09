@@ -169,7 +169,7 @@ async function purgePhrases(interaction: ChatInputCommandInteraction, user: User
     ]
   });
 
-  interaction.reply(`Purged the following phrases (${count}):\n${phrases.map(p => `\`${p.phrase}\``).join('\n')}`);
+  interaction.reply(`Purged the following phrases (${count}):\n${phrases.map(p => `- \`${p.phrase}\``).join('\n')}`);
 }
 
 async function dumpPhrases(interaction: ChatInputCommandInteraction) {
