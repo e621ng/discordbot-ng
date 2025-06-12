@@ -78,6 +78,8 @@ const linkReplacers = [
   }
 ];
 
+const urlRegex = new RegExp('"((?:[\\S]| )+?)":\\[?((?:https?:\\/\\/[\\w\\d.\\/?=#]+)|\\/[\\w\\d.\\/?=#]+)\\]?', 'gi');
+
 const MAX_DESCRIPTION_LENGTH = 500;
 
 export async function ticketUpdateHandler(client: Client, update: string) {
@@ -182,6 +184,11 @@ async function getLinks(input: string, limit: number = Number.MAX_SAFE_INTEGER):
       return replaced;
     });
   }
+
+  input = input.replaceAll(urlRegex, (match, group1, group2) => {
+    if (group2.startsWith('/')) return `[${group1}](${config.E621_BASE_URL}${group2})`;
+    else return `[${group1}](${group2})`;
+  });
 
   const values = await Promise.all(checks);
 
