@@ -26,12 +26,17 @@ export default {
       type: ChannelType.PrivateThread
     });
 
-    const button = new ButtonBuilder()
+    const closeButton = new ButtonBuilder()
       .setCustomId('close-ticket')
       .setLabel('Click here if you no longer need help')
       .setStyle(ButtonStyle.Danger);
 
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+    const claimButton = new ButtonBuilder()
+      .setCustomId('claim-ticket')
+      .setLabel('Claim ticket')
+      .setStyle(ButtonStyle.Primary);
+
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeButton, claimButton);
 
     await thread.send({
       content: `${interaction.user} feel free to direct your questions at any <@&${guildSettings.private_help_role_id}>. Only you and staff members can see this channel.\n\n**Reason for contact:**\n${reason}`,
