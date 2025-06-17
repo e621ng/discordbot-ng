@@ -117,6 +117,8 @@ export type Ticket = {
   user: string
   claimant: string | null
   target?: string
+  accused_id?: number
+  target_id: number
   status: 'pending' | 'partial' | 'approved'
   category: 'blip' | 'comment' | 'dmail' | 'forum' | 'pool' | 'post' | 'set' | 'user' | 'wiki'
   reason: string
