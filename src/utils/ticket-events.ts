@@ -186,8 +186,10 @@ async function getLinks(input: string, limit: number = Number.MAX_SAFE_INTEGER):
   }
 
   input = input.replaceAll(urlRegex, (match, group1, group2) => {
-    if (group2.startsWith('/')) return `[${group1}](${config.E621_BASE_URL}${group2})`;
-    else return `[${group1}](${group2})`;
+    const replaced = group2.startsWith('/') ? `[${group1}](${config.E621_BASE_URL}${group2})` : `[${group1}](${group2})`;
+    const start = input.indexOf(match);
+    replacedIndexes.push({ start, end: start + replaced.length });
+    return replaced;
   });
 
   const values = await Promise.all(checks);
