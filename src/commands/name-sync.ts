@@ -18,7 +18,7 @@ export default {
         .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    await interaction.deferReply({flags: [MessageFlags.Ephemeral]});
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const id = interaction.options.getInteger('id');
 
