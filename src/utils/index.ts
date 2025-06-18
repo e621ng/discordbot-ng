@@ -11,6 +11,7 @@ export * from './file-utils';
 export * from './interaction-utils';
 export * from './message-utils';
 export * from './ms-to-human';
+export * from './name-sync';
 export * from './note-utils';
 export * from './record-utils';
 export * from './refresh-commands';
