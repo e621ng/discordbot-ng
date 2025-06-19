@@ -6,7 +6,8 @@ import { ChatInputCommandInteraction, GuildMember, ModalSubmitInteraction, UserC
 
 export async function syncName(interaction: ChatInputCommandInteraction | UserContextMenuCommandInteraction | ModalSubmitInteraction, member: GuildMember, id: number | null) {
   if (member.roles.highest.comparePositionTo(member.guild.members.me!.roles.highest) > 0) {
-    return interaction.editReply('I am unable to set your nickname as your role is higher than mine.');
+    const res = interaction.user.id == member.id ? 'your' : 'their';
+    return interaction.editReply(`I am unable to set ${res} nickname as ${res} role is higher than mine.`);
   }
 
   const availableIds = await Database.getE621Ids(interaction.user.id);
