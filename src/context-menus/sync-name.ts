@@ -16,10 +16,22 @@ export default {
 
     const idToUse = interaction.targetUser.id;
 
-    const member = await interaction.guild?.members.fetch(idToUse);
+    const guild = await interaction.client.guilds.fetch(config.DISCORD_GUILD_ID!);
 
-    if (!member) {
+    if (!guild) {
+      return interaction.editReply('An error has occurred. Please try again later.');
+    }
+
+    const member = await guild.members.fetch(idToUse);
+
+    const interactionMember = await guild.members.fetch(interaction.user.id);
+
+    if (!member || !interactionMember) {
       return interaction.reply('An error has occurred. Please try again later.');
+    }
+
+    if (interactionMember.roles.highest.comparePositionTo(member.roles.highest) <= 0) {
+      return await interaction.editReply("You do not have permission to sync this user's name.");
     }
 
     if (availableIds.length > 1) {
@@ -39,12 +51,6 @@ export default {
     }
 
     await deferInteraction(interaction);
-
-    const guild = await interaction.client.guilds.fetch(config.DISCORD_GUILD_ID!);
-
-    if (!guild) {
-      return interaction.editReply('An error has occurred. Please try again later.');
-    }
 
     if (!guild.members.me) {
       return interaction.editReply('An error has occurred. Please try again later.');
