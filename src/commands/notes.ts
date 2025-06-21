@@ -97,10 +97,9 @@ export default {
 
       interaction.editReply(`Note added to <@${idToUse}>.\n\nReason:\n${reason}`);
     } else if (subcommand == 'remove') {
-      const user = interaction.options.getUser('user', true);
       const noteId = interaction.options.getInteger('note', true);
 
-      const notes = await Database.getNotes(user.id);
+      const notes = await Database.getNotes(idToUse);
       const note = notes.find(n => n.id == noteId);
 
       if (!note) return interaction.editReply('Note not found.');
@@ -135,15 +134,18 @@ export default {
     }
   },
   autoComplete: async function (client: Client, interaction: AutocompleteInteraction) {
-    const user = interaction.options.get('user');
+    const input = interaction.options.getString('user', true);
 
-    if (!user || user.type != ApplicationCommandOptionType.User) return interaction.respond([]);
+    const matches = mentionRegex.exec(input);
+    mentionRegex.lastIndex = 0;
 
-    const userId = user.value as string;
+    const idToUse = matches ? matches.groups!.id : input;
+
+    if (!idToUse) return interaction.respond([]);
 
     const value = interaction.options.getFocused().toLowerCase();
 
-    const notes = await Database.getNotes(userId);
+    const notes = await Database.getNotes(idToUse);
 
     const toRespond = notes.filter(w => !value ? true : w.reason.toLowerCase().includes(value));
     if (toRespond.length > 25) toRespond.length = 25;
