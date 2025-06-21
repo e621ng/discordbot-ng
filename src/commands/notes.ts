@@ -1,7 +1,9 @@
-import { ApplicationCommandOptionType, ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationCommandOptionType, ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, MessageMentions, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
 import { channelIsInStaffCategory, deferInteraction, logCustomEvent } from '../utils';
 import { getNoteMessage } from '../utils/note-utils';
+
+const mentionRegex = new RegExp(MessageMentions.UsersPattern);
 
 export default {
   name: 'notes',
@@ -18,7 +20,7 @@ export default {
         .addUserOption(option =>
           option
             .setName('user')
-            .setDescription('The user to add a note to.')
+            .setDescription('The discord user mention, or ID, to add a note to.')
             .setRequired(true)
         )
         .addStringOption(option =>
@@ -32,10 +34,10 @@ export default {
       subcommand
         .setName('remove')
         .setDescription('Remove notes from a user.')
-        .addUserOption(option =>
+        .addStringOption(option =>
           option
             .setName('user')
-            .setDescription('The user to remove a note from.')
+            .setDescription('The discord user mention, or ID, to remove a note from.')
             .setRequired(true)
         )
         .addIntegerOption(option =>
@@ -50,16 +52,22 @@ export default {
       subcommand
         .setName('list')
         .setDescription("List a user's notes")
-        .addUserOption(option =>
+        .addStringOption(option =>
           option
             .setName('user')
-            .setDescription('The user to list the notes of.')
+            .setDescription('The discord user mention, or ID, to list the notes of.')
             .setRequired(true)
         )
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand(true);
-    const user = interaction.options.getUser('user', true);
+
+    const input = interaction.options.getString('user', true);
+
+    const matches = mentionRegex.exec(input);
+    mentionRegex.lastIndex = 0;
+
+    const idToUse = matches ? matches.groups!.id : input;
 
     await deferInteraction(interaction);
 
@@ -85,9 +93,9 @@ export default {
         ]
       });
 
-      await Database.putNote(user.id, reason, interaction.user.id);
+      await Database.putNote(idToUse, reason, interaction.user.id);
 
-      interaction.editReply(`Note added to ${user}.\n\nReason:\n${reason}`);
+      interaction.editReply(`Note added to <@${idToUse}>.\n\nReason:\n${reason}`);
     } else if (subcommand == 'remove') {
       const user = interaction.options.getUser('user', true);
       const noteId = interaction.options.getInteger('note', true);
@@ -119,9 +127,9 @@ export default {
       await Database.removeNote(noteId);
       interaction.editReply('Removed note.');
     } else if (subcommand == 'list') {
-      const noteMessage = await getNoteMessage(user.id, 1);
+      const noteMessage = await getNoteMessage(idToUse, 1);
 
-      if (!noteMessage) return interaction.editReply(`No notes found for <@${user.id}>`);
+      if (!noteMessage) return interaction.editReply(`No notes found for <@${idToUse}>`);
 
       interaction.editReply(noteMessage);
     }

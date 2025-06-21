@@ -14,7 +14,7 @@ export default {
     .addStringOption(option =>
       option
         .setName('user')
-        .setDescription('The discord user mention, or ID to find the e621 user of.')
+        .setDescription('The discord user mention, or ID, to find the e621 user of.')
         .setRequired(true)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
