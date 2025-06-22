@@ -7,6 +7,9 @@ import session from 'express-session';
 import MemoryStore from 'memorystore';
 import fs from 'fs';
 import path from 'path';
+import { Client } from 'discord.js';
+import bodyParser from 'body-parser';
+import { fixPings } from '../utils/github-user-utils';
 
 declare module 'express-session' {
   interface SessionData {
@@ -15,6 +18,7 @@ declare module 'express-session' {
     oauthState: string;
   }
 }
+const GITHUB_REPO_ID = 852534222;//169334303;
 
 const DEV_BASE_URL = `http://localhost:${config.PORT}`;
 const PROD_BASE_URL = 'https://discord.e621.net';
@@ -72,7 +76,7 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
 
   const digest = crypto.createHash('sha256').update(authString).digest('hex');
 
-  if (hash != digest) {
+  if (hash !== digest) {
     console.error(`Bad auth: ${hash} ${digest}`);
     return sendForbidden(res, 'Bad auth');
   }
@@ -147,7 +151,38 @@ function render(res: Response, code: number, title: string = '', message: string
   res.status(code).setHeader('Content-Type', 'text/html').send(PAGE_TEMPLATE.replaceAll('{{ title }}', title).replaceAll('{{ message }}', message));
 }
 
-export function initializeDiscordJoiner() {
+async function handleGithubRelease(client: Client, req: Request, res: Response): Promise<any> {
+  const signature = (req.headers['x-hub-signature-256'] as string).split('=')[1];
+  const computedSignature = crypto.createHmac('sha256', config.RELEASE_SECRET!).update(req.body).digest('hex');
+
+  if (signature !== computedSignature) {
+    return res.sendStatus(401);
+  }
+
+  res.sendStatus(200);
+
+  const data = JSON.parse(req.body);
+  if (data.action != 'published' || data.repository.id != GITHUB_REPO_ID) return;
+
+  const settings = await Database.getGuildSettings(config.DISCORD_GUILD_ID!);
+
+  if (!settings || !settings.github_release_channel) return;
+
+  const channel = await client.channels.fetch(settings.github_release_channel);
+
+  if (!channel || !channel.isSendable()) return;
+
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  const date = new Date();
+
+  const message = `## [${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}](<${data.release.html_url}>)\n\n${await fixPings(data.release.body)}`;
+
+  const sentMessage = await channel.send(message);
+  await sentMessage.startThread({ name: data.release.tag_name });
+}
+
+export function initializeWebserver(client: Client) {
   const app = express();
 
   const Store = MemoryStore(session);
@@ -171,6 +206,9 @@ export function initializeDiscordJoiner() {
 
   app.get('/', handleInitial);
   app.get('/callback', handleCallback);
+
+  app.use(bodyParser.raw({ type: 'application/json' }));
+  app.post('/release', handleGithubRelease.bind(null, client));
 
   app.listen(config.PORT, (error) => {
     if (error) {

@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@redis/client": "^5.1.0",
+    "body-parser": "^2.2.0",
     "discord-oauth2": "^2.12.1",
     "discord.js": "^14.19.3",
     "dotenv": "^16.5.0",

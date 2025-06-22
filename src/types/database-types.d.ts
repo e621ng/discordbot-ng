@@ -21,6 +21,7 @@ export type GuildSettings = {
   staff_categories?: string
   safe_channels?: string
   link_skip_channels?: string
+  github_release_channel?: string
 }
 
 export type GuildArraySetting = 'staff_categories' | 'safe_channels' | 'link_skip_channels';
@@ -48,4 +49,10 @@ export type Ban = {
   id: number
   user_id: string
   expires_at: string
+}
+
+export type GithubUserMapping = {
+  id: number
+  discord_id: string
+  github_username: string
 }

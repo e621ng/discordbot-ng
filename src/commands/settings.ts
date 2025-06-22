@@ -93,6 +93,12 @@ export default {
         .setName('remove-link-skip-channel')
         .setDescription('Remove a link skip channel.')
         .setRequired(false)
+    )
+    .addChannelOption(option =>
+      option
+        .setName('github-release-channel')
+        .setDescription('Set the github release channel.')
+        .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
@@ -239,6 +245,14 @@ export default {
       } else {
         response += `Error removing link skip channel: ${removeLinkSkipChannel.toString()} isn't a text channel.`;
       }
+    }
+
+    const githubReleaseChannel = interaction.options.getChannel('github-release-channel');
+
+    if (githubReleaseChannel) {
+      await Database.setGuildGithubReleaseChannel(interaction.guildId!, githubReleaseChannel.id);
+
+      response += `Github releases channel set to ${githubReleaseChannel}.\n`;
     }
 
     if (response.length == 0) return interaction.editReply({ content: 'No settings provided.' });

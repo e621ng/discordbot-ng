@@ -3,7 +3,7 @@ import { Client as DiscordClient, GatewayIntentBits, Guild, MessageFlags, Partia
 import { config } from './config';
 import { Handler } from './types';
 import { checkExpiredBans, initIfNecessary, loadHandlersFrom, refreshCommands } from './utils';
-import { initializeDiscordJoiner } from './discord-joiner';
+import { initializeWebserver } from './webserver';
 import { Database } from './shared/Database';
 import { handleAuditLogCreate, handleBanRemove, handleBulkMessageDelete, handleGuildCreate, handleMemberJoin, handleMessageCreate, handleMessageDelete, handleMessageUpdate, handleThreadCreate, handleVoiceStateUpdate } from './events';
 import { pruneOldTickets, ticketCooldownMap } from './shared/ticket-cooldown';
@@ -135,7 +135,7 @@ client.on('ready', async () => {
   await Database.open('./data/discord-main.db');
   await openRedisClient(config.REDIS_URL!, client);
 
-  await initializeDiscordJoiner();
+  await initializeWebserver(client);
 
   // Prune ticket cooldowns that are expired every day
   setInterval(pruneOldTickets, 8.64e+7);

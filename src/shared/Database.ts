@@ -3,7 +3,7 @@ import { open, Database as SqliteDatabase } from 'sqlite';
 import { config } from '../config';
 import DiscordOAuth2 from 'discord-oauth2';
 import { serializeMessage, wait } from '../utils';
-import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting } from '../types';
+import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping } from '../types';
 import { Message } from '../events';
 
 const DB_SCHEMA = `
@@ -27,7 +27,8 @@ const DB_SCHEMA = `
         private_help_role_id TEXT,
         staff_categories TEXT,
         safe_channels TEXT,
-        link_skip_channels TEXT
+        link_skip_channels TEXT,
+        github_release_channel TEXT
     );
 
     CREATE TABLE IF NOT EXISTS messages (
@@ -67,6 +68,12 @@ const DB_SCHEMA = `
       id INTEGER PRIMARY KEY,
       user_id TEXT,
       expires_at datetime
+    );
+
+    CREATE TABLE IF NOT EXISTS github_user_mapping (
+      id INTEGER PRIMARY KEY,
+      discord_id TEXT,
+      github_username TEXT
     );
 `;
 
@@ -165,6 +172,10 @@ export class Database {
 
   static async setGuildPrivateHelperRole(guildId: string, id: string) {
     await Database.db.run('UPDATE settings SET private_help_role_id = ? WHERE guild_id = ?', id, guildId);
+  }
+
+  static async setGuildGithubReleaseChannel(guildId: string, id: string) {
+    await Database.db.run('UPDATE settings SET github_release_channel = ? WHERE guild_id = ?', id, guildId);
   }
 
   // Since "setting" has guaranteed values and is never set by the user, this shouldn't cause any security issues.
@@ -322,4 +333,33 @@ export class Database {
   }
 
   // -- END BANS --
+
+  // -- START GITHUB USER MAPPING --
+
+  // github_user_mapping
+  static async putGithubUserMapping(discordId: string, githubUsername: string) {
+    await Database.db.run('INSERT INTO github_user_mapping(discord_id, github_username) VALUES (?, ?)', discordId, githubUsername);
+  }
+
+  static async getDiscordIdFromGithub(githubUsername: string): Promise<string | null> {
+    const mapping = await Database.db.get<Pick<GithubUserMapping, 'discord_id'>>('SELECT discord_id FROM github_user_mapping WHERE github_username = ?', githubUsername);
+
+    return mapping?.discord_id ?? null;
+  }
+
+  static async getGithubFromDiscordId(discordId: string): Promise<string | null> {
+    const mapping = await Database.db.get<Pick<GithubUserMapping, 'github_username'>>('SELECT github_username FROM github_user_mapping WHERE discord_id = ?', discordId);
+
+    return mapping?.github_username ?? null;
+  }
+
+  static async getAllGithubUserMappings(): Promise<GithubUserMapping[]> {
+    return await Database.db.all<GithubUserMapping[]>('SELECT * from github_user_mapping');
+  }
+
+  static async removeGithubUserMapping(discordId: string) {
+    await Database.db.run('DELETE from github_user_mapping WHERE discord_id = ?', discordId);
+  }
+
+  // -- END GITHUB USER MAPPING --
 }
