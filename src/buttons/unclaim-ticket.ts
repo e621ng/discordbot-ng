@@ -3,7 +3,7 @@ import { ticketCooldownMap } from '../shared/ticket-cooldown';
 import { Database } from '../shared/Database';
 
 export default {
-  name: 'claim-ticket',
+  name: 'unclaim-ticket',
   handler: async function (client: Client, interaction: ButtonInteraction) {
     const channel = await interaction.channel?.fetch();
 
@@ -12,7 +12,9 @@ export default {
 
     if (!interaction.memberPermissions) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'An error has occurred.' });
 
-    if (!interaction.memberPermissions.has(PermissionFlagsBits.ManageMessages)) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'You do not have permission to claim tickets.' });
+    if (!interaction.memberPermissions.has(PermissionFlagsBits.ManageMessages)) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'You do not have permission to unclaim this ticket.' });
+
+    if (!interaction.message.content.split('\n').at(-1)!.includes(`<@${interaction.user.id}>`)) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'You did not claim this ticket.' });
 
     const guild = await client.guilds.fetch(interaction.guildId!);
 
@@ -26,18 +28,18 @@ export default {
       .setLabel('Click here if you no longer need help')
       .setStyle(ButtonStyle.Danger);
 
-    const unclaimButton = new ButtonBuilder()
-      .setCustomId('unclaim-ticket')
-      .setLabel('Unclaim ticket')
+    const claimButton = new ButtonBuilder()
+      .setCustomId('claim-ticket')
+      .setLabel('Claim ticket')
       .setStyle(ButtonStyle.Primary);
 
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeButton, unclaimButton);
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeButton, claimButton);
 
     await interaction.message.edit({
-      content: `${interaction.message.content}\n\nClaimed by: ${interaction.user}`,
+      content: interaction.message.content.split('\n').slice(0, -1).join('\n').trim(),
       components: [row]
     });
 
-    await interaction.reply({ content: `Ticket claimed by ${interaction.user}.` });
+    await interaction.reply({ content: 'Ticket unclaimed.', flags: [MessageFlags.Ephemeral] });
   }
 };
