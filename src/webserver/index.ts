@@ -18,7 +18,7 @@ declare module 'express-session' {
     oauthState: string;
   }
 }
-const GITHUB_REPO_ID = 852534222;//169334303;
+const GITHUB_REPO_ID = 169334303;
 
 const DEV_BASE_URL = `http://localhost:${config.PORT}`;
 const PROD_BASE_URL = 'https://discord.e621.net';
