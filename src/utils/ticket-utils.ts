@@ -19,13 +19,19 @@ export function shouldAlert(ticketPhrase: TicketPhrase, ticket: Ticket): { alert
       return { alert: false };
     }
   } else {
-    const regex = new RegExp(ticketPhrase.phrase.substring(1, ticketPhrase.phrase.length - 2), 'i');
+    try {
+      const regex = new RegExp(ticketPhrase.phrase.substring(1, ticketPhrase.phrase.length - 2), 'i');
 
-    const regexMatch = regex.exec(ticket.reason);
+      const regexMatch = regex.exec(ticket.reason);
 
-    if (regexMatch) {
-      return { alert: true, match: `${friendlyPhrase(regexMatch[0])} (RegEx match: \`${ticketPhrase.phrase}\`)` };
-    } else {
+      if (regexMatch) {
+        return { alert: true, match: `${friendlyPhrase(regexMatch[0])} (RegEx match: \`${ticketPhrase.phrase}\`)` };
+      } else {
+        return { alert: false };
+      }
+    } catch (e) {
+      console.error(e);
+
       return { alert: false };
     }
   }
