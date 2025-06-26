@@ -17,7 +17,7 @@ export default {
       subcommand
         .setName('add')
         .setDescription('Add notes to a user.')
-        .addUserOption(option =>
+        .addStringOption(option =>
           option
             .setName('user')
             .setDescription('The discord user mention, or ID, to add a note to.')
