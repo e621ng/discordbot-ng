@@ -10,6 +10,7 @@ import path from 'path';
 import { Client } from 'discord.js';
 import bodyParser from 'body-parser';
 import { fixPings } from '../utils/github-user-utils';
+import { logDebug } from '../utils/debug-utils';
 
 declare module 'express-session' {
   interface SessionData {
@@ -152,16 +153,20 @@ function render(res: Response, code: number, title: string = '', message: string
 }
 
 async function handleGithubRelease(client: Client, req: Request, res: Response): Promise<any> {
+  logDebug('Received github release webhook');
   const signature = (req.headers['x-hub-signature-256'] as string).split('=')[1];
   const computedSignature = crypto.createHmac('sha256', config.RELEASE_SECRET!).update(req.body).digest('hex');
 
   if (signature !== computedSignature) {
+    console.error('Github release webhook signature mismatch');
     return res.sendStatus(401);
   }
 
   res.sendStatus(200);
 
   const data = JSON.parse(req.body);
+  logDebug(`Release webhook data:\n${JSON.stringify(data, null, 4)}`);
+
   if (data.action != 'published' || data.repository.id != GITHUB_REPO_ID) return;
 
   const settings = await Database.getGuildSettings(config.DISCORD_GUILD_ID!);
@@ -170,7 +175,10 @@ async function handleGithubRelease(client: Client, req: Request, res: Response):
 
   const channel = await client.channels.fetch(settings.github_release_channel);
 
-  if (!channel || !channel.isSendable()) return;
+  if (!channel || !channel.isSendable()) {
+    console.error(`Github release channel ${channel ? 'sendable' : 'found'}`);
+    return;
+  }
 
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -178,8 +186,12 @@ async function handleGithubRelease(client: Client, req: Request, res: Response):
 
   const message = `## [${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}](<${data.release.html_url}>)\n\n${await fixPings(data.release.body)}`;
 
+  logDebug('Sending github release message');
+
   const sentMessage = await channel.send(message);
   await sentMessage.startThread({ name: data.release.tag_name });
+
+  logDebug('Github webhook processed');
 }
 
 export function initializeWebserver(client: Client) {
