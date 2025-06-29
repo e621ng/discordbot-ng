@@ -1,4 +1,4 @@
-import { createClient } from '@redis/client';
+import { createClient, SocketClosedUnexpectedlyError } from '@redis/client';
 import { Client } from 'discord.js';
 import { banUpdateHandler, ticketUpdateHandler } from '../utils';
 
@@ -12,13 +12,32 @@ export async function openRedisClient(url: string, discClient: Client) {
     }
   });
 
-  await client.connect();
+  client.on('error', (error) => {
+    if (error.code == 'ECONNREFUSED') {
+      console.error("Couldn't connect to redis database: Connection refused (is redis on? is the port reachable?)");
+    } else if (error instanceof SocketClosedUnexpectedlyError) {
+      console.error('Redis server closed unexpectedly. Attempting reconnect every 60 seconds.');
+    } else {
+      console.error('Redis error:');
+      console.error(error);
+    }
+  });
+
+  client.on('connect', () => {
+    console.log('Connected to redis database');
+  });
+
+  client.on('reconnecting', () => {
+    console.log('Attempting to reconnect to redis database');
+  });
+
+  client.once('connect', () => {
+    client.subscribe(['ticket_updates', 'ban_updates'], updateHandler);
+  });
+
+  client.connect();
 
   discordClient = discClient;
-
-  console.log('Connected to redis database');
-
-  await client.subscribe(['ticket_updates', 'ban_updates'], updateHandler);
 }
 
 function updateHandler(data: string, channel: string) {
