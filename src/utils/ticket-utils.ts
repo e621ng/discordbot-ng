@@ -14,7 +14,7 @@ function friendlyPhrase(phrase: string): string {
 export function shouldAlert(ticketPhrase: TicketPhrase, ticket: Ticket): { alert: boolean, match?: string } {
   if (!(ticketPhrase.phrase.startsWith('/') && ticketPhrase.phrase.endsWith('/'))) {
     if (ticket.reason.toLowerCase().includes(ticketPhrase.phrase.toLowerCase())) {
-      return { alert: true, match: friendlyPhrase(ticketPhrase.phrase) };
+      return { alert: true, match: friendlyPhrase(ticketPhrase.phrase.trim()) };
     } else {
       return { alert: false };
     }
@@ -25,7 +25,7 @@ export function shouldAlert(ticketPhrase: TicketPhrase, ticket: Ticket): { alert
       const regexMatch = regex.exec(ticket.reason);
 
       if (regexMatch) {
-        return { alert: true, match: `${friendlyPhrase(regexMatch[0])} (RegEx match: \`${ticketPhrase.phrase}\`)` };
+        return { alert: true, match: `${friendlyPhrase(regexMatch[0].trim())} (RegEx match: \`${ticketPhrase.phrase}\`)` };
       } else {
         return { alert: false };
       }
