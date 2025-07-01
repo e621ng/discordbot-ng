@@ -64,6 +64,15 @@ const DB_SCHEMA = `
       timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime'))
     );
 
+    CREATE TABLE IF NOT EXISTS note_edits (
+      id INTEGER PRIMARY KEY,
+      note_id INTEGER,
+      mod_id TEXT,
+      previous_reason TEXT,
+      timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY(note_id) REFERENCES notes(id)
+    );
+
     CREATE TABLE IF NOT EXISTS bans (
       id INTEGER PRIMARY KEY,
       user_id TEXT,
@@ -300,6 +309,11 @@ export class Database {
 
   static async putNote(userId: string, reason: string, modId: string) {
     await Database.db.run('INSERT INTO notes(user_id, reason, mod_id) VALUES (?, ?, ?)', userId, reason, modId);
+  }
+
+  static async editNote(id: number, oldReason: string, newReason: string, modId: string) {
+    await Database.db.run('UPDATE notes SET reason = ?, mod_id = ? WHERE id = ?', newReason, modId, id);
+    await Database.db.run('INSERT INTO note_edits(note_id, mod_id, previous_reason) VALUES (?, ?, ?)', id, modId, oldReason);
   }
 
   static async removeNote(id: number): Promise<boolean> {

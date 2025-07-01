@@ -32,6 +32,30 @@ export default {
     )
     .addSubcommand(subcommand =>
       subcommand
+        .setName('edit')
+        .setDescription('Edit notes on a user.')
+        .addStringOption(option =>
+          option
+            .setName('user')
+            .setDescription('The discord user mention, or ID, to edit the notes of.')
+            .setRequired(true)
+        )
+        .addIntegerOption(option =>
+          option
+            .setName('note')
+            .setDescription('The note to edit.')
+            .setRequired(true)
+            .setAutocomplete(true)
+        )
+        .addStringOption(option =>
+          option
+            .setName('new-reason')
+            .setDescription('The new reason for the note.')
+            .setRequired(true)
+        )
+    )
+    .addSubcommand(subcommand =>
+      subcommand
         .setName('remove')
         .setDescription('Remove notes from a user.')
         .addStringOption(option =>
@@ -125,6 +149,42 @@ export default {
 
       await Database.removeNote(noteId);
       interaction.editReply('Removed note.');
+    } else if (subcommand == 'edit') {
+      const noteId = interaction.options.getInteger('note', true);
+
+      const notes = await Database.getNotes(idToUse);
+      const note = notes.find(n => n.id == noteId);
+
+      if (!note) return interaction.editReply('Note not found.');
+
+      const reason = interaction.options.getString('new-reason', true);
+
+      logCustomEvent(interaction.guild!, {
+        title: 'Note Edited',
+        description: null,
+        color: 0x00FF00,
+        timestamp: new Date(),
+        fields: [
+          {
+            name: 'User',
+            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+            inline: true
+          },
+          {
+            name: 'Old reason',
+            value: note.reason
+          },
+          {
+            name: 'New reason',
+            value: reason,
+            inline: true
+          }
+        ]
+      });
+
+      await Database.editNote(noteId, note.reason, reason, interaction.user.id);
+
+      interaction.editReply(`Note on <@${idToUse}> edited.\n\nNew reason:\n${reason}`);
     } else if (subcommand == 'list') {
       const noteMessage = await getNoteMessage(idToUse, 1);
 
