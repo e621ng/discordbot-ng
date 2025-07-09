@@ -18,6 +18,7 @@ export type GuildSettings = {
   voice_logs_channel_id?: string
   admin_role_id?: string
   private_help_role_id?: string
+  devwatch_role_id?: string
   staff_categories?: string
   safe_channels?: string
   link_skip_channels?: string

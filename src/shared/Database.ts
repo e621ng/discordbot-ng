@@ -25,6 +25,7 @@ const DB_SCHEMA = `
         voice_logs_channel_id TEXT,
         admin_role_id TEXT,
         private_help_role_id TEXT,
+        devwatch_role_id TEXT,
         staff_categories TEXT,
         safe_channels TEXT,
         link_skip_channels TEXT,
@@ -181,6 +182,10 @@ export class Database {
 
   static async setGuildPrivateHelperRole(guildId: string, id: string) {
     await Database.db.run('UPDATE settings SET private_help_role_id = ? WHERE guild_id = ?', id, guildId);
+  }
+
+  static async setGuildDevWatchRole(guildId: string, id: string) {
+    await Database.db.run('UPDATE settings SET devwatch_role_id = ? WHERE guild_id = ?', id, guildId);
   }
 
   static async setGuildGithubReleaseChannel(guildId: string, id: string) {

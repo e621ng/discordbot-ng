@@ -58,6 +58,12 @@ export default {
         .setDescription('Set the private helper role.')
         .setRequired(false)
     )
+    .addRoleOption(option =>
+      option
+        .setName('devwatch-role')
+        .setDescription('Set the DevWatch role.')
+        .setRequired(false)
+    )
     .addChannelOption(option =>
       option
         .setName('add-staff-category')
@@ -173,6 +179,14 @@ export default {
       await Database.setGuildPrivateHelperRole(interaction.guildId!, privateHelperRole.id);
 
       response += `Private helper role set to ${privateHelperRole}.\n`;
+    }
+
+    const devWatchRole = interaction.options.getRole('devwatch-role');
+
+    if (devWatchRole) {
+      await Database.setGuildDevWatchRole(interaction.guildId!, devWatchRole.id);
+
+      response += `DevWatch role set to ${devWatchRole}.\n`;
     }
 
     const addCategory = interaction.options.getChannel('add-staff-category');
