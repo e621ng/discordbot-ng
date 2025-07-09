@@ -259,7 +259,8 @@ async function createEmbedFromTicket(ticket: Ticket): Promise<EmbedBuilder> {
     .setDescription(await getDescription(ticket))
     .setAuthor(getAuthor(ticket))
     .setColor(getColor(ticket))
-    .setFields(...getFields(ticket));
+    .setFields(...getFields(ticket))
+    .setFooter({ text: `Ticket #${ticket.id}` });
 }
 
 async function sendTicketAlerts(ticket: Ticket, channel: SendableChannels) {
