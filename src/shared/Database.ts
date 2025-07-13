@@ -136,8 +136,12 @@ export class Database {
     return ids.map(r => ({ userId: r.user_id.toString(), discordId: r.discord_id }));
   }
 
-  static async putUser(id: number, user: DiscordOAuth2.User) {
+  static async putUser(id: number, user: { id: string, username: string }) {
     await Database.db.run('INSERT INTO discord_names(user_id, discord_id, discord_username) VALUES (?, ?, ?)', id, user.id, user.username);
+  }
+
+  static async removeUser(id: number, discordId: string) {
+    await Database.db.run('DELETE from tickets WHERE user_id = ? AND discord_id = ?', id, discordId);
   }
 
   // -- END WHOIS --
