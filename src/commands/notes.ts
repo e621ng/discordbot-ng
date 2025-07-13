@@ -95,6 +95,10 @@ export default {
 
     await deferInteraction(interaction);
 
+    const user = await client.users.fetch(idToUse);
+
+    if (!user) return interaction.editReply('User not found');
+
     if (subcommand == 'add') {
       const reason = interaction.options.getString('reason', true);
 
