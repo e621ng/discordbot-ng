@@ -141,7 +141,7 @@ export class Database {
   }
 
   static async removeUser(id: number, discordId: string) {
-    await Database.db.run('DELETE from tickets WHERE user_id = ? AND discord_id = ?', id, discordId);
+    await Database.db.run('DELETE from discord_names WHERE user_id = ? AND discord_id = ?', id, discordId);
   }
 
   // -- END WHOIS --
