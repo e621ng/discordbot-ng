@@ -1,7 +1,9 @@
-import { ApplicationIntegrationType, BitFieldResolvable, ChatInputCommandInteraction, Client, GuildBasedChannel, GuildMember, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, time, TimestampStyles } from 'discord.js';
+import { ApplicationIntegrationType, BitFieldResolvable, ChatInputCommandInteraction, Client, GuildBasedChannel, GuildMember, InteractionContextType, MessageFlags, MessageMentions, PermissionFlagsBits, SlashCommandBuilder, time, TimestampStyles } from 'discord.js';
 import { channelIsInStaffCategory, deferInteraction, handleWhoIsInteraction } from '../utils';
 import { getRecordMessageFromDiscordId } from '../utils/record-utils';
 import { Database } from '../shared/Database';
+
+const mentionRegex = new RegExp(MessageMentions.UsersPattern);
 
 export default {
   name: 'ban',
@@ -11,10 +13,10 @@ export default {
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
-    .addUserOption(option =>
+    .addStringOption(option =>
       option
         .setName('user')
-        .setDescription('The discord user to ban.')
+        .setDescription('The discord user mention, or ID, to ban.')
         .setRequired(true)
     )
     .addStringOption(option =>
@@ -57,7 +59,12 @@ export default {
 
     if (!interaction.guild.members.me) return interaction.editReply('An error has occurred. Please try again later.');
 
-    const user = interaction.options.getUser('user', true);
+    const input = interaction.options.getString('user', true);
+
+    const matches = mentionRegex.exec(input);
+    mentionRegex.lastIndex = 0;
+
+    const idToUse = matches ? matches.groups!.id : input;
     const reason = interaction.options.getString('reason') ?? '';
 
     const hours = (interaction.options.getNumber('hours') ?? 0) * 3.6e+6;
@@ -71,7 +78,7 @@ export default {
     let banMember: GuildMember | null = null;
 
     try {
-      banMember = await interaction.guild.members.fetch(user.id);
+      banMember = await interaction.guild.members.fetch(idToUse);
     } catch (e) {
       // Member not in server.
     }
@@ -88,10 +95,10 @@ export default {
 
     const expiresAt = new Date(Date.now() + duration);
 
-    if (duration > 0) await Database.putBan(user.id, expiresAt);
+    if (duration > 0) await Database.putBan(idToUse, expiresAt);
 
     try {
-      await interaction.guild.bans.create(user, {
+      await interaction.guild.bans.create(idToUse, {
         reason: (reason + ` Banned by ${interaction.user.username} (${interaction.user.id})${duration > 0 ? `. Expires at: ${time(expiresAt, TimestampStyles.ShortDateTime)}` : ''}`).trim(),
         deleteMessageSeconds: deleteMessageDays
       });
