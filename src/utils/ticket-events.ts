@@ -78,7 +78,7 @@ const linkReplacers = [
   }
 ];
 
-const urlRegex = new RegExp('"((?:[\\S]| )+?)":\\[?((?:https?:\\/\\/[\\w\\d.\\/?=#&%]+)|\\/[\\w\\d.\\/?=#]+)\\]?', 'gi');
+const urlRegex = new RegExp('"((?:[\\S]| )+?)":\\[?((?:https?:\\/\\/[\\w\\d.\\/?=#&%]+)|\\/[\\w\\d.\\/?=#\\[\\]]+)\\]?', 'gi');
 
 const MAX_DESCRIPTION_LENGTH = 500;
 
