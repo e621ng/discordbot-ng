@@ -20,7 +20,7 @@ export function shouldAlert(ticketPhrase: TicketPhrase, ticket: Ticket): { alert
     }
   } else {
     try {
-      const regex = new RegExp(ticketPhrase.phrase.substring(1, ticketPhrase.phrase.length - 2), 'i');
+      const regex = new RegExp(ticketPhrase.phrase.slice(1, -1), 'i');
 
       const regexMatch = regex.exec(ticket.reason);
 
