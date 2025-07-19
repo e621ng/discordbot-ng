@@ -29,7 +29,8 @@ const DB_SCHEMA = `
         staff_categories TEXT,
         safe_channels TEXT,
         link_skip_channels TEXT,
-        github_release_channel TEXT
+        github_release_channel TEXT,
+        moderator_channel_id TEXT
     );
 
     CREATE TABLE IF NOT EXISTS messages (
@@ -178,6 +179,10 @@ export class Database {
 
   static async setGuildNewMemberLogsChannel(guildId: string, id: string) {
     await Database.db.run('UPDATE settings SET new_member_channel_id = ? WHERE guild_id = ?', id, guildId);
+  }
+
+  static async setGuildModeratorChannel(guildId: string, id: string) {
+    await Database.db.run('UPDATE settings SET moderator_channel_id = ? WHERE guild_id = ?', id, guildId);
   }
 
   static async setGuildAdminRole(guildId: string, id: string) {

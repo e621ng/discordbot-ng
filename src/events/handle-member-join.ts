@@ -13,6 +13,12 @@ export async function handleMemberJoin(member: GuildMember) {
       const content = `${member.toString()}'s e621 and discord account(s):\n${await getE621Alts(member.id, member.guild)}`;
 
       channel.send(content).catch(console.error);
+
+      if (guildSettings.moderator_channel_id && content.includes('[BANNED]')) {
+        const modChannel = await member.guild.channels.fetch(guildSettings.moderator_channel_id) as GuildTextBasedChannel;
+
+        if (modChannel) modChannel.send(content).catch(console.error);
+      }
     }
   }
 }
