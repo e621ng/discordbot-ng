@@ -70,21 +70,27 @@ export async function handleMessageCreate(message: Message) {
     const match = md5Regex.exec(attachment.name);
     md5Regex.lastIndex = 0;
 
-    let md5;
+    const md5s: string[] = [];
 
-    if (match) md5 = match[1];
+    if (match) md5s.push(match[1]);
     else if (ALLOWED_MIMETYPES.includes(attachment.contentType!)) {
-      md5 = await calculateMD5FromURL(attachment.url);
+      const md5Data = await calculateMD5FromURL(attachment.url);
+      if (!md5Data) continue;
+      md5s.push(md5Data.correctedFileMD5, md5Data.originalFileMD5);
     }
 
-    if (!md5) continue;
+    if (md5s.length == 0) continue;
 
-    const post = await getE621PostByMd5(md5);
+    for (const md5 of md5s) {
+      const post = await getE621PostByMd5(md5);
 
-    if (post) {
-      if (await blacklistIfNecessary(message, [post])) return;
+      if (post) {
+        if (await blacklistIfNecessary(message, [post])) return;
 
-      responses.push(`<${getPostUrl(post)}>`);
+        responses.push(`<${getPostUrl(post)}>`);
+
+        continue;
+      }
     }
   }
 

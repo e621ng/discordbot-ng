@@ -14,7 +14,7 @@ export function calculateMD5(data: Buffer): string {
   return crypto.createHash('md5').update(data).digest('hex');
 }
 
-export async function downloadFile(url: string): Promise<Buffer | null> {
+export async function downloadFile(url: string): Promise<Buffer[] | null> {
   try {
     const res = await fetch(url);
 
@@ -44,18 +44,22 @@ export async function downloadFile(url: string): Promise<Buffer | null> {
       finalData = Buffer.from(data);
     }
 
-    return finalData;
+    return [finalData, Buffer.from(data)];
   } catch (e) {
     console.error(e);
     return null;
   }
 }
 
-export async function calculateMD5FromURL(url: string): Promise<string | null> {
+export async function calculateMD5FromURL(url: string): Promise<{ correctedFileMD5: string, originalFileMD5: string } | null> {
   try {
-    const file = await downloadFile(url);
-    if (!file) return null;
-    return calculateMD5(file);
+    const files = await downloadFile(url);
+    if (!files) return null;
+
+    return {
+      correctedFileMD5: calculateMD5(files[0]),
+      originalFileMD5: calculateMD5(files[1])
+    };
   } catch (e) {
     console.error(e);
     return null;
