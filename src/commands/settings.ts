@@ -24,8 +24,14 @@ export default {
     )
     .addChannelOption(option =>
       option
-        .setName('message-logs-channel')
-        .setDescription('Set the message logs channel.')
+        .setName('event-logs-channel')
+        .setDescription('Set the event logs channel.')
+        .setRequired(false)
+    )
+    .addChannelOption(option =>
+      option
+        .setName('discord-logs-channel')
+        .setDescription('Set the discord logs channel.')
         .setRequired(false)
     )
     .addChannelOption(option =>
@@ -139,12 +145,20 @@ export default {
       response += `Tickets logs channel set to ${ticketsChannel}.\n`;
     }
 
-    const messageLogsChannel = interaction.options.getChannel('message-logs-channel');
+    const eventLogsChannel = interaction.options.getChannel('event-logs-channel');
 
-    if (messageLogsChannel) {
-      await Database.setGuildEventsLogsChannelId(interaction.guildId!, messageLogsChannel.id);
+    if (eventLogsChannel) {
+      await Database.setGuildEventsLogsChannelId(interaction.guildId!, eventLogsChannel.id);
 
-      response += `Message logs channel set to ${messageLogsChannel}.\n`;
+      response += `Event logs channel set to ${eventLogsChannel}.\n`;
+    }
+
+    const discordLogsChannel = interaction.options.getChannel('discord-logs-channel');
+
+    if (discordLogsChannel) {
+      await Database.setGuildDiscordLogsChannelId(interaction.guildId!, discordLogsChannel.id);
+
+      response += `Discord logs channel set to ${discordLogsChannel}.\n`;
     }
 
     const auditLogsChannel = interaction.options.getChannel('audit-logs-channel');

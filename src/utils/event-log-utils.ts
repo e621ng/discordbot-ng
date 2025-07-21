@@ -13,7 +13,7 @@ type CustomEventLogData = {
 }
 
 export async function logEdit(loggedMessage: LoggedMessage, newMessage: Message<true>) {
-  const channel = await getEventLogChannel(newMessage.guild);
+  const channel = await getEventLogChannel(newMessage.guild, newMessage.channel.parentId);
 
   if (!channel) return;
 
@@ -31,7 +31,7 @@ export async function logEdit(loggedMessage: LoggedMessage, newMessage: Message<
 }
 
 export async function logDeletion(loggedMessage: LoggedMessage, deletedMessage: Message<true>) {
-  const channel = await getEventLogChannel(deletedMessage.guild);
+  const channel = await getEventLogChannel(deletedMessage.guild, deletedMessage.channel.parentId);
 
   if (!channel) return;
 
@@ -63,16 +63,30 @@ export async function logCustomEvent(guild: Guild, data: CustomEventLogData) {
   channel.send({ embeds: [embed] });
 }
 
-async function getEventLogChannel(guild: Guild): Promise<GuildTextBasedChannel | null> {
+async function getEventLogChannel(guild: Guild, parentId: string | null = null): Promise<GuildTextBasedChannel | null> {
   const settings = await Database.getGuildSettings(guild.id);
 
-  if (!settings || !settings.event_logs_channel_id) return null;
+  if (!settings) return null;
 
-  const channel = await guild.channels.fetch(settings.event_logs_channel_id);
+  const staffCategories = await Database.getGuildArraySetting('staff_categories', guild.id);
 
-  if (!channel || !channel.isSendable()) return null;
+  if (parentId != null && staffCategories.includes(parentId)) {
+    if (!settings.event_logs_channel_id) return null;
 
-  return channel;
+    const channel = await guild.channels.fetch(settings.event_logs_channel_id);
+
+    if (!channel || !channel.isSendable()) return null;
+
+    return channel;
+  } else {
+    if (!settings.discord_logs_channel_id) return null;
+
+    const channel = await guild.channels.fetch(settings.discord_logs_channel_id);
+
+    if (!channel || !channel.isSendable()) return null;
+
+    return channel;
+  }
 }
 
 function getMainEmbeds(loggedMessage: LoggedMessage, newMessage: Message<true>): APIEmbedField[] {

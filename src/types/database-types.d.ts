@@ -14,6 +14,7 @@ export type GuildSettings = {
   new_member_channel_id?: string
   tickets_channel_id?: string
   event_logs_channel_id?: string
+  discord_logs_channel_id?: string
   audit_logs_channel_id?: string
   voice_logs_channel_id?: string
   admin_role_id?: string

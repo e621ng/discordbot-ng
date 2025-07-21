@@ -21,6 +21,7 @@ const DB_SCHEMA = `
         new_member_channel_id TEXT,
         tickets_channel_id TEXT,
         event_logs_channel_id TEXT,
+        discord_logs_channel_id TEXT,
         audit_logs_channel_id TEXT,
         voice_logs_channel_id TEXT,
         admin_role_id TEXT,
@@ -167,6 +168,10 @@ export class Database {
 
   static async setGuildEventsLogsChannelId(guildId: string, id: string) {
     await Database.db.run('UPDATE settings SET event_logs_channel_id = ? WHERE guild_id = ?', id, guildId);
+  }
+
+  static async setGuildDiscordLogsChannelId(guildId: string, id: string) {
+    await Database.db.run('UPDATE settings SET discord_logs_channel_id = ? WHERE guild_id = ?', id, guildId);
   }
 
   static async setGuildAuditLogsChannelId(guildId: string, id: string) {
