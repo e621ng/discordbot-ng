@@ -17,7 +17,7 @@ export async function handleMemberJoin(member: GuildMember) {
       if (guildSettings.moderator_channel_id && content.includes('[BANNED]')) {
         const modChannel = await member.guild.channels.fetch(guildSettings.moderator_channel_id) as GuildTextBasedChannel;
 
-        if (modChannel) modChannel.send(content).catch(console.error);
+        if (modChannel) modChannel.send(`Member joined with banned alts:\n${content}`).catch(console.error);
       }
     }
   }
