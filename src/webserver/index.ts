@@ -184,9 +184,26 @@ async function handleGithubRelease(client: Client, req: Request, res: Response):
 
   const date = new Date();
 
-  const message = `## [${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}](<${data.release.html_url}>)\n\n${await fixPings(data.release.body)}`;
+  let message = `## [${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}](<${data.release.html_url}>)\n\n${await fixPings(data.release.body)}`;
 
   logDebug('Sending github release message');
+
+  const MAX_MESSAGE_LENGTH = 2000;
+  const ADDITIONAL_PART = '...\n\nYou may view the full changelog on github.';
+
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    const splitMessage = message.split('\n');
+
+    message = '';
+
+    for (const part of splitMessage) {
+      if (message.length + part.length + 1 >= MAX_MESSAGE_LENGTH - ADDITIONAL_PART.length) break;
+
+      message += `${part}\n`;
+    }
+
+    message += ADDITIONAL_PART;
+  }
 
   const sentMessage = await channel.send(message);
   await sentMessage.startThread({ name: data.release.tag_name });
