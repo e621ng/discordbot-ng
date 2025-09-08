@@ -61,7 +61,7 @@ export default {
 
     const user = await resolveUser(client, idToUse);
 
-    if (!user) return interaction.editReply("Couldn't find user.");
+    if (!user) return interaction.editReply('User not found.');
 
     const e621Id = interaction.options.getInteger('e621-id', true);
 

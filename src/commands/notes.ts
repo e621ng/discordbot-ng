@@ -97,7 +97,7 @@ export default {
 
     const user = await resolveUser(client, idToUse);
 
-    if (!user) return interaction.editReply('User not found');
+    if (!user) return interaction.editReply('User not found.');
 
     if (subcommand == 'add') {
       const reason = interaction.options.getString('reason', true);
