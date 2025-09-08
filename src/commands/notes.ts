@@ -1,6 +1,6 @@
 import { ApplicationCommandOptionType, ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, MessageMentions, PermissionFlagsBits, SlashCommandBuilder, User } from 'discord.js';
 import { Database } from '../shared/Database';
-import { channelIsInStaffCategory, deferInteraction, logCustomEvent } from '../utils';
+import { channelIsInStaffCategory, deferInteraction, logCustomEvent, resolveUser } from '../utils';
 import { getNoteMessage } from '../utils/note-utils';
 
 const mentionRegex = new RegExp(MessageMentions.UsersPattern);
@@ -95,13 +95,7 @@ export default {
 
     await deferInteraction(interaction);
 
-    let user: User | null = null;
-
-    try {
-      user = await client.users.fetch(idToUse);
-    } catch (e) {
-      return interaction.editReply('An error has occurred. Are you using the right format? You can provide a user ID (ex `324007235137044482`) or a user mention (you must have text previews enabled, Settings -> Chat -> Text Box).');
-    }
+    const user = await resolveUser(client, idToUse);
 
     if (!user) return interaction.editReply('User not found');
 

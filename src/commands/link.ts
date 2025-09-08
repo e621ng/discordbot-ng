@@ -1,5 +1,5 @@
 import { ApplicationIntegrationType, BitFieldResolvable, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, MessageMentions, PermissionFlagsBits, SlashCommandBuilder, User } from 'discord.js';
-import { channelIsInStaffCategory, handleWhoIsInteraction, logCustomEvent } from '../utils';
+import { channelIsInStaffCategory, handleWhoIsInteraction, logCustomEvent, resolveUser } from '../utils';
 import { Database } from '../shared/Database';
 import { config } from '../config';
 
@@ -59,13 +59,7 @@ export default {
 
     const idToUse = matches ? matches.groups!.id : discordUserInput;
 
-    let user: User | null = null;
-
-    try {
-      user = await client.users.fetch(idToUse);
-    } catch (e) {
-      return interaction.editReply('An error has occurred. Are you using the right format? You can provide a user ID (ex `324007235137044482`) or a user mention (you must have text previews enabled, Settings -> Chat -> Text Box).');
-    }
+    const user = await resolveUser(client, idToUse);
 
     if (!user) return interaction.editReply("Couldn't find user.");
 
