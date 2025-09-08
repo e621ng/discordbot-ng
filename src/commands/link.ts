@@ -59,7 +59,7 @@ export default {
 
     const idToUse = matches ? matches.groups!.id : discordUserInput;
 
-    const user = await resolveUser(client, idToUse);
+    const user = await resolveUser(client, idToUse, interaction.guild);
 
     if (!user) return interaction.editReply('User not found.');
 
