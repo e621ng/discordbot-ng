@@ -199,7 +199,7 @@ async function wikiPageHandler(message: Message, matchedGroups: RegExpExecArray[
   let content = '';
 
   for (const group of matchedGroups) {
-    content += `<${config.E621_BASE_URL}/wiki_pages/${encodeURIComponent(group[1])}>\n`;
+    content += `<${config.E621_BASE_URL}/wiki_pages/${group[1].split('#').map(t => encodeURIComponent(t)).join('#')}>\n`;
   }
 
   if (content.trim().length > 0) return content.trim();
