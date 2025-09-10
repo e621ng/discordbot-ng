@@ -109,8 +109,13 @@ export default {
         timestamp: new Date(),
         fields: [
           {
-            name: 'User',
+            name: 'Moderator',
             value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+            inline: true
+          },
+          {
+            name: 'User',
+            value: `<@${user.id}>\n${user.username}`,
             inline: true
           },
           {
@@ -121,13 +126,13 @@ export default {
         ]
       });
 
-      await Database.putNote(idToUse, reason, interaction.user.id);
+      await Database.putNote(user.id, reason, interaction.user.id);
 
-      interaction.editReply(`Note added to <@${idToUse}>.\n\nReason:\n${reason}`);
+      interaction.editReply(`Note added to <@${user.id}>.\n\nReason:\n${reason}`);
     } else if (subcommand == 'remove') {
       const noteId = interaction.options.getInteger('note', true);
 
-      const notes = await Database.getNotes(idToUse);
+      const notes = await Database.getNotes(user.id);
       const note = notes.find(n => n.id == noteId);
 
       if (!note) return interaction.editReply('Note not found.');
@@ -139,8 +144,13 @@ export default {
         timestamp: new Date(),
         fields: [
           {
-            name: 'User',
+            name: 'Moderator',
             value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+            inline: true
+          },
+          {
+            name: 'User',
+            value: `<@${user.id}>\n${user.username}`,
             inline: true
           },
           {
@@ -156,7 +166,7 @@ export default {
     } else if (subcommand == 'edit') {
       const noteId = interaction.options.getInteger('note', true);
 
-      const notes = await Database.getNotes(idToUse);
+      const notes = await Database.getNotes(user.id);
       const note = notes.find(n => n.id == noteId);
 
       if (!note) return interaction.editReply('Note not found.');
@@ -170,8 +180,13 @@ export default {
         timestamp: new Date(),
         fields: [
           {
-            name: 'User',
+            name: 'Moderator',
             value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+            inline: true
+          },
+          {
+            name: 'User',
+            value: `<@${user.id}>\n${user.username}`,
             inline: true
           },
           {
@@ -188,11 +203,11 @@ export default {
 
       await Database.editNote(noteId, note.reason, reason, interaction.user.id);
 
-      interaction.editReply(`Note on <@${idToUse}> edited.\n\nNew reason:\n${reason}`);
+      interaction.editReply(`Note on <@${user.id}> edited.\n\nNew reason:\n${reason}`);
     } else if (subcommand == 'list') {
-      const noteMessage = await getNoteMessage(idToUse, 1);
+      const noteMessage = await getNoteMessage(user.id, 1);
 
-      if (!noteMessage) return interaction.editReply(`No notes found for <@${idToUse}>`);
+      if (!noteMessage) return interaction.editReply(`No notes found for <@${user.id}>`);
 
       interaction.editReply(noteMessage);
     }
