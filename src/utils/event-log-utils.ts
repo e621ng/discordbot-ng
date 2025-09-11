@@ -1,4 +1,4 @@
-import { APIEmbedField, Channel, EmbedBuilder, Guild, GuildBasedChannel, GuildTextBasedChannel, messageLink, TextBasedChannel } from 'discord.js';
+import { APIEmbedField, AttachmentBuilder, Channel, EmbedBuilder, Guild, GuildBasedChannel, GuildTextBasedChannel, MessageCreateOptions, messageLink, TextBasedChannel } from 'discord.js';
 import { Database } from '../shared/Database';
 import { Message } from '../events';
 import { deserializeMessagePart, getModifiedAttachments, getModifiedStickers } from './message-utils';
@@ -18,9 +18,11 @@ export async function logEdit(loggedMessage: LoggedMessage, newMessage: Message<
 
   if (!channel) return;
 
+  const includeContentInEmbed = loggedMessage.content.length <= 1024 && newMessage.content.length <= 1024;
+
   const fields: APIEmbedField[] = [];
   fields.push(...getMainEmbeds(loggedMessage, newMessage));
-  fields.push(...getEditEmbeds(loggedMessage, newMessage));
+  fields.push(...getEditEmbeds(loggedMessage, newMessage, includeContentInEmbed));
 
   const embed = new EmbedBuilder()
     .setTitle('Edited Message')
@@ -28,7 +30,16 @@ export async function logEdit(loggedMessage: LoggedMessage, newMessage: Message<
     .setTimestamp(newMessage.createdTimestamp)
     .addFields(...fields);
 
-  channel.send({ embeds: [embed] });
+  const messagePayload: MessageCreateOptions = { embeds: [embed] };
+
+  if (!includeContentInEmbed) {
+    const before = new AttachmentBuilder(Buffer.from(loggedMessage.content), { name: 'before.txt' });
+    const after = new AttachmentBuilder(Buffer.from(newMessage.content), { name: 'after.txt' });
+
+    messagePayload.files = [before, after];
+  }
+
+  channel.send(messagePayload);
 }
 
 export async function logDeletion(loggedMessage: LoggedMessage, deletedMessage: Message<true>) {
@@ -36,9 +47,11 @@ export async function logDeletion(loggedMessage: LoggedMessage, deletedMessage: 
 
   if (!channel) return;
 
+  const includeContentInEmbed = loggedMessage.content.length <= 1024;
+
   const fields: APIEmbedField[] = [];
   fields.push(...getMainEmbeds(loggedMessage, deletedMessage));
-  fields.push(...getDeletedEmbeds(loggedMessage));
+  fields.push(...getDeletedEmbeds(loggedMessage, includeContentInEmbed));
 
   const embed = new EmbedBuilder()
     .setTitle('Deleted Message')
@@ -46,7 +59,15 @@ export async function logDeletion(loggedMessage: LoggedMessage, deletedMessage: 
     .setTimestamp(deletedMessage.createdTimestamp)
     .addFields(...fields);
 
-  channel.send({ embeds: [embed] });
+  const messagePayload: MessageCreateOptions = { embeds: [embed] };
+
+  if (!includeContentInEmbed) {
+    const before = new AttachmentBuilder(Buffer.from(loggedMessage.content), { name: 'content.txt' });
+
+    messagePayload.files = [before];
+  }
+
+  channel.send(messagePayload);
 }
 
 export async function logCustomEvent(guild: Guild, data: CustomEventLogData) {
@@ -111,10 +132,10 @@ function getMainEmbeds(loggedMessage: LoggedMessage, newMessage: Message<true>):
   ];
 }
 
-function getDeletedEmbeds(loggedMessage: LoggedMessage): APIEmbedField[] {
+function getDeletedEmbeds(loggedMessage: LoggedMessage, includeContentInEmbed = true): APIEmbedField[] {
   const fields: APIEmbedField[] = [];
 
-  if (loggedMessage.content != '') {
+  if (includeContentInEmbed && loggedMessage.content != '') {
     fields.push({
       name: 'Content',
       value: loggedMessage.content,
@@ -141,9 +162,9 @@ function getDeletedEmbeds(loggedMessage: LoggedMessage): APIEmbedField[] {
   return fields;
 }
 
-function getEditEmbeds(loggedMessage: LoggedMessage, newMessage: Message<true>): APIEmbedField[] {
+function getEditEmbeds(loggedMessage: LoggedMessage, newMessage: Message<true>, includeContentInEmbed = true): APIEmbedField[] {
   const fields: APIEmbedField[] = [];
-  if (loggedMessage.content != newMessage.content) {
+  if (includeContentInEmbed && loggedMessage.content != newMessage.content) {
     fields.push(
       {
         name: 'Before',
