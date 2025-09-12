@@ -23,8 +23,8 @@ export default {
     const matches = mentionRegex.exec(input);
     mentionRegex.lastIndex = 0;
 
-    const idToUse = matches ? matches.groups!.id : input;
+    const valueToUse = matches ? matches.groups!.id : input;
 
-    handleWhoIsInteraction(interaction, idToUse, !(await channelIsInStaffCategory(interaction.channel as GuildBasedChannel)));
+    handleWhoIsInteraction(interaction, valueToUse, !(await channelIsInStaffCategory(interaction.channel as GuildBasedChannel)));
   }
 };
