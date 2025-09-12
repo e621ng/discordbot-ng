@@ -3,7 +3,7 @@ import { open, Database as SqliteDatabase } from 'sqlite';
 import { config } from '../config';
 import DiscordOAuth2 from 'discord-oauth2';
 import { serializeMessage, wait } from '../utils';
-import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping } from '../types';
+import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping, KnowledgebaseItem } from '../types';
 import { Message } from '../events';
 
 const DB_SCHEMA = `
@@ -87,6 +87,13 @@ const DB_SCHEMA = `
       discord_id TEXT,
       github_username TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS knowledgebase (
+      id INTEGER PRIMARY KEY,
+      guild_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      content TEXT NOT NULL
+    )
 `;
 
 export class Database {
@@ -395,4 +402,36 @@ export class Database {
   }
 
   // -- END GITHUB USER MAPPING --
+
+  // -- START KNOWLEDGEBASE --
+
+  static async addToKnowledgebase(guildId: string, name: string, content: string) {
+    if (content.length > 2000) return;
+
+    await Database.db.run('INSERT INTO knowledgebase(guild_id, name, content) VALUES (?, ?, ?)', guildId, name, content);
+  }
+
+  static async removeFromKnowledgebase(id: number) {
+    await Database.db.run('DELETE from knowledgebase WHERE id = ?', id);
+  }
+
+  static async editKnowledgebaseItem(id: number, content: string) {
+    if (content.length > 2000) return;
+
+    await Database.db.run('UPDATE knowledgebase SET content = ? WHERE id = ?', content, id);
+  }
+
+  static async getFromKnowledgebaseByName(guildId: string, name: string): Promise<KnowledgebaseItem | undefined> {
+    return await Database.db.get<KnowledgebaseItem>('SELECT * from knowledgebase WHERE guild_id = ? AND name = ?', guildId, name);
+  }
+
+  static async getFromKnowledgebase(id: number): Promise<KnowledgebaseItem | undefined> {
+    return await Database.db.get<KnowledgebaseItem>('SELECT * from knowledgebase WHERE id = ?', id);
+  }
+
+  static async getAllKnowledgebaseItems(guildId: string): Promise<KnowledgebaseItem[]> {
+    return await Database.db.all<KnowledgebaseItem[]>('SELECT * from knowledgebase WHERE guild_id = ?', guildId);
+  }
+
+  // -- END KNOWLEDGEBASE --
 }

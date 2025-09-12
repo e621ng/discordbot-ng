@@ -59,3 +59,10 @@ export type GithubUserMapping = {
   discord_id: string
   github_username: string
 }
+
+export type KnowledgebaseItem = {
+  id: number
+  guild_id: string
+  name: string
+  content: string
+}
