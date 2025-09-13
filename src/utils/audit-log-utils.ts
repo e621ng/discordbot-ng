@@ -76,7 +76,10 @@ export function formatExtras(entry: GuildAuditLogsEntry, guild: Guild): string {
     for (const [key, value] of Object.entries(reserialized.extra ?? {})) {
       if (!value) continue;
 
-      if (key == 'channel_id' || key == 'channel') results.push(formatSnowflake(value as string, TargetType.Channel));
+      if (key == 'channel_id' || key == 'channel') {
+        results.push(`channel: ${formatSnowflake(value as string, TargetType.Channel)}`);
+        continue;
+      }
 
       results.push(`${key}: ${value}`);
     }
