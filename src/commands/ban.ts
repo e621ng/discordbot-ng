@@ -106,6 +106,6 @@ export default {
       return await interaction.editReply("Error banning user (couldn't ban).");
     }
 
-    await interaction.editReply('Banned.');
+    await interaction.editReply(`<@${idToUse}> (${idToUse}) has been banned.`);
   }
 };
