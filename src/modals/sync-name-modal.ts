@@ -1,5 +1,4 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, Client, GuildTextBasedChannel, MessageFlags, ModalSubmitInteraction, TextChannel, ThreadAutoArchiveDuration } from 'discord.js';
-import { ticketCooldownMap } from '../shared/ticket-cooldown';
 import { Database } from '../shared/Database';
 import { deferInteraction, logCustomEvent, syncName } from '../utils';
 import { config } from '../config';

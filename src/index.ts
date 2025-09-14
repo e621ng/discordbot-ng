@@ -6,7 +6,6 @@ import { checkExpiredBans, initIfNecessary, loadHandlersFrom, refreshCommands } 
 import { initializeWebserver } from './webserver';
 import { Database } from './shared/Database';
 import { handleAuditLogCreate, handleBanRemove, handleBulkMessageDelete, handleGuildCreate, handleMemberJoin, handleMessageCreate, handleMessageDelete, handleMessageUpdate, handleThreadCreate, handleVoiceStateUpdate } from './events';
-import { pruneOldTickets, ticketCooldownMap } from './shared/ticket-cooldown';
 import { openRedisClient } from './shared/RedisClient';
 
 let ready = false;
@@ -136,9 +135,6 @@ client.on('ready', async () => {
   await openRedisClient(config.REDIS_URL!, client);
 
   await initializeWebserver(client);
-
-  // Prune ticket cooldowns that are expired every day
-  setInterval(pruneOldTickets, 8.64e+7);
 
   // Check for expired bans every 5 minutes
   checkExpiredBans(client);

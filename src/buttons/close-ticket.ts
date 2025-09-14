@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonInteraction, Client, ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags, ChannelType, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { ticketCooldownMap } from '../shared/ticket-cooldown';
+import { Database } from '../shared/Database';
 
 export default {
   name: 'close-ticket',
@@ -13,6 +13,8 @@ export default {
       content: interaction.message.content,
       components: []
     });
+
+    await Database.closePrivateHelpTicket(channel.id);
 
     await channel.send(`This ticket has been closed by ${interaction.user}`);
 

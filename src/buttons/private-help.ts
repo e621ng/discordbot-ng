@@ -1,13 +1,11 @@
 import { ActionRowBuilder, ButtonInteraction, Client, ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags } from 'discord.js';
-import { ticketCooldownMap } from '../shared/ticket-cooldown';
+import { canOpenPrivateHelpTicket } from '../utils';
 
 export default {
   name: 'private-help',
   handler: async function (client: Client, interaction: ButtonInteraction) {
-    const allowedAt = ticketCooldownMap.get(interaction.user.id);
-
-    if (allowedAt && Date.now() < allowedAt)
-      return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'You can only create one ticket per day.' });
+    if (!(await canOpenPrivateHelpTicket(interaction.user.id)))
+      return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'You can only have one open ticket at a time that is less than a day old.' });
 
     const modal = new ModalBuilder()
       .setCustomId('open-ticket-modal')

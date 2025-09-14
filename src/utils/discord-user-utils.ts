@@ -1,4 +1,5 @@
 import { Client, Guild, User } from 'discord.js';
+import { Database, PrivateHelpTicketStatus } from '../shared/Database';
 
 export async function resolveUser(client: Client, value: string, guild: Guild | null = null): Promise<User | null | undefined> {
   let user: User | null | undefined = null;
@@ -24,4 +25,12 @@ export async function resolveUser(client: Client, value: string, guild: Guild | 
   }
 
   return user;
+}
+
+export async function canOpenPrivateHelpTicket(id: string): Promise<boolean> {
+  const latestTicket = await Database.getLatestPrivateHelpTicketBy(id);
+
+  if (latestTicket && latestTicket.status == PrivateHelpTicketStatus.OPEN && Date.now() - new Date(latestTicket.timestamp).getTime() < 8.64e+7) return false;
+
+  return true;
 }

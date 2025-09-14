@@ -1,9 +1,7 @@
 import sqlite3 from 'sqlite3';
 import { open, Database as SqliteDatabase } from 'sqlite';
-import { config } from '../config';
-import DiscordOAuth2 from 'discord-oauth2';
 import { serializeMessage, wait } from '../utils';
-import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping, KnowledgebaseItem } from '../types';
+import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping, KnowledgebaseItem, PrivateHelpTicket } from '../types';
 import { Message } from '../events';
 
 const DB_SCHEMA = `
@@ -67,6 +65,8 @@ const DB_SCHEMA = `
       timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime'))
     );
 
+    CREATE INDEX IF NOT EXISTS index_user_ids ON notes (user_id);
+
     CREATE TABLE IF NOT EXISTS note_edits (
       id INTEGER PRIMARY KEY,
       note_id INTEGER,
@@ -93,8 +93,23 @@ const DB_SCHEMA = `
       guild_id TEXT NOT NULL,
       name TEXT NOT NULL,
       content TEXT NOT NULL
-    )
+    );
+
+    CREATE TABLE IF NOT EXISTS private_help_tickets (
+      id INTEGER PRIMARY KEY,
+      thread_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      status INTEGER NOT NULL,
+      timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE INDEX IF NOT EXISTS index_timestamp ON private_help_tickets (timestamp);
 `;
+
+export const enum PrivateHelpTicketStatus {
+  OPEN = 0,
+  CLOSED = 1
+}
 
 export class Database {
   private static db: SqliteDatabase;
@@ -434,4 +449,20 @@ export class Database {
   }
 
   // -- END KNOWLEDGEBASE --
+
+  // -- START PRIVATE HELP TICKETS --
+
+  static async createPrivateHelpTicket(userId: string, threadId: string) {
+    await Database.db.run('INSERT INTO private_help_tickets(user_id, thread_id, status) VALUES (?, ?, ?)', userId, threadId, PrivateHelpTicketStatus.OPEN);
+  }
+
+  static async closePrivateHelpTicket(threadId: string) {
+    await Database.db.run('UPDATE private_help_tickets SET status = ? WHERE thread_id = ?', PrivateHelpTicketStatus.CLOSED, threadId);
+  }
+
+  static async getLatestPrivateHelpTicketBy(userId: string): Promise<PrivateHelpTicket | undefined> {
+    return await Database.db.get<PrivateHelpTicket>('SELECT * from private_help_tickets WHERE user_id = ? ORDER BY timestamp DESC LIMIT 1', userId);
+  }
+
+  // -- END PRIVATE HELP TICKETS
 }

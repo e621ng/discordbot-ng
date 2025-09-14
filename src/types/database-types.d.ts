@@ -66,3 +66,10 @@ export type KnowledgebaseItem = {
   name: string
   content: string
 }
+
+export type PrivateHelpTicket = {
+  id: number
+  user_id: string
+  status: PrivateHelpTicketStatus,
+  timestamp: string
+}

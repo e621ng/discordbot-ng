@@ -1,5 +1,4 @@
 import { ActionRowBuilder, ButtonInteraction, Client, ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags } from 'discord.js';
-import { ticketCooldownMap } from '../shared/ticket-cooldown';
 import { Database } from '../shared/Database';
 
 export default {

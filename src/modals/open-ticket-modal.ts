@@ -1,5 +1,4 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, Client, GuildTextBasedChannel, MessageFlags, ModalSubmitInteraction, TextChannel, ThreadAutoArchiveDuration } from 'discord.js';
-import { ticketCooldownMap } from '../shared/ticket-cooldown';
 import { Database } from '../shared/Database';
 
 export default {
@@ -13,8 +12,6 @@ export default {
     if (!guildSettings || !guildSettings.private_help_role_id)
       return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Failed to create ticket. Please report this to a staff member.' });
 
-    ticketCooldownMap.set(interaction.user.id, Date.now() + 8.64e+7);
-
     const reason = interaction.fields.getTextInputValue('ticket-message');
 
     const channel = (await interaction.channel?.fetch()) as TextChannel;
@@ -25,6 +22,12 @@ export default {
       invitable: false,
       type: ChannelType.PrivateThread
     });
+
+    console.log(1);
+
+    await Database.createPrivateHelpTicket(interaction.user.id, thread.id);
+
+    console.log(2);
 
     const closeButton = new ButtonBuilder()
       .setCustomId('close-ticket')

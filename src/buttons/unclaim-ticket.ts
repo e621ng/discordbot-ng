@@ -1,5 +1,4 @@
 import { ActionRowBuilder, ButtonInteraction, Client, ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags, ChannelType, PermissionFlagsBits, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { ticketCooldownMap } from '../shared/ticket-cooldown';
 import { Database } from '../shared/Database';
 
 export default {
@@ -21,7 +20,7 @@ export default {
     const guildSettings = await Database.getGuildSettings(guild.id);
 
     if (!guildSettings || !guildSettings.private_help_role_id)
-      return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Failed to create ticket.' });
+      return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Failed to unclaim ticket.' });
 
     const closeButton = new ButtonBuilder()
       .setCustomId('close-ticket')
