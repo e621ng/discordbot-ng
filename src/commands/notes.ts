@@ -1,6 +1,6 @@
-import { ApplicationCommandOptionType, ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, MessageMentions, PermissionFlagsBits, SlashCommandBuilder, User } from 'discord.js';
+import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageMentions, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { channelIsInStaffCategory, deferInteraction, logCustomEvent, resolveUser } from '../utils';
+import { deferInteraction, logCustomEvent, resolveUser } from '../utils';
 import { getNoteMessage } from '../utils/note-utils';
 
 const mentionRegex = new RegExp(MessageMentions.UsersPattern);

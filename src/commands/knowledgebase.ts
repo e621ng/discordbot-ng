@@ -1,7 +1,7 @@
-import { ApplicationIntegrationType, AutocompleteInteraction, BitFieldResolvable, ChatInputCommandInteraction, Client, GuildBasedChannel, GuildMember, InteractionContextType, MessageFlags, MessageMentions, PermissionFlagsBits, SlashCommandBuilder, time, TimestampStyles } from 'discord.js';
-import { deferInteraction } from '../utils';
+import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
 import { KnowledgebaseItem } from '../types';
+import { deferInteraction } from '../utils';
 
 export default {
   name: 'knowledgebase',

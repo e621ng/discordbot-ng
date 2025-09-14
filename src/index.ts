@@ -1,12 +1,12 @@
+import { Client as DiscordClient, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
 import 'source-map-support/register';
-import { Client as DiscordClient, GatewayIntentBits, Guild, MessageFlags, Partials } from 'discord.js';
 import { config } from './config';
+import { handleAuditLogCreate, handleBanRemove, handleBulkMessageDelete, handleGuildCreate, handleMemberJoin, handleMessageCreate, handleMessageDelete, handleMessageUpdate, handleThreadCreate, handleVoiceStateUpdate } from './events';
+import { Database } from './shared/Database';
+import { openRedisClient } from './shared/RedisClient';
 import { Handler } from './types';
 import { checkExpiredBans, initIfNecessary, loadHandlersFrom, refreshCommands } from './utils';
 import { initializeWebserver } from './webserver';
-import { Database } from './shared/Database';
-import { handleAuditLogCreate, handleBanRemove, handleBulkMessageDelete, handleGuildCreate, handleMemberJoin, handleMessageCreate, handleMessageDelete, handleMessageUpdate, handleThreadCreate, handleVoiceStateUpdate } from './events';
-import { openRedisClient } from './shared/RedisClient';
 
 let ready = false;
 

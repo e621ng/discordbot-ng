@@ -1,9 +1,9 @@
-import { APIEmbedField, AttachmentBuilder, Channel, EmbedBuilder, Guild, GuildBasedChannel, GuildTextBasedChannel, MessageCreateOptions, messageLink, TextBasedChannel } from 'discord.js';
-import { Database } from '../shared/Database';
+import { APIEmbedField, AttachmentBuilder, EmbedBuilder, Guild, GuildBasedChannel, GuildTextBasedChannel, MessageCreateOptions } from 'discord.js';
 import { Message } from '../events';
-import { deserializeMessagePart, getModifiedAttachments, getModifiedStickers } from './message-utils';
+import { Database } from '../shared/Database';
 import { LoggedMessage } from '../types';
 import { channelIsInStaffCategory } from './channel-utils';
+import { deserializeMessagePart, getModifiedAttachments, getModifiedStickers } from './message-utils';
 
 type CustomEventLogData = {
   title: string

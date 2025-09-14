@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonInteraction, Client, ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags } from 'discord.js';
+import { ButtonInteraction, Client, MessageFlags } from 'discord.js';
 import { Database } from '../shared/Database';
 
 export default {

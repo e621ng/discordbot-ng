@@ -1,4 +1,4 @@
-import { AuditLogChange, AuditLogEvent, AuditLogOptionsType, GuildAuditLogsEntry, APIRole, time, TimestampStyles, PermissionsBitField, PermissionsString, Guild } from 'discord.js';
+import { AuditLogChange, AuditLogEvent, Guild, GuildAuditLogsEntry, PermissionsBitField, PermissionsString, time, TimestampStyles } from 'discord.js';
 import { ApplicationCommandPermissionChangeLog, PermissionsChangeLog, PinExtras, RoleChangeLog, TimeoutChangeLog } from '../types';
 import { getArrayDifference } from './array-utils';
 

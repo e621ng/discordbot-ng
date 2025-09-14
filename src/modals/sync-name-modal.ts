@@ -1,7 +1,6 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, Client, GuildTextBasedChannel, MessageFlags, ModalSubmitInteraction, TextChannel, ThreadAutoArchiveDuration } from 'discord.js';
-import { Database } from '../shared/Database';
-import { deferInteraction, logCustomEvent, syncName } from '../utils';
+import { Client, ModalSubmitInteraction } from 'discord.js';
 import { config } from '../config';
+import { deferInteraction, syncName } from '../utils';
 
 export default {
   name: 'sync-name-modal',

@@ -1,8 +1,7 @@
-import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, User } from 'discord.js';
+import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder, User } from 'discord.js';
 import { Database } from '../shared/Database';
-import { getE621User, logCustomEvent } from '../utils';
-import { config } from '../config';
 import { TicketPhrase } from '../types';
+import { logCustomEvent } from '../utils';
 
 const MIN_PHRASE_LENGTH = 1;
 const MAX_PHRASE_LENGTH = 512;

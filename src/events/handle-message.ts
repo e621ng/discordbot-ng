@@ -1,7 +1,7 @@
-import { AllowedMentionsTypes, Message as DiscordMessage, GuildBasedChannel, GuildTextBasedChannel, OmitPartialGroupDMChannel, PartialMessage, ReadonlyCollection, spoiler } from 'discord.js';
+import { Message as DiscordMessage, GuildBasedChannel, GuildTextBasedChannel, OmitPartialGroupDMChannel, PartialMessage, ReadonlyCollection, spoiler } from 'discord.js';
 import { config } from '../config';
-import { E621Post } from '../types';
 import { Database } from '../shared/Database';
+import { E621Post } from '../types';
 import { ALLOWED_MIMETYPES, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, forumTopicIDRegex, getE621Post, getE621PostByMd5, getPostUrl, isEdited, isInSpoilerTags, logDeletion, logEdit, poolIDRegex, PostAction, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, spoilerOrBlacklist, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
 
 export type Message<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<DiscordMessage<InGuild>>;

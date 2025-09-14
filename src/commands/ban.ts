@@ -1,7 +1,6 @@
-import { ApplicationIntegrationType, BitFieldResolvable, ChatInputCommandInteraction, Client, GuildBasedChannel, GuildMember, InteractionContextType, MessageFlags, MessageMentions, PermissionFlagsBits, SlashCommandBuilder, time, TimestampStyles } from 'discord.js';
-import { channelIsInStaffCategory, deferInteraction, handleWhoIsInteraction } from '../utils';
-import { getRecordMessageFromDiscordId } from '../utils/record-utils';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, GuildMember, InteractionContextType, MessageMentions, PermissionFlagsBits, SlashCommandBuilder, time, TimestampStyles } from 'discord.js';
 import { Database } from '../shared/Database';
+import { deferInteraction } from '../utils';
 
 const mentionRegex = new RegExp(MessageMentions.UsersPattern);
 
