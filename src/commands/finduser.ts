@@ -1,7 +1,6 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { Database } from '../shared/Database';
-import { channelIsInStaffCategory, deferInteraction, getDiscordAlts, getE621User } from '../utils';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { config } from '../config';
+import { deferInteraction, getDiscordAlts, getE621User } from '../utils';
 
 export default {
   name: 'finduser',

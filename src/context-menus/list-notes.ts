@@ -1,5 +1,5 @@
-import { ApplicationIntegrationType, Client, InteractionContextType, PermissionFlagsBits, ContextMenuCommandBuilder, ApplicationCommandType, UserContextMenuCommandInteraction, GuildBasedChannel } from 'discord.js';
-import { channelIsInStaffCategory, deferInteraction, getNoteMessage, handleWhoIsInteraction } from '../utils';
+import { ApplicationCommandType, ApplicationIntegrationType, Client, ContextMenuCommandBuilder, InteractionContextType, PermissionFlagsBits, UserContextMenuCommandInteraction } from 'discord.js';
+import { deferInteraction, getNoteMessage } from '../utils';
 
 export default {
   name: 'List Notes',

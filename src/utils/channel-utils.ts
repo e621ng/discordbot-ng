@@ -1,4 +1,4 @@
-import { Channel, GuildBasedChannel, GuildChannel, GuildTextBasedChannel, TextBasedChannel, VoiceBasedChannel } from 'discord.js';
+import { GuildBasedChannel } from 'discord.js';
 import { Database } from '../shared/Database';
 
 export async function channelIsInStaffCategory(channel: GuildBasedChannel) {

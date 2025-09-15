@@ -1,9 +1,8 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Embed, EmbedBuilder, Guild } from 'discord.js';
-import { Database } from '../shared/Database';
-import { E621User, MessageContent, Record, RecordCategory } from '../types';
-import { getE621User, getUserRecords } from './e621-utils';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Guild } from 'discord.js';
 import { config } from '../config';
-import { e621IdsFromAltData, comprehensiveAltLookupFromDiscord } from './alt-utils';
+import { E621User, MessageContent, Record, RecordCategory } from '../types';
+import { comprehensiveAltLookupFromDiscord, e621IdsFromAltData } from './alt-utils';
+import { getE621User, getUserRecords } from './e621-utils';
 
 type RecordWithUserData = Record & { user: E621User, creator: E621User, updater: E621User }
 type AllRecords = RecordWithUserData[];

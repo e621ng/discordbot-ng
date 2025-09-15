@@ -1,7 +1,7 @@
-import { ApplicationIntegrationType, Client, InteractionContextType, PermissionFlagsBits, ContextMenuCommandBuilder, ApplicationCommandType, UserContextMenuCommandInteraction, GuildBasedChannel, MessageFlags, ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
-import { channelIsInStaffCategory, deferInteraction, getRecordMessageFromDiscordId, handleWhoIsInteraction, syncName } from '../utils';
-import { Database } from '../shared/Database';
+import { ActionRowBuilder, ApplicationCommandType, ApplicationIntegrationType, Client, ContextMenuCommandBuilder, InteractionContextType, ModalBuilder, PermissionFlagsBits, TextInputBuilder, TextInputStyle, UserContextMenuCommandInteraction } from 'discord.js';
 import { config } from '../config';
+import { Database } from '../shared/Database';
+import { deferInteraction, syncName } from '../utils';
 
 export default {
   name: 'Sync Name',

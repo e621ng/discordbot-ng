@@ -1,5 +1,4 @@
-import { ApplicationIntegrationType, Client, InteractionContextType, PermissionFlagsBits, ContextMenuCommandBuilder, ApplicationCommandType, UserContextMenuCommandInteraction, GuildBasedChannel, ModalBuilder, TextInputBuilder, GuildMember, TextInputStyle, ActionRowBuilder } from 'discord.js';
-import { channelIsInStaffCategory, deferInteraction, getNoteMessage, handleWhoIsInteraction } from '../utils';
+import { ActionRowBuilder, ApplicationCommandType, ApplicationIntegrationType, Client, ContextMenuCommandBuilder, InteractionContextType, ModalBuilder, PermissionFlagsBits, TextInputBuilder, TextInputStyle, UserContextMenuCommandInteraction } from 'discord.js';
 
 export default {
   name: 'Add Note',

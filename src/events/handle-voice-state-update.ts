@@ -1,4 +1,4 @@
-import { Guild, GuildMember, GuildTextBasedChannel, time, TimestampStyles, VoiceBasedChannel, VoiceState } from 'discord.js';
+import { Guild, GuildMember, GuildTextBasedChannel, time, VoiceBasedChannel, VoiceState } from 'discord.js';
 import { Database } from '../shared/Database';
 
 export async function handleVoiceStateUpdate(oldState: VoiceState, newState: VoiceState) {

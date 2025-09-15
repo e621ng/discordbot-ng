@@ -1,4 +1,4 @@
-import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, MessageActionRowComponentBuilder, time } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, time } from 'discord.js';
 import { Database } from '../shared/Database';
 import { MessageContent, Note } from '../types';
 

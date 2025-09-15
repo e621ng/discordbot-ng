@@ -1,5 +1,5 @@
-import { ApplicationIntegrationType, BitFieldResolvable, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { channelIsInStaffCategory, deferInteraction, handleWhoIsInteraction } from '../utils';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { deferInteraction } from '../utils';
 import { getRecordMessageFromDiscordId } from '../utils/record-utils';
 
 export default {

@@ -1,5 +1,5 @@
-import { ApplicationIntegrationType, Client, InteractionContextType, PermissionFlagsBits, ContextMenuCommandBuilder, ApplicationCommandType, UserContextMenuCommandInteraction, GuildBasedChannel, MessageFlags } from 'discord.js';
-import { channelIsInStaffCategory, deferInteraction, getRecordMessageFromDiscordId, handleWhoIsInteraction } from '../utils';
+import { ApplicationCommandType, ApplicationIntegrationType, Client, ContextMenuCommandBuilder, InteractionContextType, PermissionFlagsBits, UserContextMenuCommandInteraction } from 'discord.js';
+import { deferInteraction, getRecordMessageFromDiscordId } from '../utils';
 
 export default {
   name: 'Get Records',

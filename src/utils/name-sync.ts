@@ -1,8 +1,7 @@
+import { ChatInputCommandInteraction, GuildMember, ModalSubmitInteraction, UserContextMenuCommandInteraction } from 'discord.js';
+import { Database } from '../shared/Database';
 import { E621User } from '../types';
 import { getE621User } from './e621-utils';
-import { Database } from '../shared/Database';
-import { config } from '../config';
-import { ChatInputCommandInteraction, GuildMember, ModalSubmitInteraction, UserContextMenuCommandInteraction } from 'discord.js';
 
 export async function syncName(interaction: ChatInputCommandInteraction | UserContextMenuCommandInteraction | ModalSubmitInteraction, member: GuildMember, id: number | null) {
   if (member.roles.highest.comparePositionTo(member.guild.members.me!.roles.highest) > 0) {

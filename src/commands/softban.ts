@@ -1,6 +1,5 @@
-import { ApplicationIntegrationType, BitFieldResolvable, ChatInputCommandInteraction, Client, GuildBasedChannel, GuildMember, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { channelIsInStaffCategory, deferInteraction, handleWhoIsInteraction } from '../utils';
-import { getRecordMessageFromDiscordId } from '../utils/record-utils';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, GuildMember, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { deferInteraction } from '../utils';
 
 export default {
   name: 'softban',

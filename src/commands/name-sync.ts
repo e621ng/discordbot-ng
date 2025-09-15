@@ -1,8 +1,6 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { Database } from '../shared/Database';
-import { getE621User, syncName } from '../utils';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, SlashCommandBuilder } from 'discord.js';
 import { config } from '../config';
-import { E621User } from '../types';
+import { syncName } from '../utils';
 
 export default {
   name: 'name-sync',

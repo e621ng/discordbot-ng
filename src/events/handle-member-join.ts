@@ -1,7 +1,6 @@
-import { Guild, GuildMember, GuildTextBasedChannel } from 'discord.js';
+import { GuildMember, GuildTextBasedChannel } from 'discord.js';
 import { Database } from '../shared/Database';
-import { config } from '../config';
-import { getE621Alts, userIsBanned } from '../utils';
+import { getE621Alts } from '../utils';
 
 export async function handleMemberJoin(member: GuildMember) {
   const guildSettings = await Database.getGuildSettings(member.guild.id);

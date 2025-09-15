@@ -1,7 +1,5 @@
-import { Guild } from 'discord.js';
 import { config } from '../config';
 import { E621Post, E621User, Record } from '../types';
-import { Database } from '../shared/Database';
 
 const BLACKLISTED_TAGS: string[] = [];
 const BLACKLISTED_NONSAFE_TAGS: string[] = ['young'];
