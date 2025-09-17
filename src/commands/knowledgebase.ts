@@ -1,7 +1,7 @@
 import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
 import { KnowledgebaseItem } from '../types';
-import { deferInteraction } from '../utils';
+import { deferInteraction, logCustomEvent } from '../utils';
 
 export default {
   name: 'knowledgebase',
@@ -69,9 +69,35 @@ export default {
       const name = interaction.options.getString('name', true);
       const content = interaction.options.getString('content', true);
 
+      if (content.length > 2000) return interaction.editReply('Content cannot be over 2000 characters long.');
+
       const existingItem = await Database.getFromKnowledgebaseByName(interaction.guild.id, name);
 
       if (existingItem) return interaction.editReply(`Knowledgebase item ${name} already exists!`);
+
+      logCustomEvent(interaction.guild!, {
+        title: 'Knowledgebase Item Added',
+        description: null,
+        color: 0x00FF00,
+        timestamp: new Date(),
+        fields: [
+          {
+            name: 'User',
+            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+            inline: true
+          },
+          {
+            name: 'Name',
+            value: name,
+            inline: true
+          },
+          {
+            name: 'Content',
+            value: content,
+            inline: true
+          }
+        ]
+      });
 
       await Database.addToKnowledgebase(interaction.guild.id, name, content);
 
@@ -83,6 +109,30 @@ export default {
       const item = await Database.getFromKnowledgebase(id);
 
       if (!item) return interaction.editReply('Knowledgebase item not found.');
+
+      logCustomEvent(interaction.guild!, {
+        title: 'Knowledgebase Item Removed',
+        description: null,
+        color: 0xFF0000,
+        timestamp: new Date(),
+        fields: [
+          {
+            name: 'User',
+            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+            inline: true
+          },
+          {
+            name: 'Name',
+            value: item.name,
+            inline: true
+          },
+          {
+            name: 'Content',
+            value: item.content,
+            inline: true
+          }
+        ]
+      });
 
       await Database.removeFromKnowledgebase(id);
 
@@ -96,6 +146,37 @@ export default {
       const existingItem = await Database.getFromKnowledgebase(id);
 
       if (!existingItem) return interaction.editReply('Knowledgebase item not found.');
+
+      if (content.length > 2000) return interaction.editReply('Content cannot be over 2000 characters long.');
+
+      logCustomEvent(interaction.guild!, {
+        title: 'Knowledgebase Item Edited',
+        description: null,
+        color: 0xFFFF00,
+        timestamp: new Date(),
+        fields: [
+          {
+            name: 'User',
+            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+            inline: true
+          },
+          {
+            name: 'Name',
+            value: existingItem.name,
+            inline: true
+          },
+          {
+            name: 'Old Content',
+            value: existingItem.content,
+            inline: true
+          },
+          {
+            name: 'New Content',
+            value: content,
+            inline: true
+          }
+        ]
+      });
 
       await Database.editKnowledgebaseItem(id, content);
 
