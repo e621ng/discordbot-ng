@@ -1,4 +1,4 @@
-import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ActionRowBuilder, ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, ModalBuilder, PermissionFlagsBits, SlashCommandBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import { Database } from '../shared/Database';
 import { KnowledgebaseItem } from '../types';
 import { deferInteraction, logCustomEvent } from '../utils';
@@ -15,18 +15,6 @@ export default {
       subcommand
         .setName('add')
         .setDescription('Add to the knowledgebase.')
-        .addStringOption(option =>
-          option
-            .setName('name')
-            .setDescription('The name of the entry.')
-            .setRequired(true)
-        )
-        .addStringOption(option =>
-          option
-            .setName('content')
-            .setDescription('The content of the entry.')
-            .setRequired(true)
-        )
     )
     .addSubcommand(subcommand =>
       subcommand
@@ -51,12 +39,6 @@ export default {
             .setRequired(true)
             .setAutocomplete(true)
         )
-        .addStringOption(option =>
-          option
-            .setName('content')
-            .setDescription('The new content of the entry.')
-            .setRequired(true)
-        )
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.guild) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Must be ran in guild.' });
@@ -64,44 +46,30 @@ export default {
     const subcommand = interaction.options.getSubcommand(true);
 
     if (subcommand == 'add') {
-      await deferInteraction(interaction);
+      const modal = new ModalBuilder()
+        .setCustomId('add-knowledgebase-item-modal')
+        .setTitle('Add to knowledgebase');
 
-      const name = interaction.options.getString('name', true);
-      const content = interaction.options.getString('content', true);
+      const name = new TextInputBuilder()
+        .setCustomId('name')
+        .setLabel('Knowledgebase item name')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMinLength(1)
+        .setMaxLength(300);
 
-      if (content.length > 2000) return interaction.editReply('Content cannot be over 2000 characters long.');
+      const content = new TextInputBuilder()
+        .setCustomId('content')
+        .setLabel('Item content')
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true)
+        .setMinLength(1)
+        .setMaxLength(2000);
 
-      const existingItem = await Database.getFromKnowledgebaseByName(interaction.guild.id, name);
+      modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(name));
+      modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(content));
 
-      if (existingItem) return interaction.editReply(`Knowledgebase item ${name} already exists!`);
-
-      logCustomEvent(interaction.guild!, {
-        title: 'Knowledgebase Item Added',
-        description: null,
-        color: 0x00FF00,
-        timestamp: new Date(),
-        fields: [
-          {
-            name: 'User',
-            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-            inline: true
-          },
-          {
-            name: 'Name',
-            value: name,
-            inline: true
-          },
-          {
-            name: 'Content',
-            value: content,
-            inline: true
-          }
-        ]
-      });
-
-      await Database.addToKnowledgebase(interaction.guild.id, name, content);
-
-      return interaction.editReply('Knowledge expanded.');
+      return await interaction.showModal(modal);
     } else if (subcommand == 'remove') {
       await deferInteraction(interaction);
       const id = interaction.options.getInteger('name', true);
@@ -138,49 +106,27 @@ export default {
 
       return interaction.editReply('Knowledge removed.');
     } else if (subcommand == 'edit') {
-      await deferInteraction(interaction);
-
       const id = interaction.options.getInteger('name', true);
-      const content = interaction.options.getString('content', true);
 
       const existingItem = await Database.getFromKnowledgebase(id);
 
       if (!existingItem) return interaction.editReply('Knowledgebase item not found.');
 
-      if (content.length > 2000) return interaction.editReply('Content cannot be over 2000 characters long.');
+      const modal = new ModalBuilder()
+        .setCustomId(`edit-knowledgebase-item-modal_${id}`)
+        .setTitle(`Editing knowledgebase item ${existingItem.name}`);
 
-      logCustomEvent(interaction.guild!, {
-        title: 'Knowledgebase Item Edited',
-        description: null,
-        color: 0xFFFF00,
-        timestamp: new Date(),
-        fields: [
-          {
-            name: 'User',
-            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-            inline: true
-          },
-          {
-            name: 'Name',
-            value: existingItem.name,
-            inline: true
-          },
-          {
-            name: 'Old Content',
-            value: existingItem.content,
-            inline: true
-          },
-          {
-            name: 'New Content',
-            value: content,
-            inline: true
-          }
-        ]
-      });
+      const content = new TextInputBuilder()
+        .setCustomId('content')
+        .setLabel('New content')
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true)
+        .setMinLength(1)
+        .setMaxLength(2000);
 
-      await Database.editKnowledgebaseItem(id, content);
+      modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(content));
 
-      return interaction.editReply('Information exchange completed.');
+      return await interaction.showModal(modal);
     }
   },
   autoComplete: async function (client: Client, interaction: AutocompleteInteraction) {
