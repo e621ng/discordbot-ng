@@ -104,7 +104,7 @@ export default {
 
       await Database.removeFromKnowledgebase(id);
 
-      return interaction.editReply('Knowledge removed.');
+      return interaction.editReply(`Removed knowledgebase entry \`${item.name}\`.`);
     } else if (subcommand == 'edit') {
       const id = interaction.options.getInteger('name', true);
 

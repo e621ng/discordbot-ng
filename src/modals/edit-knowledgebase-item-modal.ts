@@ -49,6 +49,6 @@ export default {
 
     await Database.editKnowledgebaseItem(id, content);
 
-    return interaction.editReply('Information exchange completed.');
+    return interaction.editReply(`Edited knowledgebase entry \`${existingItem.name}\`.`);
   }
 };

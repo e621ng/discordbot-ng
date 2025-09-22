@@ -44,6 +44,6 @@ export default {
 
     await Database.addToKnowledgebase(interaction.guild.id, name, content);
 
-    return interaction.editReply('Knowledge expanded.');
+    return interaction.editReply(`Entry \`${name}\` added to knowledgebase.`);
   }
 };
