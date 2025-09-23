@@ -265,8 +265,6 @@ async function createEmbedFromTicket(ticket: Ticket): Promise<EmbedBuilder> {
 async function getButtons(ticket: Ticket): Promise<ActionRowBuilder<ButtonBuilder>> {
   const row = new ActionRowBuilder<ButtonBuilder>();
 
-  console.log(ticket);
-
   const primaryButton = new ButtonBuilder()
     .setStyle(ButtonStyle.Link);
 
