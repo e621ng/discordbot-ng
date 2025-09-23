@@ -1,11 +1,11 @@
-import { Client, EmbedAuthorOptions, APIEmbedField, EmbedBuilder, SendableChannels, ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle } from 'discord.js';
+import { APIEmbedField, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedAuthorOptions, EmbedBuilder, SendableChannels } from 'discord.js';
 import { config } from '../config';
 import { Database } from '../shared/Database';
-import { TicketUpdate, Ticket, TicketPhrase } from '../types';
+import { Ticket, TicketPhrase, TicketUpdate } from '../types';
+import { PostAction, getE621Post, getE621User, spoilerOrBlacklist } from './e621-utils';
+import { blipIDRegex, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from './search-regex';
 import { humanizeCapitalization } from './string-utils';
 import { shouldAlert } from './ticket-utils';
-import { blipIDRegex, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from './search-regex';
-import { getE621Post, spoilerOrBlacklist, PostAction, getPostUrl, getE621User } from './e621-utils';
 
 // TODO: Condense this and the message event handler regex array.
 const linkReplacers = [
