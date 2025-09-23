@@ -1,11 +1,11 @@
-import { Client, EmbedAuthorOptions, APIEmbedField, EmbedBuilder, SendableChannels } from 'discord.js';
+import { Client, EmbedAuthorOptions, APIEmbedField, EmbedBuilder, SendableChannels, ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle } from 'discord.js';
 import { config } from '../config';
 import { Database } from '../shared/Database';
 import { TicketUpdate, Ticket, TicketPhrase } from '../types';
 import { humanizeCapitalization } from './string-utils';
 import { shouldAlert } from './ticket-utils';
 import { blipIDRegex, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from './search-regex';
-import { getE621Post, spoilerOrBlacklist, PostAction } from './e621-utils';
+import { getE621Post, spoilerOrBlacklist, PostAction, getPostUrl, getE621User } from './e621-utils';
 
 // TODO: Condense this and the message event handler regex array.
 const linkReplacers = [
@@ -105,7 +105,9 @@ async function postTicket(client: Client, data: TicketUpdate) {
 
   const embed = await createEmbedFromTicket(ticket);
 
-  const message = await channel.send({ embeds: [embed] });
+  const row = await getButtons(ticket);
+
+  const message = await channel.send({ embeds: [embed], components: [row] });
 
   await Database.putTicket(ticket.id, message.id);
 
@@ -255,12 +257,88 @@ function getFields(ticket: Ticket): APIEmbedField[] {
 async function createEmbedFromTicket(ticket: Ticket): Promise<EmbedBuilder> {
   return new EmbedBuilder()
     .setTitle(getTitle(ticket))
-    .setURL(getURL(ticket))
+    .setURL(await getURL(ticket))
     .setDescription(await getDescription(ticket))
     .setAuthor(getAuthor(ticket))
     .setColor(getColor(ticket))
     .setFields(...getFields(ticket))
     .setFooter({ text: `Ticket #${ticket.id}` });
+}
+
+async function getButtons(ticket: Ticket): Promise<ActionRowBuilder<ButtonBuilder>> {
+  const row = new ActionRowBuilder<ButtonBuilder>();
+
+  const primaryButton = new ButtonBuilder()
+    .setStyle(ButtonStyle.Link);
+
+  let skipPrimary = false;
+
+  if (ticket.category == 'blip') {
+    primaryButton
+      .setLabel('Open Blip')
+      .setURL(`${config.E621_BASE_URL}/blips/${ticket.target_id}`);
+  } else if (ticket.category == 'comment') {
+    primaryButton
+      .setLabel('Open Comment')
+      .setURL(`${config.E621_BASE_URL}/comments/${ticket.target_id}`);
+  } else if (ticket.category == 'dmail') {
+    primaryButton
+      .setLabel('Open DMail')
+      .setURL(`${config.E621_BASE_URL}/dmails/${ticket.target_id}`);
+  } else if (ticket.category == 'forum') {
+    primaryButton
+      .setLabel('Open Forum Post')
+      .setURL(`${config.E621_BASE_URL}/forum_posts/${ticket.target_id}`);
+  } else if (ticket.category == 'pool') {
+    primaryButton
+      .setLabel('Open Pool')
+      .setURL(`${config.E621_BASE_URL}/pools/${ticket.target_id}`);
+  } else if (ticket.category == 'post') {
+    const post = await getE621Post(ticket.target_id);
+
+    if (post && spoilerOrBlacklist(post).action == PostAction.Blacklist) skipPrimary = true;
+    else {
+      primaryButton
+        .setLabel('Open Post')
+        .setURL(`${config.E621_BASE_URL}/posts/${ticket.target_id}`);
+    }
+  } else if (ticket.category == 'set') {
+    primaryButton
+      .setLabel('Open Set')
+      .setURL(`${config.E621_BASE_URL}/post_sets/${ticket.target_id}`);
+  } else if (ticket.category == 'user') {
+    primaryButton
+      .setLabel('Open User')
+      .setURL(`${config.E621_BASE_URL}/users/${ticket.target_id}`);
+  } else if (ticket.category == 'wiki') {
+    primaryButton
+      .setLabel('Open Wiki')
+      .setURL(`${config.E621_BASE_URL}/wikis/${ticket.target_id}`);
+  }
+
+  if (!skipPrimary) row.addComponents(primaryButton);
+
+  if (ticket.category == 'blip' || ticket.category == 'comment' || ticket.category == 'dmail' || ticket.category == 'forum') {
+    const button = new ButtonBuilder()
+      .setLabel('Open Target User')
+      .setStyle(ButtonStyle.Link)
+      .setURL(`${config.E621_BASE_URL}/users/${ticket.accused_id}`);
+
+    row.addComponents(button);
+  } else if (ticket.category == 'post') {
+    const user = await getE621User(ticket.target!);
+
+    if (user) {
+      const button = new ButtonBuilder()
+        .setLabel('Open Target User')
+        .setStyle(ButtonStyle.Link)
+        .setURL(`${config.E621_BASE_URL}/users/${user.id}`);
+
+      row.addComponents(button);
+    }
+  }
+
+  return row;
 }
 
 async function sendTicketAlerts(ticket: Ticket, channel: SendableChannels) {
