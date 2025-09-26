@@ -114,7 +114,7 @@ export default {
 
       const modal = new ModalBuilder()
         .setCustomId(`edit-knowledgebase-item-modal_${id}`)
-        .setTitle(`Editing knowledgebase item ${existingItem.name}`);
+        .setTitle(`Editing knowledgebase item ${existingItem.name.slice(0, 18)}`);
 
       const content = new TextInputBuilder()
         .setCustomId('content')
