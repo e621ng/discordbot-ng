@@ -14,6 +14,8 @@ export function calculateMD5(data: Buffer): string {
   return crypto.createHash('md5').update(data).digest('hex');
 }
 
+// Downloads a file from discord's CDN and reverts the changes they do to the file.
+// Returns both the corrected version at index 0, and the original version from discord at index 1.
 export async function downloadFile(url: string): Promise<Buffer[] | null> {
   try {
     const res = await fetch(url);
@@ -51,6 +53,8 @@ export async function downloadFile(url: string): Promise<Buffer[] | null> {
   }
 }
 
+// This method is used with discord CDN URLs.
+// Discord does slight modifications to the data, which will change the MD5, this method reverts those changes.
 export async function calculateMD5FromURL(url: string): Promise<{ correctedFileMD5: string, originalFileMD5: string } | null> {
   try {
     const files = await downloadFile(url);
