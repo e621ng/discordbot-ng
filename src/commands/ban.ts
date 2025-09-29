@@ -117,28 +117,25 @@ export default {
     if (fullBan) {
       const alts = await comprehensiveAltLookupFromDiscord(idToUse, interaction.guild);
 
-      await banAllAlts([alts], interaction.guild, interaction.user, fullBan, reason, deleteMessageDays, duration, expiresAt);
+      await removeAllAlts([alts], interaction.guild, interaction.user, fullBan, reason, deleteMessageDays, duration, expiresAt);
     }
 
     await interaction.editReply(`<@${idToUse}> (${idToUse}) has been ${fullBan ? 'full banned' : 'banned'}.`);
   }
 };
 
-async function banAllAlts(altData: AltData[], guild: Guild, moderator: User, fullBan: boolean, reason: string, deleteMessageDays: number, duration: number, expiresAt: Date) {
+async function removeAllAlts(altData: AltData[], guild: Guild, moderator: User, fullBan: boolean, reason: string, deleteMessageDays: number, duration: number, expiresAt: Date) {
   for (const data of altData) {
     if (data.type == 'discord') {
       try {
         if (!data.banned) {
-          await guild!.bans.create(data.thisId as string, {
-            reason: (reason + ` ${fullBan ? 'Full banned' : 'Banned'} by ${moderator.username} (${moderator.id})${duration > 0 ? `. Expires at: ${time(expiresAt, TimestampStyles.ShortDateTime)}` : ''}`).trim(),
-            deleteMessageSeconds: deleteMessageDays
-          });
+          await guild.members.kick(data.thisId as string, (reason + ` ${fullBan ? 'Full banned' : 'Banned'} by ${moderator.username} (${moderator.id})${duration > 0 ? `. Expires at: ${time(expiresAt, TimestampStyles.ShortDateTime)}` : ''}`).trim());
         }
       } catch (e) {
         console.error(e);
       }
     }
 
-    await banAllAlts(data.alts, guild, moderator, fullBan, reason, deleteMessageDays, duration, expiresAt);
+    await removeAllAlts(data.alts, guild, moderator, fullBan, reason, deleteMessageDays, duration, expiresAt);
   }
 }
