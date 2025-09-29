@@ -1,6 +1,6 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, GuildMember, InteractionContextType, MessageMentions, PermissionFlagsBits, SlashCommandBuilder, time, TimestampStyles } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, Guild, GuildMember, InteractionContextType, MessageMentions, PermissionFlagsBits, SlashCommandBuilder, time, TimestampStyles, User } from 'discord.js';
 import { Database } from '../shared/Database';
-import { deferInteraction } from '../utils';
+import { AltData, comprehensiveAltLookupFromDiscord, deferInteraction } from '../utils';
 
 const mentionRegex = new RegExp(MessageMentions.UsersPattern);
 
@@ -50,6 +50,12 @@ export default {
         .setRequired(false)
         .setMinValue(0)
         .setMaxValue(7)
+    )
+    .addBooleanOption(option =>
+      option
+        .setName('full-ban')
+        .setDescription('Whether or not to prevent the user from joining on known alts (and ban all existing alts).')
+        .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await deferInteraction(interaction);
@@ -74,6 +80,8 @@ export default {
 
     const deleteMessageDays = (interaction.options.getNumber('delete-message-days') ?? 0) * 86400;
 
+    const fullBan = interaction.options.getBoolean('full-ban') ?? false;
+
     let banMember: GuildMember | null = null;
 
     try {
@@ -94,11 +102,11 @@ export default {
 
     const expiresAt = new Date(Date.now() + duration);
 
-    if (duration > 0) await Database.putBan(idToUse, expiresAt);
+    await Database.putBan(idToUse, duration > 0 ? expiresAt : null, fullBan);
 
     try {
       await interaction.guild.bans.create(idToUse, {
-        reason: (reason + ` Banned by ${interaction.user.username} (${interaction.user.id})${duration > 0 ? `. Expires at: ${time(expiresAt, TimestampStyles.ShortDateTime)}` : ''}`).trim(),
+        reason: (reason + ` ${fullBan ? 'Full banned' : 'Banned'} by ${interaction.user.username} (${interaction.user.id})${duration > 0 ? `. Expires at: ${time(expiresAt, TimestampStyles.ShortDateTime)}` : ''}`).trim(),
         deleteMessageSeconds: deleteMessageDays
       });
     } catch (e) {
@@ -106,6 +114,31 @@ export default {
       return await interaction.editReply("Error banning user (couldn't ban).");
     }
 
-    await interaction.editReply(`<@${idToUse}> (${idToUse}) has been banned.`);
+    if (fullBan) {
+      const alts = await comprehensiveAltLookupFromDiscord(idToUse, interaction.guild);
+
+      await banAllAlts([alts], interaction.guild, interaction.user, fullBan, reason, deleteMessageDays, duration, expiresAt);
+    }
+
+    await interaction.editReply(`<@${idToUse}> (${idToUse}) has been ${fullBan ? 'full banned' : 'banned'}.`);
   }
 };
+
+async function banAllAlts(altData: AltData[], guild: Guild, moderator: User, fullBan: boolean, reason: string, deleteMessageDays: number, duration: number, expiresAt: Date) {
+  for (const data of altData) {
+    if (data.type == 'discord') {
+      try {
+        if (!data.banned) {
+          await guild!.bans.create(data.thisId as string, {
+            reason: (reason + ` ${fullBan ? 'Full banned' : 'Banned'} by ${moderator.username} (${moderator.id})${duration > 0 ? `. Expires at: ${time(expiresAt, TimestampStyles.ShortDateTime)}` : ''}`).trim(),
+            deleteMessageSeconds: deleteMessageDays
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    await banAllAlts(data.alts, guild, moderator, fullBan, reason, deleteMessageDays, duration, expiresAt);
+  }
+}

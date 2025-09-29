@@ -51,7 +51,9 @@ export type Note = {
 export type Ban = {
   id: number
   user_id: string
+  expires: 0 | 1
   expires_at: string
+  full_ban: 0 | 1
 }
 
 export type GithubUserMapping = {

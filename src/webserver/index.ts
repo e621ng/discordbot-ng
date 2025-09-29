@@ -11,6 +11,7 @@ import { Client } from 'discord.js';
 import bodyParser from 'body-parser';
 import { fixPings } from '../utils/github-user-utils';
 import { logDebug } from '../utils/debug-utils';
+import { AltData, comprehensiveAltLookupFromE621 } from '../utils';
 
 declare module 'express-session' {
   interface SessionData {
@@ -33,33 +34,51 @@ const oauth = new DiscordOAuth2({
   credentials: Buffer.from(`${config.DISCORD_CLIENT_ID!}:${config.DISCORD_CLIENT_SECRET!}`).toString('base64')
 });
 
-async function joinGuild(code: string, userId: string, username: string) {
-  if (Number.isNaN(userId)) return false;
-  if (!username) return false;
+const enum JoinResponse {
+  Success = 1,
+  Error = 2,
+  Banned = 3
+};
 
-  const id = Number(userId);
+async function joinGuild(code: string, userId: string, username: string): Promise<JoinResponse> {
+  let tokenResponse;
+  try {
+    if (Number.isNaN(userId)) return JoinResponse.Error;
+    if (!username) return JoinResponse.Error;
 
-  const tokenResponse = await oauth.tokenRequest({
-    code,
-    scope: 'identify guilds.join',
-    grantType: 'authorization_code'
-  });
+    const id = Number(userId);
 
-  const user = await oauth.getUser(tokenResponse.access_token);
+    tokenResponse = await oauth.tokenRequest({
+      code,
+      scope: 'identify guilds.join',
+      grantType: 'authorization_code'
+    });
 
-  await Database.putUser(id, user);
+    const user = await oauth.getUser(tokenResponse.access_token);
 
-  await oauth.addMember({
-    accessToken: tokenResponse.access_token,
-    botToken: config.DISCORD_TOKEN!,
-    guildId: config.DISCORD_GUILD_ID!,
-    userId: user.id,
-    nickname: username
-  });
+    await Database.putUser(id, user);
 
-  await oauth.revokeToken(tokenResponse.access_token);
+    const alts = await comprehensiveAltLookupFromE621(id, null);
 
-  return true;
+    if (await checkAltsForFullBans([alts])) return JoinResponse.Banned;
+
+    await oauth.addMember({
+      accessToken: tokenResponse.access_token,
+      botToken: config.DISCORD_TOKEN!,
+      guildId: config.DISCORD_GUILD_ID!,
+      userId: user.id,
+      nickname: username
+    });
+  } catch (e: any) {
+    if (e.code == 40007) return JoinResponse.Banned;
+    console.error(`Error joining user (${userId}) to discord:`);
+    console.error(e);
+    return JoinResponse.Error;
+  } finally {
+    if (tokenResponse) await oauth.revokeToken(tokenResponse.access_token);
+  }
+
+  return JoinResponse.Success;
 }
 
 async function handleInitial(req: Request, res: Response): Promise<any> {
@@ -124,9 +143,12 @@ async function handleCallback(req: Request, res: Response): Promise<any> {
   });
 
   try {
-    if (!await joinGuild(code, userId, username)) {
+    const response = await joinGuild(code, userId, username);
+    if (response == JoinResponse.Error) {
       console.error(`Error joining user: ${username} (${userId})`);
       return sendInteralServerError(res, 'Unable to join user to guild.');
+    } else if (response == JoinResponse.Banned) {
+      return sendForbidden(res, 'User is banned.');
     }
   } catch (e) {
     console.error(e);
@@ -209,6 +231,23 @@ async function handleGithubRelease(client: Client, req: Request, res: Response):
   await sentMessage.startThread({ name: data.release.tag_name });
 
   logDebug('Github webhook processed');
+}
+
+async function checkAltsForFullBans(altData: AltData[]): Promise<boolean> {
+  for (const data of altData) {
+    if (data.type == 'discord') {
+      try {
+        const banData = await Database.getBan(data.thisId as string);
+        if (banData?.full_ban) return true;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    if (await checkAltsForFullBans(data.alts)) return true;
+  }
+
+  return false;
 }
 
 export function initializeWebserver(client: Client) {

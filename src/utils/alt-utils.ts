@@ -3,7 +3,7 @@ import { Database } from '../shared/Database';
 import { userIsBanned } from './e621-utils';
 import { config } from '../config';
 
-type AltData = {
+export type AltData = {
   type: 'e621' | 'discord'
   thisId: number | string
   banned: boolean
@@ -52,15 +52,15 @@ export async function getDiscordAlts(e621Id: number, guild: Guild, depth = 1, ig
   return content;
 }
 
-export async function comprehensiveAltLookupFromDiscord(discordId: string, guild: Guild): Promise<AltData> {
+export async function comprehensiveAltLookupFromDiscord(discordId: string, guild: Guild | null): Promise<AltData> {
   return getE621AltData(discordId, guild);
 }
 
-export async function comprehensiveAltLookupFromE621(e621Id: number, guild: Guild): Promise<AltData> {
+export async function comprehensiveAltLookupFromE621(e621Id: number, guild: Guild | null): Promise<AltData> {
   return getDiscordAltData(e621Id, guild);
 }
 
-async function getE621AltData(discordId: string, guild: Guild, depth = 1, ignore: number[] = []): Promise<AltData> {
+async function getE621AltData(discordId: string, guild: Guild | null, depth = 1, ignore: number[] = []): Promise<AltData> {
   const e621UserIds = await Database.getE621Ids(discordId);
 
   const toIgnore = ignore.concat(e621UserIds);
@@ -69,7 +69,7 @@ async function getE621AltData(discordId: string, guild: Guild, depth = 1, ignore
 
   // It's either this or fetch all the bans and sift through them for every discord alt.
   try {
-    banned = !!(await guild.bans.fetch(discordId));
+    banned = guild ? !!(await guild.bans.fetch(discordId)) : false;
   } catch (e) { }
 
   const data: AltData = { type: 'discord', thisId: discordId, banned, alts: [] };
@@ -83,7 +83,7 @@ async function getE621AltData(discordId: string, guild: Guild, depth = 1, ignore
   return data;
 }
 
-async function getDiscordAltData(e621Id: number, guild: Guild, depth = 1, ignore: number[] = []): Promise<AltData> {
+async function getDiscordAltData(e621Id: number, guild: Guild | null, depth = 1, ignore: number[] = []): Promise<AltData> {
   const discordIds = await Database.getDiscordIds(e621Id);
 
   const data: AltData = { type: 'e621', thisId: e621Id, banned: await userIsBanned(e621Id), alts: [] };

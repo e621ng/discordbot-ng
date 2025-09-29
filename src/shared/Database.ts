@@ -79,7 +79,9 @@ const DB_SCHEMA = `
     CREATE TABLE IF NOT EXISTS bans (
       id INTEGER PRIMARY KEY,
       user_id TEXT,
-      expires_at datetime
+      expires INTEGER,
+      expires_at datetime,
+      full_ban INTEGER
     );
 
     CREATE TABLE IF NOT EXISTS github_user_mapping (
@@ -371,16 +373,20 @@ export class Database {
 
   // -- START BANS --
 
-  static async putBan(userId: string, expiresAt: Date) {
-    await Database.db.run('INSERT INTO bans(user_id, expires_at) VALUES (?, ?)', userId, expiresAt);
+  static async putBan(userId: string, expiresAt: Date | null, fullBan = false) {
+    await Database.db.run('INSERT INTO bans(user_id, expires, expires_at, full_ban) VALUES (?, ?, ?, ?)', userId, expiresAt != null ? 1 : 0, expiresAt, fullBan);
+  }
+
+  static async getBan(userId: string): Promise<Ban | undefined> {
+    return await Database.db.get('SELECT * from bans WHERE user_id = ? ORDER BY id DESC', userId);
   }
 
   static async getExpiredBans(date: Date): Promise<Ban[]> {
-    return await Database.db.all<Ban[]>('SELECT * from bans WHERE expires_at <= ?', date);
+    return await Database.db.all<Ban[]>('SELECT * from bans WHERE expires = 1 AND expires_at <= ?', date);
   }
 
   static async pruneExpiredBans(date: Date) {
-    await Database.db.all<Ban[]>('DELETE from bans WHERE expires_at <= ?', date);
+    await Database.db.all<Ban[]>('DELETE from bans WHERE expires = 1 AND expires_at <= ?', date);
   }
 
   static async removeBan(userId: string) {
