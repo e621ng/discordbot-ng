@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { Client } from 'discord.js';
 import bodyParser from 'body-parser';
-import { fixPings } from '../utils/github-user-utils';
+import { fixPings, removeIssueLinks } from '../utils/github-user-utils';
 import { logDebug } from '../utils/debug-utils';
 import { AltData, comprehensiveAltLookupFromE621 } from '../utils';
 
@@ -206,7 +206,7 @@ async function handleGithubRelease(client: Client, req: Request, res: Response):
 
   const date = new Date();
 
-  let message = `## [${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}](<${data.release.html_url}>)\n\n${await fixPings(data.release.body)}`;
+  let message = `## [${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}](<${data.release.html_url}>)\n\n${await fixPings(removeIssueLinks(data.release.body))}`;
 
   logDebug('Sending github release message');
 
