@@ -15,7 +15,7 @@ export async function getNoteMessage(userId: string, page: number): Promise<Mess
 
   page = page - 1;
 
-  const maxPage = Math.floor(notes.length / NOTES_PER_PAGE);
+  const maxPage = Math.max(0, Math.ceil(notes.length / NOTES_PER_PAGE) - 1);
 
   if (notes.length == 0) return null;
 
