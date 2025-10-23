@@ -7,6 +7,8 @@ export default {
   handler: async function (client: Client, interaction: ModalSubmitInteraction, id: string) {
     const message = interaction.fields.getTextInputValue('note-message');
 
+    const user = await client.users.fetch(id);
+
     logCustomEvent(interaction.guild!, {
       title: 'Note Added',
       description: null,
@@ -14,8 +16,13 @@ export default {
       timestamp: new Date(),
       fields: [
         {
-          name: 'User',
+          name: 'Moderator',
           value: `<@${interaction.user.id}>\n${interaction.user.username}`,
+          inline: true
+        },
+        {
+          name: 'User',
+          value: `<@${id}>\n${user.username}`,
           inline: true
         },
         {
