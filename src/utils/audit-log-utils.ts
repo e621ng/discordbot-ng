@@ -112,13 +112,16 @@ function formatChange(change: AuditLogChange, entry: GuildAuditLogsEntry): strin
       return formatPermissionOrOverwrites(change as PermissionsChangeLog);
   }
 
+  const oldValue = change.key == 'nick' ? `\`${change.old}\`` : change.old;
+  const newValue = change.key == 'nick' ? `\`${change.new}\`` : change.new;
+
   if (change.new !== undefined && change.old === undefined)
-    return `Set ${change.key} to ${change.new}`;
+    return `Set ${change.key} to ${newValue}`;
 
   if (change.new === undefined && change.old !== undefined)
-    return `Set ${change.key} with value ${change.old} to default/null`;
+    return `Set ${change.key} with value ${oldValue} to default/null`;
 
-  return `Set ${change.key} from ${change.old} to ${change.new}`;
+  return `Set ${change.key} from ${oldValue} to ${newValue}`;
 }
 
 function formatApplicationPermissionsUpdate(change: ApplicationCommandPermissionChangeLog): string | undefined {

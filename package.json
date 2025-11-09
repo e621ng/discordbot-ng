@@ -29,6 +29,6 @@
     "start": "node dist/index.js",
     "build": "npm run clean && npx tsc && npm run copyfiles",
     "clean": "npx rimraf dist",
-    "copyfiles": "npx copyfiles -u 1 \"./src/**/*.html\" ./dist"
+    "copyfiles": "npx copyfiles -u 1 \"./src/**/*.ejs\" ./dist"
   }
 }
