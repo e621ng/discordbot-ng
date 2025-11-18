@@ -14,5 +14,5 @@ export async function handleWhoIsInteraction(interaction: CommandInteraction, va
 
   const content = await getE621Alts(user.id, interaction.guild!);
 
-  interaction.editReply(`<@${user.id}>'s e621 and discord account(s):\n${content}`);
+  interaction.editReply(`<@${user.id}>'s (${user.id}) e621 and discord account(s):\n${content}`);
 }

@@ -9,7 +9,7 @@ export async function handleMemberJoin(member: GuildMember) {
     const channel = await member.guild.channels.fetch(guildSettings.new_member_channel_id) as GuildTextBasedChannel;
 
     if (channel) {
-      const content = `${member.toString()}'s e621 and discord account(s):\n${await getE621Alts(member.id, member.guild)}`;
+      const content = `${member.toString()}'s (${member.id}) e621 and discord account(s):\n${await getE621Alts(member.id, member.guild)}`;
 
       channel.send(content).catch(console.error);
 
