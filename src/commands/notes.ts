@@ -128,7 +128,7 @@ export default {
 
       await Database.putNote(user.id, reason, interaction.user.id);
 
-      interaction.editReply(`Note added to <@${user.id}> (${user.id}).\n\nReason:\n${reason}`);
+      interaction.editReply(`Note added to <@${user.id}> (\`${user.username}\` | \`${user.id}\`).\n\nReason:\n${reason}`);
     } else if (subcommand == 'remove') {
       const noteId = interaction.options.getInteger('note', true);
 
@@ -203,11 +203,11 @@ export default {
 
       await Database.editNote(noteId, note.reason, reason, interaction.user.id);
 
-      interaction.editReply(`Note on <@${user.id}> (${user.id}) edited.\n\nNew reason:\n${reason}`);
+      interaction.editReply(`Note on <@${user.id}> (\`${user.username}\` | \`${user.id}\`) edited.\n\nNew reason:\n${reason}`);
     } else if (subcommand == 'list') {
       const noteMessage = await getNoteMessage(user.id, 1);
 
-      if (!noteMessage) return interaction.editReply(`No notes found for <@${user.id}> (${user.id})`);
+      if (!noteMessage) return interaction.editReply(`No notes found for <@${user.id}> (\`${user.username}\` | \`${user.id}\`)`);
 
       interaction.editReply(noteMessage);
     }
