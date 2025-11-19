@@ -136,7 +136,7 @@ export default {
 
     const value = interaction.options.getFocused();
 
-    const toRespond = items.filter(i => !value ? true : i.content.includes(value));
+    const toRespond = items.filter(i => !value ? true : i.name.includes(value));
     if (toRespond.length > 25) toRespond.length = 25;
 
     interaction.respond(toRespond.map(p => ({
