@@ -24,6 +24,11 @@ export default {
     }
 
     const name = interaction.options.getString('new-name', true);
+
+    if (name.length > 100) {
+      return interaction.reply('Name must be less than 100 characters in length.');
+    }
+
     const channel = await interaction.guild!.channels.fetch(guildSettings.general_chat_id)!;
 
     if (!channel) {
