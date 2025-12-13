@@ -39,7 +39,8 @@ const oauth = new DiscordOAuth2({
 const enum JoinResponse {
   Success = 1,
   Error = 2,
-  Banned = 3
+  Banned = 3,
+  Underage = 4
 };
 
 async function joinGuild(code: string, userId: string, username: string): Promise<JoinResponse> {
@@ -68,6 +69,8 @@ async function joinGuild(code: string, userId: string, username: string): Promis
     });
   } catch (e: any) {
     if (e.code == 40007) return JoinResponse.Banned;
+    else if (e.code == 20024) return JoinResponse.Underage;
+
     console.error(`Error joining user (${userId}) to discord:`);
     console.error(e);
     return JoinResponse.Error;
@@ -149,6 +152,8 @@ async function handleCallback(req: Request, res: Response): Promise<any> {
       return sendInteralServerError(res, 'Unable to join user to guild. Retry later. If issue persists, please contact staff.');
     } else if (response == JoinResponse.Banned) {
       return sendForbidden(res, 'User is banned.');
+    } else if (response == JoinResponse.Underage) {
+      return sendForbidden(res, 'Discord account flagged as underage by discord.');
     }
   } catch (e) {
     console.error(e);
