@@ -1,5 +1,4 @@
 import express, { Request, Response } from 'express';
-import DiscordOAuth2 from 'discord-oauth2';
 import { config } from '../config';
 import { Database } from '../shared/Database';
 import crypto from 'crypto';
@@ -11,7 +10,7 @@ import { Client } from 'discord.js';
 import bodyParser from 'body-parser';
 import { fixPings, removeIssueLinks } from '../utils/github-user-utils';
 import { logDebug } from '../utils/debug-utils';
-import { AltData, comprehensiveAltLookupFromE621 } from '../utils';
+import { AltData, comprehensiveAltLookupFromE621, DiscordOAuth2 } from '../utils';
 
 declare module 'express-session' {
   interface SessionData {
@@ -25,12 +24,15 @@ const GITHUB_REPO_ID = 169334303;
 const DEV_BASE_URL = `http://localhost:${config.PORT}`;
 const PROD_BASE_URL = 'https://discord.e621.net';
 
+const OAUTH_SCOPES = ['identify', 'guilds.join'];
+
 const PAGE_TEMPLATE = fs.readFileSync(path.join(__dirname, 'templates', 'page.html'), { encoding: 'utf-8' });
 
 const oauth = new DiscordOAuth2({
   clientId: config.DISCORD_CLIENT_ID!,
   clientSecret: config.DISCORD_CLIENT_SECRET!,
   redirectUri: `${config.DEV_MODE ? DEV_BASE_URL : PROD_BASE_URL}/callback`,
+  clientToken: config.DISCORD_TOKEN!,
   credentials: Buffer.from(`${config.DISCORD_CLIENT_ID!}:${config.DISCORD_CLIENT_SECRET!}`).toString('base64')
 });
 
@@ -48,11 +50,7 @@ async function joinGuild(code: string, userId: string, username: string): Promis
 
     const id = Number(userId);
 
-    tokenResponse = await oauth.tokenRequest({
-      code,
-      scope: 'identify guilds.join',
-      grantType: 'authorization_code'
-    });
+    tokenResponse = await oauth.getAccessToken(code, OAUTH_SCOPES);
 
     const user = await oauth.getUser(tokenResponse.access_token);
 
@@ -64,7 +62,6 @@ async function joinGuild(code: string, userId: string, username: string): Promis
 
     await oauth.addMember({
       accessToken: tokenResponse.access_token,
-      botToken: config.DISCORD_TOKEN!,
       guildId: config.DISCORD_GUILD_ID!,
       userId: user.id,
       nickname: username
@@ -103,6 +100,12 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
 
   const oauthState = crypto.randomBytes(16).toString('hex');
 
+  const oauthUrl = await oauth.generateOauth2Url({
+    state: oauthState,
+    scope: OAUTH_SCOPES,
+    type: 'code'
+  });
+
   req.session.username = username as string;
   req.session.userId = user_id as string;
   req.session.oauthState = oauthState;
@@ -114,10 +117,7 @@ async function handleInitial(req: Request, res: Response): Promise<any> {
       return sendInteralServerError(res);
     }
 
-    res.redirect(oauth.generateAuthUrl({
-      state: oauthState,
-      scope: ['identify', 'guilds.join']
-    }));
+    res.redirect(oauthUrl);
   });
 }
 
@@ -146,7 +146,7 @@ async function handleCallback(req: Request, res: Response): Promise<any> {
     const response = await joinGuild(code, userId, username);
     if (response == JoinResponse.Error) {
       console.error(`Error joining user: ${username} (${userId})`);
-      return sendInteralServerError(res, 'Unable to join user to guild.');
+      return sendInteralServerError(res, 'Unable to join user to guild. Retry later. If issue persists, please contact staff.');
     } else if (response == JoinResponse.Banned) {
       return sendForbidden(res, 'User is banned.');
     }
