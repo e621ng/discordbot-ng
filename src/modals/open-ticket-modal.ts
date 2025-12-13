@@ -23,11 +23,7 @@ export default {
       type: ChannelType.PrivateThread
     });
 
-    console.log(1);
-
     await Database.createPrivateHelpTicket(interaction.user.id, thread.id);
-
-    console.log(2);
 
     const closeButton = new ButtonBuilder()
       .setCustomId('close-ticket')
