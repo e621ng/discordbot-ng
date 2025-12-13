@@ -314,6 +314,10 @@ async function getButtons(ticket: Ticket): Promise<ActionRowBuilder<ButtonBuilde
     primaryButton
       .setLabel('Open Wiki')
       .setURL(`${config.E621_BASE_URL}/wikis/${ticket.target_id}`);
+  } else {
+    console.error('Unknown ticket type:');
+    console.error(JSON.stringify(ticket, null, 2));
+    skipPrimary = true;
   }
 
   if (!skipPrimary) row.addComponents(primaryButton);
