@@ -55,6 +55,12 @@ async function joinGuild(code: string, userId: string, username: string): Promis
 
     const user = await oauth.getUser(tokenResponse.access_token);
 
+    if (!user.id || !user.username) {
+      console.error(`Error joining user (${userId}) to discord. User object missing id or username.`);
+      console.error(user);
+      return JoinResponse.Error;
+    }
+
     await Database.putUser(id, user);
 
     const alts = await comprehensiveAltLookupFromE621(id, null);
