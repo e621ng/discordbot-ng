@@ -67,12 +67,16 @@ async function joinGuild(code: string, userId: string, username: string): Promis
 
     if (await checkAltsForFullBans([alts])) return JoinResponse.Banned;
 
-    await oauth.addMember({
+    const response = await oauth.addMember({
       accessToken: tokenResponse.access_token,
       guildId: config.DISCORD_GUILD_ID!,
       userId: user.id,
       nickname: username
     });
+
+    if (config.DEBUG) console.log(response);
+
+    if (!response) return JoinResponse.Error;
   } catch (e: any) {
     if (e.code == 40007) return JoinResponse.Banned;
     else if (e.code == 20024) return JoinResponse.Underage;

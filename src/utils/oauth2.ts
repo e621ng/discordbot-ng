@@ -103,6 +103,12 @@ export class DiscordOAuth2 {
       }
     });
 
+    if (res.status < 200 || res.status >= 300) {
+      console.error(`Non 200 code while joining user: ${options.userId} to discord:`);
+      console.log(await res.text());
+      return null;
+    }
+
     return await res.json();
   }
 
