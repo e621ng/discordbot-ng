@@ -107,7 +107,7 @@ export class DiscordOAuth2 {
       console.error(`Non 200 code while joining user: ${options.userId} to discord (${res.status}):`);
       const text = await res.text();
       console.error(text);
-      let data = null;
+      let data = { code: 0 };
 
       try {
         data = JSON.parse(text);
