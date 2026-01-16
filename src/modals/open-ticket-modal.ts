@@ -38,7 +38,7 @@ export default {
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeButton, claimButton);
 
     await thread.send({
-      content: `${interaction.user} feel free to direct your questions at any <@&${guildSettings.private_help_role_id}>. Only you and staff members can see this channel.\n\n**Reason for contact:**\n${reason}`,
+      content: `${interaction.user} feel free to direct your questions at any <@&${guildSettings.private_help_role_id}>. Only you and staff members can see this channel.\n\n**Reason for contact:**\n${reason}\n\n-# Tickets will automatically close after 5 days of inactivity.`,
       components: [row],
       allowedMentions: {
         users: [interaction.user.id],

@@ -72,6 +72,7 @@ export type KnowledgebaseItem = {
 export type PrivateHelpTicket = {
   id: number
   user_id: string
-  status: PrivateHelpTicketStatus,
+  thread_id: string
+  status: PrivateHelpTicketStatus
   timestamp: string
 }

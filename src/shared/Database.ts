@@ -143,6 +143,7 @@ export class Database {
   }
 
   static async getDiscordIds(e621Id: string | number): Promise<string[]> {
+    // Perhaps this would be better and then we can return all the data: SELECT * FROM (SELECT * FROM discord_names WHERE user_id = ?  ORDER BY id DESC) GROUP BY discord_id;
     const ids = await Database.db.all<{ discord_id: string }[]>('SELECT DISTINCT discord_id FROM discord_names WHERE user_id = ?', e621Id);
 
     return ids.map(r => r.discord_id);
@@ -468,6 +469,10 @@ export class Database {
 
   static async getLatestPrivateHelpTicketBy(userId: string): Promise<PrivateHelpTicket | undefined> {
     return await Database.db.get<PrivateHelpTicket>('SELECT * from private_help_tickets WHERE user_id = ? ORDER BY timestamp DESC LIMIT 1', userId);
+  }
+
+  static async getAllOpenPrivateHelpTickets(): Promise<PrivateHelpTicket[]> {
+    return await Database.db.all<PrivateHelpTicket[]>('SELECT * from private_help_tickets WHERE status = ?', PrivateHelpTicketStatus.OPEN);
   }
 
   // -- END PRIVATE HELP TICKETS

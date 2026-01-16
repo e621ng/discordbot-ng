@@ -17,6 +17,7 @@ export * from './ms-to-human';
 export * from './name-sync';
 export * from './note-utils';
 export * from './oauth2';
+export * from './private-help-utils';
 export * from './record-utils';
 export * from './refresh-commands';
 export * from './search-regex';
