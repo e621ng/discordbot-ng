@@ -2,7 +2,7 @@ import { Message as DiscordMessage, GuildBasedChannel, GuildTextBasedChannel, Om
 import { config } from '../config';
 import { Database } from '../shared/Database';
 import { E621Post } from '../types';
-import { ALLOWED_MIMETYPES, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, forumTopicIDRegex, getE621Post, getE621PostByMd5, getPostUrl, isEdited, isInSpoilerTags, logDeletion, logEdit, poolIDRegex, PostAction, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, spoilerOrBlacklist, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
+import { ALLOWED_MIMETYPES, artistIDRegex, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, forumTopicIDRegex, getE621Post, getE621PostByMd5, getPostUrl, isEdited, isInSpoilerTags, logDeletion, logEdit, poolIDRegex, PostAction, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, spoilerOrBlacklist, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
 
 export type Message<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<DiscordMessage<InGuild>>;
 export type Partial = OmitPartialGroupDMChannel<PartialMessage>;
@@ -31,6 +31,7 @@ const regexTesters = [
   { runInDev: true, regex: takedownIDRegex, handler: idHandler.bind(null, 'takedowns') },
   { runInDev: true, regex: recordIDRegex, handler: idHandler.bind(null, 'user_feedbacks') },
   { runInDev: true, regex: ticketIDRegex, handler: idHandler.bind(null, 'tickets') },
+  { runInDev: true, regex: artistIDRegex, handler: idHandler.bind(null, 'artists') },
   { runInDev: true, regex: wikiLinkRegex, handler: wikiPageHandler },
   { runInDev: true, regex: searchLinkRegex, handler: searchHandler }
 ];
