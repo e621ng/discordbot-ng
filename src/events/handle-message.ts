@@ -9,6 +9,7 @@ export type Partial = OmitPartialGroupDMChannel<PartialMessage>;
 
 // TODO: I don't know of any good way to not hardcode this regex for e621 links. So I've provided two that may need to have the port altered.
 const postRegex = new RegExp('!?https?://(?:.*@)?(?:e621|e926)\\.net/+posts/+([0-9]+)', 'gi');
+const postShareRegex = new RegExp('!?https?://(?:.*@)?(?:e621|e926)\\.net/+p/+([a-z0-9]+)', 'gi');
 const imageRegex = new RegExp('!?https?://(?:.*@)?static[0-9]*\\.(?:e621|e926)\\.net/+data/+(?:sample/+|preview/+|)[\\da-f]{2}/+[\\da-f]{2}/+([\\da-f]{32})\\.[\\da-z]+', 'gi');
 
 const postRegex_DEV = new RegExp('!?https?://(?:.*@)?localhost:3000/+posts/+([0-9]+)', 'gi');
@@ -17,9 +18,14 @@ const imageRegex_DEV = new RegExp('!?https?://(?:.*@)?localhost:3000/+data/+(?:s
 const md5Regex = new RegExp('^([a-f0-9]{32}).(?:png|apng|jpg|jpeg|gif|webm|mp4)$', 'gi');
 
 const regexTesters = [
-  { runInDev: false, regex: postRegex, handler: postHandler },
+  { runInDev: false, regex: postRegex, handler: postHandler.bind(null, null) },
+  {
+    runInDev: false, regex: postShareRegex, handler: postHandler.bind(null, (idString: string) => {
+      return parseInt(idString, 32);
+    })
+  },
   { runInDev: false, regex: imageRegex, handler: imageHandler },
-  { runInDev: true, regex: postRegex_DEV, handler: postHandler },
+  { runInDev: true, regex: postRegex_DEV, handler: postHandler.bind(null, null) },
   { runInDev: true, regex: imageRegex_DEV, handler: imageHandler },
   { runInDev: true, regex: postIDRegex, handler: postIdHandler },
   { runInDev: true, regex: userIDRegex, handler: idHandler.bind(null, 'users') },
@@ -297,14 +303,14 @@ async function idHandler(path: string, message: Message, matchedGroups: RegExpEx
   return true;
 }
 
-async function postHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
+async function postHandler(transform: ((idString: string) => number) | null, message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
   if (!message.guildId) return true;
 
   const posts: E621Post[] = [];
 
   for (const match of matchedGroups) {
     try {
-      const post = await getE621Post(match[1]);
+      const post = await getE621Post(transform ? transform(match[1]) : match[1]);
       if (post) posts.push(post);
     } catch (e) {
       console.error(e);
