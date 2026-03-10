@@ -10,7 +10,7 @@ export async function fixPings(body: string): Promise<string> {
     const name = m1 ?? m2;
     const mapping = mappings.find(m => m.github_username == name);
 
-    return mapping ? `<@${mapping.discord_id}>` : match;
+    return mapping ? `<@${mapping.discord_id}>${match.endsWith(',') ? ',' : ''}` : match;
   });
 }
 
