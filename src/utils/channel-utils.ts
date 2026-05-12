@@ -24,5 +24,5 @@ export async function channelIgnoresLinks(channel: GuildBasedChannel) {
 
   const linkSkipChannels = await Database.getGuildArraySetting('link_skip_channels', channel.guildId);
 
-  return linkSkipChannels.includes(channel.id);
+  return linkSkipChannels.includes(channel.id) || channel.parentId ? linkSkipChannels.includes(channel.parentId!) : false;
 }
