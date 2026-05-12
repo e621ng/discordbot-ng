@@ -2,7 +2,7 @@ import { Message as DiscordMessage, GuildBasedChannel, GuildTextBasedChannel, Om
 import { config } from '../config';
 import { Database } from '../shared/Database';
 import { E621Post } from '../types';
-import { ALLOWED_MIMETYPES, artistIDRegex, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, forumTopicIDRegex, getE621Post, getE621PostByMd5, getPostUrl, isEdited, isInSpoilerTags, logDeletion, logEdit, poolIDRegex, PostAction, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, spoilerOrBlacklist, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
+import { ALLOWED_MIMETYPES, artistIDRegex, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, forumTopicIDRegex, getE621Post, getE621PostByMd5, getPostUrl, isEdited, isInSpoilerTags, issueRegex, logDeletion, logEdit, poolIDRegex, PostAction, postIDRegex, prRegex, recordIDRegex, searchLinkRegex, setIDRegex, spoilerOrBlacklist, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
 
 export type Message<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<DiscordMessage<InGuild>>;
 export type Partial = OmitPartialGroupDMChannel<PartialMessage>;
@@ -39,7 +39,10 @@ const regexTesters = [
   { runInDev: true, regex: ticketIDRegex, handler: idHandler.bind(null, 'tickets') },
   { runInDev: true, regex: artistIDRegex, handler: idHandler.bind(null, 'artists') },
   { runInDev: true, regex: wikiLinkRegex, handler: wikiPageHandler },
-  { runInDev: true, regex: searchLinkRegex, handler: searchHandler }
+  { runInDev: true, regex: searchLinkRegex, handler: searchHandler },
+
+  { runInDev: true, regex: prRegex, handler: githubPullRequestHandler },
+  { runInDev: true, regex: issueRegex, handler: githubIssueHandler },
 ];
 
 const uniqueRegexMatches = (g, i, a) => a.findIndex(v => v[1] == g[1]) == i;
@@ -343,6 +346,38 @@ async function imageHandler(message: Message, matchedGroups: RegExpExecArray[]):
   if (skip) return true;
 
   const content = posts.map(post => `<${getPostUrl(post)}>`).join('\n');
+
+  if (content.trim().length > 0) return content.trim();
+
+  return true;
+}
+
+async function githubPullRequestHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
+  const skip = await channelIgnoresLinks(message.channel as GuildBasedChannel);
+
+  if (skip) return true;
+
+  let content = '';
+
+  for (const group of matchedGroups) {
+    content += `${config.GIT_REPO_BASE_URL}/pull/${group[1]}\n`;
+  }
+
+  if (content.trim().length > 0) return content.trim();
+
+  return true;
+}
+
+async function githubIssueHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
+  const skip = await channelIgnoresLinks(message.channel as GuildBasedChannel);
+
+  if (skip) return true;
+
+  let content = '';
+
+  for (const group of matchedGroups) {
+    content += `${config.GIT_REPO_BASE_URL}/issues/${group[1]}\n`;
+  }
 
   if (content.trim().length > 0) return content.trim();
 

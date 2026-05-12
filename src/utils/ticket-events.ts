@@ -3,7 +3,7 @@ import { config } from '../config';
 import { Database } from '../shared/Database';
 import { Ticket, TicketPhrase, TicketUpdate } from '../types';
 import { PostAction, getE621Post, getE621User, spoilerOrBlacklist } from './e621-utils';
-import { blipIDRegex, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from './search-regex';
+import { blipIDRegex, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from './message-matcher-regex';
 import { humanizeCapitalization } from './string-utils';
 import { shouldAlert } from './ticket-utils';
 

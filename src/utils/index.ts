@@ -20,7 +20,7 @@ export * from './oauth2';
 export * from './private-help-utils';
 export * from './record-utils';
 export * from './refresh-commands';
-export * from './search-regex';
+export * from './message-matcher-regex';
 export * from './string-utils';
 export * from './ticket-events';
 export * from './ticket-utils';

@@ -13,3 +13,6 @@ export const artistIDRegex = new RegExp('artist #([0-9]+)', 'gi');
 const tagSearchRegex = '(?:[\\S]| )+?';
 export const wikiLinkRegex = new RegExp(`\\[\\[(${tagSearchRegex})]]`, 'gi');
 export const searchLinkRegex = new RegExp(`{{(${tagSearchRegex})}}`, 'gi');
+
+export const prRegex = new RegExp('pr #([0-9]+)', 'gi');
+export const issueRegex = new RegExp('issue #([0-9]+)', 'gi');
