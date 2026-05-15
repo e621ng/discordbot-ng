@@ -121,7 +121,7 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-client.on('ready', async () => {
+client.on('clientReady', async () => {
   console.log(`Logged in as ${client.user!.tag}!`);
 
   await refreshCommands(client);
