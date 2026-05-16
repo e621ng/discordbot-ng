@@ -43,10 +43,8 @@ export default {
         });
       }
 
-      // Set cooldown
       cooldowns.set(userId, now + COOLDOWN_TIME);
 
-      // Optional cleanup
       setTimeout(() => {
         cooldowns.delete(userId);
       }, COOLDOWN_TIME);
@@ -89,7 +87,6 @@ export default {
         }],
         flags: [MessageFlags.Ephemeral]
       });
-
     } catch (error) {
       console.error(error);
       if (!interaction.replied) {
