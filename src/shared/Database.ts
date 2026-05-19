@@ -29,7 +29,8 @@ const DB_SCHEMA = `
         safe_channels TEXT,
         link_skip_channels TEXT,
         github_release_channel TEXT,
-        moderator_channel_id TEXT
+        moderator_channel_id TEXT,
+        private_help_channel_id TEXT
     );
 
     CREATE TABLE IF NOT EXISTS messages (
@@ -229,6 +230,10 @@ export class Database {
 
   static async setGuildGithubReleaseChannel(guildId: string, id: string) {
     await Database.db.run('UPDATE settings SET github_release_channel = ? WHERE guild_id = ?', id, guildId);
+  }
+
+  static async setPrivateHelpChannel(guildId: string, id: string) {
+    await Database.db.run('UPDATE settings SET private_help_channel_id = ? WHERE guild_id = ?', id, guildId);
   }
 
   // Since "setting" has guaranteed values and is never set by the user, this shouldn't cause any security issues.

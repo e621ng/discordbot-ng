@@ -1,4 +1,5 @@
 import { ActionRowBuilder, ApplicationIntegrationType, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { Database } from '../shared/Database';
 
 export default {
   name: 'private-help',
@@ -36,6 +37,8 @@ export default {
       .addComponents(button);
 
     await interaction.channel.send({ components: [row], content });
+
+    await Database.setPrivateHelpChannel(interaction.guildId!, interaction.channelId);
 
     interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Sent.' });
   }

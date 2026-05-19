@@ -1,18 +1,6 @@
-import {
-  ApplicationCommandType,
-  ApplicationIntegrationType,
-  Client,
-  ContextMenuCommandBuilder,
-  GuildTextBasedChannel,
-  InteractionContextType,
-  MessageContextMenuCommandInteraction,
-  MessageFlags
-} from "discord.js";
+import { ApplicationCommandType, ApplicationIntegrationType, Client, ContextMenuCommandBuilder, InteractionContextType, LabelBuilder, MessageContextMenuCommandInteraction, MessageFlags, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 
-import { Database } from "../shared/Database";
-
-const cooldowns = new Map<string, number>();
-const COOLDOWN_TIME = 300000; // 5 minutes
+import { Database } from '../shared/Database';
 
 export default {
   name: 'Report Message',
@@ -23,79 +11,92 @@ export default {
     .setContexts(InteractionContextType.Guild)
     .setType(ApplicationCommandType.Message),
 
-  handler: async function (
-    client: Client,
-    interaction: MessageContextMenuCommandInteraction
-  ) {
+  handler: async function (client: Client, interaction: MessageContextMenuCommandInteraction) {
     try {
-      const userId = interaction.user.id;
-      const now = Date.now();
+      const modal = new ModalBuilder()
+        .setCustomId(`report-message_${interaction.targetMessage.channelId}_${interaction.targetMessage.id}`)
+        .setTitle(`Report message from ${interaction.targetMessage.member?.displayName ?? interaction.targetMessage.author.displayName}`);
 
-      const cooldownExpiration = cooldowns.get(userId);
-      if (cooldownExpiration && now < cooldownExpiration) {
-        const expiresAt = Math.floor(cooldownExpiration / 1000);
-        return interaction.reply({
-          embeds: [{
-            color: 0xffaa00,
-            description: `Slow down there, you can report another message <t:${expiresAt}:R>.`
-          }],
-          flags: [MessageFlags.Ephemeral]
-        });
-      }
+      const additionalInfoInput = new TextInputBuilder()
+        .setCustomId('additional-info')
+        .setMaxLength(1000)
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false);
 
-      cooldowns.set(userId, now + COOLDOWN_TIME);
+      const additionalInfoLabel = new LabelBuilder()
+        .setLabel('Additional Information')
+        .setDescription('Any additional information? This will help staff understand your report. 1000 characters maximum.')
+        .setTextInputComponent(additionalInfoInput);
 
-      setTimeout(() => {
-        cooldowns.delete(userId);
-      }, COOLDOWN_TIME);
+      const yesNoMenu = new StringSelectMenuBuilder()
+        .setCustomId('create-private-help-ticket')
+        .setRequired(false)
+        .addOptions(
+          new StringSelectMenuOptionBuilder()
+            .setLabel('No')
+            .setDefault(true)
+            .setValue('no'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Yes')
+            .setDefault(false)
+            .setValue('yes')
+        );
+
+      const createPrivateTicket = new LabelBuilder()
+        .setLabel('Create Private Help Ticket')
+        .setDescription('Should a private help ticket be opened with this report? (Does not bypass ticket restrictions)')
+        .setStringSelectMenuComponent(yesNoMenu);
+
+      modal.addLabelComponents(additionalInfoLabel, createPrivateTicket);
 
       const guildSettings = await Database.getGuildSettings(interaction.guildId!);
 
-      const reportsChannel =
-        await client.channels.fetch(
-          guildSettings?.moderator_channel_id!
-        ) as GuildTextBasedChannel;
+      if (!guildSettings || !guildSettings.moderator_channel_id)
+        return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Report channel missing. Unable to submit report' });
 
-      await reportsChannel.send({
-        embeds: [{
-          title: 'New Message Report!',
-          fields: [
-            {
-              name: 'Message',
-              value: interaction.targetMessage.url,
-              inline: false
-            },
-            {
-              name: 'Author',
-              value: interaction.targetMessage.author.toString(),
-              inline: false
-            },
-            {
-              name: 'Reporter',
-              value: interaction.user.toString(),
-              inline: false
-            }
-          ]
-        }]
-      });
+      const reportsChannel = await interaction.guild!.channels.fetch(guildSettings.moderator_channel_id);
 
-      await interaction.reply({
-        embeds: [{
-          color: 0x014995,
-          description:
-            "Thanks for making a report! I've notified the moderators who can take further action."
-        }],
-        flags: [MessageFlags.Ephemeral]
-      });
+      if (!reportsChannel || !reportsChannel.isSendable())
+        return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Report channel missing. Unable to submit report' });
+
+      await interaction.showModal(modal);
+
+      // await reportsChannel.send({
+      //   embeds: [{
+      //     title: 'New Message Report!',
+      //     fields: [
+      //       {
+      //         name: 'Message',
+      //         value: interaction.targetMessage.url,
+      //         inline: false
+      //       },
+      //       {
+      //         name: 'Author',
+      //         value: interaction.targetMessage.author.toString(),
+      //         inline: false
+      //       },
+      //       {
+      //         name: 'Reporter',
+      //         value: interaction.user.toString(),
+      //         inline: false
+      //       }
+      //     ]
+      //   }]
+      // });
+
+      // await interaction.reply({
+      //   embeds: [{
+      //     color: 0x014995,
+      //     description:
+      //       "Thanks for making a report! I've notified the moderators who can take further action."
+      //   }],
+      //   flags: [MessageFlags.Ephemeral]
+      // });
     } catch (error) {
       console.error(error);
       if (!interaction.replied) {
         await interaction.reply({
-          embeds: [{
-            color: 0xff5555,
-            description:
-              "Hmm, an error occurred while processing your request. If you receive this error more than once, DM a moderator for further assistance."
-          }],
+          content: 'Hmm, an error occurred while processing your request. If you receive this error more than once, DM a moderator for further assistance.',
           flags: [MessageFlags.Ephemeral]
         });
       }
