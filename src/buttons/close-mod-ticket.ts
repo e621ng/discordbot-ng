@@ -3,15 +3,16 @@ import { ButtonInteraction, Client, MessageFlags, ChannelType, PermissionFlagsBi
 export default {
   name: 'close-mod-ticket',
   handler: async function (client: Client, interaction: ButtonInteraction) {
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
     const channel = await interaction.channel?.fetch();
     const guild = await interaction.guild?.fetch();
     const member = await guild?.members.fetch(interaction.user.id);
 
     if (!channel || !channel.isThread() || !channel.isSendable() || channel.type != ChannelType.PrivateThread || !member)
-      return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Oops. Something went wrong. Please report this to a staff member.' });
+      return interaction.editReply({ content: 'Oops. Something went wrong. Please report this to a staff member.' });
 
     if (!member.permissions.has(PermissionFlagsBits.KickMembers))
-      return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Only staff members may close mod tickets.' });
+      return interaction.editReply({ content: 'Only staff members may close mod tickets.' });
 
     await interaction.message.edit({
       content: interaction.message.content,
@@ -20,7 +21,7 @@ export default {
 
     await channel.send('This ticket has been closed by staff.');
 
-    await interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Ticket closed.' });
+    await interaction.editReply({ content: 'Ticket closed.' });
 
     channel.edit({
       archived: true,
