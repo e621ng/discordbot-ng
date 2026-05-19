@@ -1,4 +1,5 @@
-import { ActionRowBuilder, ApplicationCommandType, ApplicationIntegrationType, Client, ContextMenuCommandBuilder, InteractionContextType, ModalBuilder, PermissionFlagsBits, TextInputBuilder, TextInputStyle, UserContextMenuCommandInteraction } from 'discord.js';
+import { ApplicationCommandType, ApplicationIntegrationType, Client, ContextMenuCommandBuilder, InteractionContextType, ModalBuilder, PermissionFlagsBits, TextInputStyle, UserContextMenuCommandInteraction } from 'discord.js';
+import { createTextInput } from '../utils';
 
 export default {
   name: 'Add Note',
@@ -17,15 +18,9 @@ export default {
       .setCustomId(`add-note-modal_${idToUse}`)
       .setTitle(`Adding note to ${member ? member.displayName : idToUse}`);
 
-    const input = new TextInputBuilder()
-      .setCustomId('note-message')
-      .setLabel('Note message')
-      .setStyle(TextInputStyle.Paragraph)
-      .setRequired(true)
-      .setMinLength(2)
-      .setMaxLength(1500);
+    const inputLabel = createTextInput('note-message', 'Note Message', null, true, TextInputStyle.Paragraph, 1500, 2);
 
-    modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(input));
+    modal.addLabelComponents(inputLabel);
 
     await interaction.showModal(modal);
   }

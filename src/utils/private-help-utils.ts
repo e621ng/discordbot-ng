@@ -1,5 +1,6 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ChatInputCommandInteraction, Client, Guild, GuildMember, LabelBuilder, ModalBuilder, PrivateThreadChannel, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextChannel, TextInputBuilder, TextInputStyle, ThreadAutoArchiveDuration, ThreadChannel, UserContextMenuCommandInteraction } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ChatInputCommandInteraction, Client, Guild, GuildMember, ModalBuilder, PrivateThreadChannel, TextChannel, TextInputStyle, ThreadAutoArchiveDuration, ThreadChannel, UserContextMenuCommandInteraction } from 'discord.js';
 import { Database } from '../shared/Database';
+import { createTextInput, createYesNoMenu } from './modal-utils';
 
 export async function closeOldTickets(client: Client) {
   for (const ticket of await Database.getAllOpenPrivateHelpTickets()) {
@@ -89,46 +90,9 @@ export async function openModTicketModal(interaction: UserContextMenuCommandInte
     .setCustomId(`open-mod-ticket_${member.id}`)
     .setTitle(`Opening A Mod Ticket With ${member.displayName}`);
 
-  const titleInput = new TextInputBuilder()
-    .setCustomId('title')
-    .setMaxLength(100)
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
-
-  const titleLabel = new LabelBuilder()
-    .setLabel('Title')
-    .setDescription(`The name of the thread. Defaults to "Mod Ticket For ${member.displayName}" if left empty`)
-    .setTextInputComponent(titleInput);
-
-  const initialMessageInput = new TextInputBuilder()
-    .setCustomId('initial-message')
-    .setMaxLength(1800)
-    .setStyle(TextInputStyle.Paragraph)
-    .setRequired(false);
-
-  const initialMessageLabel = new LabelBuilder()
-    .setLabel('Inital Message')
-    .setDescription('The inital message sent in the thread')
-    .setTextInputComponent(initialMessageInput);
-
-  const yesNoMenu = new StringSelectMenuBuilder()
-    .setCustomId('auto-join-thread')
-    .setRequired(false)
-    .addOptions(
-      new StringSelectMenuOptionBuilder()
-        .setLabel('Yes')
-        .setDefault(true)
-        .setValue('yes'),
-      new StringSelectMenuOptionBuilder()
-        .setLabel('No')
-        .setDefault(false)
-        .setValue('no')
-    );
-
-  const autoJoinLabel = new LabelBuilder()
-    .setLabel('Auto Join Thread')
-    .setDescription('Whether or not to join you to the thread. Selecting no will not notify you of messages sent!')
-    .setStringSelectMenuComponent(yesNoMenu);
+  const titleLabel = createTextInput('title', 'Title', `The name of the thread. Defaults to "Mod Ticket For ${member.displayName}" if left empty`, false, TextInputStyle.Short, 100, null);
+  const initialMessageLabel = createTextInput('initial-message', 'Inital Message', 'The inital message sent in the thread', false, TextInputStyle.Paragraph, 1800, null);
+  const autoJoinLabel = createYesNoMenu('auto-join-thread', 'Auto Join Thread', 'Whether or not to join you to the thread. Selecting no will not notify you of messages sent!', true);
 
   modal.addLabelComponents(titleLabel, initialMessageLabel, autoJoinLabel);
 

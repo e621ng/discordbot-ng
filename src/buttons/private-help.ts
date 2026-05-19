@@ -1,5 +1,5 @@
-import { ActionRowBuilder, ButtonInteraction, Client, ModalBuilder, TextInputBuilder, TextInputStyle, MessageFlags } from 'discord.js';
-import { canOpenPrivateHelpTicket } from '../utils';
+import { ButtonInteraction, Client, ModalBuilder, TextInputStyle, MessageFlags } from 'discord.js';
+import { canOpenPrivateHelpTicket, createTextInput } from '../utils';
 
 export default {
   name: 'private-help',
@@ -11,16 +11,9 @@ export default {
       .setCustomId('open-ticket-modal')
       .setTitle('Get in contact');
 
-    const input = new TextInputBuilder()
-      .setCustomId('ticket-message')
-      .setLabel('What is the reason for your ticket?')
-      .setStyle(TextInputStyle.Paragraph)
-      .setPlaceholder('Please be as thorough as possible.')
-      .setRequired(true)
-      .setMinLength(10)
-      .setMaxLength(1500);
+    const label = createTextInput('ticket-message', 'What is the reason for your ticket?', null, true, TextInputStyle.Paragraph, 1500, 10);
 
-    modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(input));
+    modal.addLabelComponents(label);
 
     await interaction.showModal(modal);
   }

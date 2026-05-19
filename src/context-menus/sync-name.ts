@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ApplicationCommandType, ApplicationIntegrationType, Client, ContextMenuCommandBuilder, InteractionContextType, ModalBuilder, PermissionFlagsBits, TextInputBuilder, TextInputStyle, UserContextMenuCommandInteraction } from 'discord.js';
 import { config } from '../config';
 import { Database } from '../shared/Database';
-import { deferInteraction, syncName } from '../utils';
+import { createTextInput, deferInteraction, syncName } from '../utils';
 
 export default {
   name: 'Sync Name',
@@ -39,13 +39,9 @@ export default {
         .setCustomId(`sync-name-modal_${idToUse}`)
         .setTitle(`Syncing ${member ? member.displayName : idToUse}'s name`);
 
-      const input = new TextInputBuilder()
-        .setCustomId('id')
-        .setLabel('User has multiple linked accounts. Provide ID')
-        .setStyle(TextInputStyle.Short)
-        .setRequired(false);
+      const inputLabel = createTextInput('id', 'User has multiple linked accounts. Provide ID', null, false, TextInputStyle.Short, null, null);
 
-      modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(input));
+      modal.addLabelComponents(inputLabel);
 
       return await interaction.showModal(modal);
     }

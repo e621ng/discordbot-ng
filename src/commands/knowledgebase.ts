@@ -1,7 +1,7 @@
-import { ActionRowBuilder, ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, ModalBuilder, PermissionFlagsBits, SlashCommandBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, ModalBuilder, PermissionFlagsBits, SlashCommandBuilder, TextInputStyle } from 'discord.js';
 import { Database } from '../shared/Database';
 import { KnowledgebaseItem } from '../types';
-import { deferInteraction, logCustomEvent } from '../utils';
+import { createTextInput, deferInteraction, logCustomEvent } from '../utils';
 
 export default {
   name: 'knowledgebase',
@@ -50,24 +50,10 @@ export default {
         .setCustomId('add-knowledgebase-item-modal')
         .setTitle('Add to knowledgebase');
 
-      const name = new TextInputBuilder()
-        .setCustomId('name')
-        .setLabel('Knowledgebase item name')
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true)
-        .setMinLength(1)
-        .setMaxLength(300);
+      const nameLabel = createTextInput('name', 'Knowledgebase Item Name', null, true, TextInputStyle.Short, 300, 1);
+      const contentLabel = createTextInput('content', 'Item Content', null, true, TextInputStyle.Paragraph, 2000, 1);
 
-      const content = new TextInputBuilder()
-        .setCustomId('content')
-        .setLabel('Item content')
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(true)
-        .setMinLength(1)
-        .setMaxLength(2000);
-
-      modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(name));
-      modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(content));
+      modal.addLabelComponents(nameLabel, contentLabel);
 
       return await interaction.showModal(modal);
     } else if (subcommand == 'remove') {
@@ -116,15 +102,9 @@ export default {
         .setCustomId(`edit-knowledgebase-item-modal_${id}`)
         .setTitle(`Editing knowledgebase item ${existingItem.name.slice(0, 18)}`);
 
-      const content = new TextInputBuilder()
-        .setCustomId('content')
-        .setLabel('New content')
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(true)
-        .setMinLength(1)
-        .setMaxLength(2000);
+      const contentLabel = createTextInput('content', 'New Content', null, true, TextInputStyle.Paragraph, 2000, 1);
 
-      modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(content));
+      modal.addLabelComponents(contentLabel);
 
       return await interaction.showModal(modal);
     }
