@@ -1,5 +1,6 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, Client, MessageFlags, ModalSubmitInteraction, TextChannel, ThreadAutoArchiveDuration } from 'discord.js';
+import { Client, MessageFlags, ModalSubmitInteraction } from 'discord.js';
 import { Database } from '../shared/Database';
+import { createPrivateHelpTicketThread } from '../utils';
 
 export default {
   name: 'open-ticket-modal',
@@ -14,38 +15,9 @@ export default {
 
     const reason = interaction.fields.getTextInputValue('ticket-message');
 
-    const channel = (await interaction.channel?.fetch()) as TextChannel;
+    const thread = await createPrivateHelpTicketThread(client, guild, member, reason);
 
-    const thread = await channel.threads.create({
-      name: `${member.displayName}'s Ticket`,
-      autoArchiveDuration: ThreadAutoArchiveDuration.OneWeek,
-      invitable: false,
-      type: ChannelType.PrivateThread
-    });
-
-    await Database.createPrivateHelpTicket(interaction.user.id, thread.id);
-
-    const closeButton = new ButtonBuilder()
-      .setCustomId('close-ticket')
-      .setLabel('Click here if you no longer need help')
-      .setStyle(ButtonStyle.Danger);
-
-    const claimButton = new ButtonBuilder()
-      .setCustomId('claim-ticket')
-      .setLabel('Claim ticket')
-      .setStyle(ButtonStyle.Primary);
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeButton, claimButton);
-
-    await thread.send({
-      content: `${interaction.user} feel free to direct your questions at any <@&${guildSettings.private_help_role_id}>. Only you and staff members can see this channel.\n\n**Reason for contact:**\n${reason}\n\n-# Tickets will automatically close after 5 days of inactivity.`,
-      components: [row],
-      allowedMentions: {
-        users: [interaction.user.id],
-        roles: [guildSettings.private_help_role_id]
-      }
-    });
-
-    interaction.reply({ flags: [MessageFlags.Ephemeral], content: `Your ticket has been created: ${thread}` });
+    if (thread) interaction.reply({ flags: [MessageFlags.Ephemeral], content: `Your ticket has been created: ${thread}` });
+    else interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Failed to create ticket. Please report this to a staff member.' });
   }
 };
