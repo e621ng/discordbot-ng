@@ -17,7 +17,7 @@ export default {
 
     const reporter = await guild.members.fetch(reporterId) ?? await client.users.fetch(reporterId);
 
-    const thread = await createPrivateHelpTicketThread(client, guild, null, `Ticket creted by staff in response to message report: ${message.url}. Reported message: ${reportedMessageUrl}. ${additionalInfo ? `\n\nAdditional information provided in report:\n${additionalInfo.split('\n').map(c => `> ${c}`).join('\n')}` : ''}`, `Mod Ticket For Message Report From ${reporter.displayName}`, [reporterId, interaction.user.id]);
+    const thread = await createPrivateHelpTicketThread(client, guild, null, `Ticket creted by staff in response to message report: ${message.url}. Reported message: ${reportedMessageUrl}. ${additionalInfo ? `\n\nAdditional information provided in report:\n${additionalInfo.split('\n').map(c => `> ${c}`).join('\n')}` : ''}`, `Ticket: Message Report From ${reporter.displayName}`, [reporterId, interaction.user.id]);
 
     if (thread) {
       await interaction.reply({
