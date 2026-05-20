@@ -15,7 +15,7 @@ export default {
     if (!guildSettings || !guildSettings.private_help_channel_id)
       return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Failed to create ticket. Please report this to a developer.' });
 
-    const title = interaction.fields.getTextInputValue('title') ?? `Mod Ticket For ${member.displayName}`;
+    const title = interaction.fields.getTextInputValue('title') ? interaction.fields.getTextInputValue('title') : `Mod Ticket For ${member.displayName}`;
     const reason = interaction.fields.getTextInputValue('initial-message') + warning;
     const autoJoin = interaction.fields.getStringSelectValues('auto-join-thread')[0] == 'yes';
 
