@@ -12,7 +12,7 @@ export default {
     const regex = new RegExp(MessageMentions.UsersPattern);
 
     const reportedMessageUrl = reportEmbed.fields[0].value;
-    const reporterId = regex.exec(reportEmbed.fields[2].value)!.groups!.id;
+    const reporterId = regex.exec(reportEmbed.fields[1].value)!.groups!.id;
     const additionalInfo = reportEmbed.fields[3]?.name == 'Additional Information' ? reportEmbed.fields[3].value : '';
 
     const reporter = await guild.members.fetch(reporterId) ?? await client.users.fetch(reporterId);
