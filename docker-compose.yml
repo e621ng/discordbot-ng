@@ -1,6 +1,6 @@
 services:
-  discordbotrewrite:
-    restart: always
+  hexerade:
+    restart: unless-stopped
     build: .
     env_file: '.env'
     ports:

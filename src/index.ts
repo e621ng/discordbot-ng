@@ -1,5 +1,4 @@
 import { Client as DiscordClient, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
-import 'source-map-support/register';
 import { config } from './config';
 import { handleAuditLogCreate, handleBanRemove, handleBulkMessageDelete, handleGuildCreate, handleMemberJoin, handleMessageCreate, handleMessageDelete, handleMessageUpdate, handleThreadCreate, handleVoiceStateUpdate } from './events';
 import { Database } from './shared/Database';
