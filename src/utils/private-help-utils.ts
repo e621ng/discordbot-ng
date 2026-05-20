@@ -88,7 +88,7 @@ export async function createPrivateHelpTicketThread(client: Client, guild: Guild
 export async function openModTicketModal(interaction: UserContextMenuCommandInteraction | ChatInputCommandInteraction, member: GuildMember) {
   const modal = new ModalBuilder()
     .setCustomId(`open-mod-ticket_${member.id}`)
-    .setTitle(`Opening A Mod Ticket With ${member.displayName}`);
+    .setTitle('Opening A Mod Ticket');
 
   const titleLabel = createTextInput('title', 'Title', `The name of the thread. Defaults to "Mod Ticket For ${member.displayName}" if left empty`, false, TextInputStyle.Short, 100, null);
   const initialMessageLabel = createTextInput('initial-message', 'Inital Message', 'The inital message sent in the thread', false, TextInputStyle.Paragraph, 1800, null);
