@@ -2,11 +2,13 @@ import { Client } from "discord.js";
 import { Task } from "../../types";
 import { checkExpiredBans } from "../../utils";
 
-const checkExpiredBansTask: Task = {
-  interval: 300000,
-  firstRun: true,
+class CheckExpiredBansTask implements Task {
+  interval: number = 300000;
+  firstRun: boolean = true;
 
-  handle: async (context: Client) => await checkExpiredBans(context)
-};
+  async handle(context: Client): Promise<void> {
+    await checkExpiredBans(context);
+  }
+}
 
-export default checkExpiredBansTask;
+export default new CheckExpiredBansTask();

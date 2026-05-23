@@ -1,8 +1,8 @@
 import { Client } from "discord.js";
 
-export type Task = {
+export interface Task {
   interval: number;
   firstRun: boolean;
 
-  handle: (context: Client) => Promise<void>;
+  handle(context: Client): Promise<void>;
 };
