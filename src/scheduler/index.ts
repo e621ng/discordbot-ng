@@ -1,6 +1,6 @@
 import { Client } from "discord.js";
-import ScheduledTasks from "./tasks";
 import { Task } from "../types";
+import ScheduledTasks from "./tasks";
 
 class Scheduler {
   private tasks = new Map<Task, NodeJS.Timeout>();
@@ -19,6 +19,5 @@ class Scheduler {
 }
 
 export {
-  Scheduler,
-  ScheduledTasks
-}
+  ScheduledTasks, Scheduler
+};
