@@ -150,7 +150,7 @@ export class Database {
     console.log('SQLite database ensured');
   }
 
-  // -- START WHOIS --
+  //#region WHOIS
 
   static async getE621Ids(discordId: string): Promise<number[]> {
     const ids = await Database.db.all<{ user_id: number }[]>('SELECT DISTINCT user_id FROM discord_names WHERE discord_id = ?', discordId);
@@ -187,9 +187,9 @@ export class Database {
     await Database.db.run('DELETE from discord_names WHERE user_id = ? AND discord_id = ?', id, discordId);
   }
 
-  // -- END WHOIS --
+  //#endregion
 
-  // -- START SETTINGS --
+  //#region Guild Settings
 
   static async getGuildSettings(guildId: string): Promise<GuildSettings> {
     return await Database.db.get<GuildSettings>('SELECT * FROM settings WHERE guild_id = ?', guildId) as GuildSettings;
@@ -238,9 +238,9 @@ export class Database {
     return true;
   }
 
-  // -- END SETTINGS --
+  //#endregion
 
-  // START MESSAGE LOGS --
+  //#region Message Logs
 
   static async putMessage(message: Message): Promise<boolean> {
     try {
@@ -274,9 +274,9 @@ export class Database {
     }
   }
 
-  // -- END MESSAGE LOGS --
+  //#endregion
 
-  // -- START TICKETS --
+  //#region Tickets
 
   static async putTicket(ticketId: number, messageId: string) {
     await Database.db.run('INSERT INTO tickets(id, message_id) VALUES (?, ?)', ticketId, messageId);
@@ -319,9 +319,9 @@ export class Database {
     });
   }
 
-  // -- END TICKETS --
+  //#endregion
 
-  // -- START NOTES --
+  //#region Notes
 
   static async putNote(userId: string, reason: string, modId: string) {
     await Database.db.run('INSERT INTO notes(user_id, reason, mod_id) VALUES (?, ?, ?)', userId, reason, modId);
@@ -342,9 +342,9 @@ export class Database {
     return await Database.db.all<Note[]>('SELECT * from notes WHERE user_id = ?', userId);
   }
 
-  // -- END NOTES --
+  //#endregion
 
-  // -- START BANS --
+  //#region Bans
 
   static async putBan(userId: string, expiresAt: Date | null, fullBan = false) {
     await Database.db.run('INSERT INTO bans(user_id, expires, expires_at, full_ban) VALUES (?, ?, ?, ?)', userId, expiresAt != null ? 1 : 0, expiresAt, fullBan);
@@ -366,9 +366,9 @@ export class Database {
     await Database.db.run('DELETE from bans WHERE user_id = ?', userId);
   }
 
-  // -- END BANS --
+  //#endregion
 
-  // -- START GITHUB USER MAPPING --
+  //# GitHub User Mapping
 
   // github_user_mapping
   static async putGithubUserMapping(discordId: string, githubUsername: string) {
@@ -395,9 +395,9 @@ export class Database {
     await Database.db.run('DELETE from github_user_mapping WHERE discord_id = ?', discordId);
   }
 
-  // -- END GITHUB USER MAPPING --
+  //#endregion
 
-  // -- START KNOWLEDGEBASE --
+  //# Knowledgebase
 
   static async addToKnowledgebase(guildId: string, name: string, content: string) {
     if (content.length > 2000) return;
@@ -427,9 +427,9 @@ export class Database {
     return await Database.db.all<KnowledgebaseItem[]>('SELECT * from knowledgebase WHERE guild_id = ?', guildId);
   }
 
-  // -- END KNOWLEDGEBASE --
+  //#endregion
 
-  // -- START PRIVATE HELP TICKETS --
+  //#region Private Help Tickets
 
   static async createPrivateHelpTicket(userId: string, threadId: string) {
     await Database.db.run('INSERT INTO private_help_tickets(user_id, thread_id, status) VALUES (?, ?, ?)', userId, threadId, PrivateHelpTicketStatus.OPEN);
@@ -447,5 +447,5 @@ export class Database {
     return await Database.db.all<PrivateHelpTicket[]>('SELECT * from private_help_tickets WHERE status = ?', PrivateHelpTicketStatus.OPEN);
   }
 
-  // -- END PRIVATE HELP TICKETS
+  //#endregion
 }
