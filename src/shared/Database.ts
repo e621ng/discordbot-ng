@@ -199,7 +199,7 @@ export class Database {
     await Database.db.run('INSERT INTO settings(guild_id) VALUES (?)', guildId);
   }
 
-  static async updateGuildSetting(guildId: string, key: GuildSettingKey, value: string) {
+  static async updateGuildSettings(guildId: string, key: GuildSettingKey, value: string) {
     await Database.db.run(`UPDATE settings SET ${key} = ? WHERE guild_id = ?`, value, guildId);
   }
 

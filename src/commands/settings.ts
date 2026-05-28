@@ -127,67 +127,67 @@ export default {
 
     const generalChannel = interaction.options.getChannel('general-channel');
     if (generalChannel) {
-      await Database.updateGuildSetting(interaction.guildId, 'general_chat_id', generalChannel.id);
+      await Database.updateGuildSettings(interaction.guildId, 'general_chat_id', generalChannel.id);
       response += `\`general_chat_id\` has been set to: ${generalChannel}.\n`;
     }
 
     const ticketsChannel = interaction.options.getChannel('tickets-channel');
     if (ticketsChannel) {
-      await Database.updateGuildSetting(interaction.guildId, 'tickets_channel_id', ticketsChannel.id);
+      await Database.updateGuildSettings(interaction.guildId, 'tickets_channel_id', ticketsChannel.id);
       response += `\`tickets_channel_id\` has been set to: ${ticketsChannel}.\n`;
     }
 
     const eventLogsChannel = interaction.options.getChannel('event-logs-channel');
     if (eventLogsChannel) {
-      await Database.updateGuildSetting(interaction.guildId, 'event_logs_channel_id', eventLogsChannel.id);
+      await Database.updateGuildSettings(interaction.guildId, 'event_logs_channel_id', eventLogsChannel.id);
       response += `\`event_logs_channel_id\` has been set to: ${eventLogsChannel}.\n`;
     }
 
     const discordLogsChannel = interaction.options.getChannel('discord-logs-channel');
     if (discordLogsChannel) {
-      await Database.updateGuildSetting(interaction.guildId, 'discord_logs_channel_id', discordLogsChannel.id);
+      await Database.updateGuildSettings(interaction.guildId, 'discord_logs_channel_id', discordLogsChannel.id);
       response += `\`discord_logs_channel_id\` has been set to: ${discordLogsChannel}.\n`;
     }
 
     const auditLogsChannel = interaction.options.getChannel('audit-logs-channel');
     if (auditLogsChannel) {
-      await Database.updateGuildSetting(interaction.guildId, 'audit_logs_channel_id', auditLogsChannel.id);
+      await Database.updateGuildSettings(interaction.guildId, 'audit_logs_channel_id', auditLogsChannel.id);
       response += `\`audit_logs_channel_id\` has been set to: ${auditLogsChannel}.\n`;
     }
 
     const voiceLogsChannel = interaction.options.getChannel('voice-logs-channel');
     if (voiceLogsChannel) {
-      await Database.updateGuildSetting(interaction.guildId, 'voice_logs_channel_id', voiceLogsChannel.id);
+      await Database.updateGuildSettings(interaction.guildId, 'voice_logs_channel_id', voiceLogsChannel.id);
       response += `\`voice_logs_channel_id\` has been set to: ${voiceLogsChannel}.\n`;
     }
 
     const newMemberLogsChannel = interaction.options.getChannel('new-member-channel');
     if (newMemberLogsChannel) {
-      await Database.updateGuildSetting(interaction.guildId, 'new_member_channel_id', newMemberLogsChannel.id);
+      await Database.updateGuildSettings(interaction.guildId, 'new_member_channel_id', newMemberLogsChannel.id);
       response += `\`new_member_channel_id\` has been set to: ${newMemberLogsChannel}.\n`;
     }
 
     const moderatorChannel = interaction.options.getChannel('moderator-channel');
     if (moderatorChannel) {
-      await Database.updateGuildSetting(interaction.guildId, 'moderator_channel_id', moderatorChannel.id);
+      await Database.updateGuildSettings(interaction.guildId, 'moderator_channel_id', moderatorChannel.id);
       response += `\`moderator_channel_id\` has been set to": ${moderatorChannel}.\n`;
     }
 
     const adminRole = interaction.options.getRole('admin-role');
     if (adminRole) {
-      await Database.updateGuildSetting(interaction.guildId, 'admin_role_id', adminRole.id);
+      await Database.updateGuildSettings(interaction.guildId, 'admin_role_id', adminRole.id);
       response += `\`admin_role_id\` has been set to: ${adminRole}.\n`;
     }
 
     const privateHelperRole = interaction.options.getRole('private-helper-role');
     if (privateHelperRole) {
-      await Database.updateGuildSetting(interaction.guildId, 'private_help_role_id', privateHelperRole.id);
+      await Database.updateGuildSettings(interaction.guildId, 'private_help_role_id', privateHelperRole.id);
       response += `\`private_help_role_id\` has been set to: ${privateHelperRole}.\n`;
     }
 
     const devWatchRole = interaction.options.getRole('devwatch-role');
     if (devWatchRole) {
-      await Database.updateGuildSetting(interaction.guildId, 'devwatch_role_id', devWatchRole.id);
+      await Database.updateGuildSettings(interaction.guildId, 'devwatch_role_id', devWatchRole.id);
       response += `\`private_help_role_id\` has been set to ${devWatchRole}.\n`;
     }
 
@@ -244,7 +244,7 @@ export default {
 
     const githubReleaseChannel = interaction.options.getChannel('github-release-channel');
     if (githubReleaseChannel) {
-      await Database.updateGuildSetting(interaction.guildId, 'github_release_channel', githubReleaseChannel.id);
+      await Database.updateGuildSettings(interaction.guildId, 'github_release_channel', githubReleaseChannel.id);
       response += `\`github_release_channel\` has been set to ${githubReleaseChannel}.\n`;
     }
 
