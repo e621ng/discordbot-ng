@@ -39,7 +39,7 @@ export default {
       .addComponents(button);
 
     await interaction.channel.send({ components: [row], content });
-    await Database.updateGuildSettings(interaction.guildId, 'private_help_channel_id', interaction.channelId)
+    await Database.updateGuildSettings(interaction.guildId, 'private_help_channel_id', interaction.channelId);
     interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Sent.' });
   }
 };
