@@ -254,7 +254,6 @@ export default {
       embeds: [{
         ...CreateDefaultEmbed(client),
         ...SetSeverity('warning'),
-
         description: 'No settings were modified.'
       }]
     });
@@ -263,7 +262,6 @@ export default {
       embeds: [{
         ...CreateDefaultEmbed(client),
         ...SetSeverity('success'),
-
         description: response.join('\n')
       }]
     });
