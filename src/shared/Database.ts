@@ -1,7 +1,7 @@
 import sqlite3 from 'sqlite3';
 import { open, Database as SqliteDatabase } from 'sqlite';
 import { serializeMessage, wait } from '../utils';
-import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping, KnowledgebaseItem, PrivateHelpTicket } from '../types';
+import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping, KnowledgebaseItem, PrivateHelpTicket, GuildSetting } from '../types';
 import { Message } from '../events';
 
 const DB_SCHEMA = `
@@ -114,21 +114,6 @@ export const enum PrivateHelpTicketStatus {
   CLOSED = 1
 }
 
-type GuildSettingKey =
-  | 'general_chat_id'
-  | 'tickets_channel_id'
-  | 'event_logs_channel_id'
-  | 'discord_logs_channel_id'
-  | 'audit_logs_channel_id'
-  | 'voice_logs_channel_id'
-  | 'new_member_channel_id'
-  | 'moderator_channel_id'
-  | 'admin_role_id'
-  | 'private_help_role_id'
-  | 'devwatch_role_id'
-  | 'github_release_channel'
-  | 'private_help_channel_id';
-
 export class Database {
   private static db: SqliteDatabase;
 
@@ -199,7 +184,7 @@ export class Database {
     await Database.db.run('INSERT INTO settings(guild_id) VALUES (?)', guildId);
   }
 
-  static async updateGuildSettings(guildId: string, key: GuildSettingKey, value: string) {
+  static async updateGuildSettings(guildId: string, key: GuildSetting, value: string) {
     await Database.db.run(`UPDATE settings SET ${key} = ? WHERE guild_id = ?`, value, guildId);
   }
 
