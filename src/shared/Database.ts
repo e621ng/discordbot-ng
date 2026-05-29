@@ -4,8 +4,7 @@ import { serializeMessage, wait } from '../utils';
 import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping, KnowledgebaseItem, PrivateHelpTicket, GuildSetting } from '../types';
 import { Message } from '../events';
 
-const DB_SCHE
-MA = `
+const DB_SCHEMA = `
   CREATE TABLE IF NOT EXISTS discord_names (
     id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL,
