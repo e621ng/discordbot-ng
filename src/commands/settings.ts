@@ -250,20 +250,7 @@ export default {
       response.push(`**github_release_channel** has been set to ${githubReleaseChannel}.`);
     }
 
-    if (response.length == 0) return interaction.editReply({
-      embeds: [{
-        ...CreateDefaultEmbed(client),
-        ...SetSeverity('warning'),
-        description: 'No settings were modified.'
-      }]
-    });
-
-    interaction.editReply({
-      embeds: [{
-        ...CreateDefaultEmbed(client),
-        ...SetSeverity('success'),
-        description: response.join('\n')
-      }]
-    });
+    if (response.length == 0) return interaction.editReply({ content: 'No settings have been modified.' });
+    interaction.editReply({ content: response.join('\n') });
   }
 };
