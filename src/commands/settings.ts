@@ -1,6 +1,5 @@
 import { ApplicationIntegrationType, ChannelType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { CreateDefaultEmbed, SetSeverity } from '../utils';
 
 export default {
   name: 'settings',
@@ -148,9 +147,9 @@ export default {
     const appealsChannel = interaction.options.getChannel('appeals-channel');
 
     if (appealsChannel) {
-      await Database.setGuildAppealsLogsChannelId(interaction.guildId!, appealsChannel.id);
+      await Database.updateGuildSettings(interaction.guildId, 'appeals_channel_id', appealsChannel.id);
 
-      response += `Appeals logs channel set to ${appealsChannel}.\n`;
+      response.push(`**appeals_channel_id** has been set to ${appealsChannel}.`);
     }
 
     const eventLogsChannel = interaction.options.getChannel('event-logs-channel');

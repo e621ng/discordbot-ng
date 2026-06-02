@@ -2,10 +2,8 @@ import path from 'path';
 import { open, Database as SqliteDatabase } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import { Message } from '../events';
-import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, TicketMessage, TicketPhrase } from '../types';
+import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, TicketMessage, TicketPhrase } from '../types';
 import { serializeMessage, wait } from '../utils';
-import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping, KnowledgebaseItem, PrivateHelpTicket, GuildSetting } from '../types';
-import { Message } from '../events';
 
 const DB_SCHEMA = `
   CREATE TABLE IF NOT EXISTS discord_names (
