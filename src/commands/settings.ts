@@ -123,7 +123,6 @@ export default {
         .setDescription('Set the github release channel.')
         .setRequired(false)
     ),
-
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.guildId) return; // This shouldn't occur, but TypeScript doesn't know that.
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
