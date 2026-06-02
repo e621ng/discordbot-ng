@@ -38,9 +38,9 @@ async function postAppeal(client: Client, data: AppealUpdate) {
 async function updateAppeal(client: Client, data: AppealUpdate) {
   const guildSettings = await Database.getGuildSettings(config.DISCORD_GUILD_ID!);
 
-  if (!guildSettings || !guildSettings.tickets_channel_id) return;
+  if (!guildSettings || !guildSettings.appeals_channel_id) return;
 
-  const channel = await client.channels.fetch(guildSettings.tickets_channel_id);
+  const channel = await client.channels.fetch(guildSettings.appeals_channel_id);
 
   if (!channel || !channel.isSendable()) return;
 
@@ -67,7 +67,7 @@ function getTitle(appeal: Appeal): string {
     case 'flag':
       return `Flag by ${appeal.target}`;
     default:
-      return 'Uknown ticket category';
+      return 'Uknown appeal category';
   }
 }
 
@@ -97,6 +97,8 @@ async function getButtons(appeal: Appeal): Promise<ActionRowBuilder<ButtonBuilde
       .setLabel('Open Flag')
       .setURL(`${config.E621_BASE_URL}/post_flags/${appeal.target_id}`);
   }
+
+  row.addComponents(primaryButton);
 
   return row;
 }
