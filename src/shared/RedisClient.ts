@@ -1,6 +1,6 @@
 import { createClient, SocketClosedUnexpectedlyError } from '@redis/client';
 import { Client } from 'discord.js';
-import { banUpdateHandler, ticketUpdateHandler } from '../utils';
+import { banUpdateHandler, ticketUpdateHandler, appealUpdateHandler } from '../utils';
 
 let discordClient: Client;
 
@@ -32,7 +32,7 @@ export async function openRedisClient(url: string, discClient: Client) {
   });
 
   client.once('connect', () => {
-    client.subscribe(['ticket_updates', 'ban_updates'], updateHandler);
+    client.subscribe(['ticket_updates', 'ban_updates', 'appeal_updates'], updateHandler);
   });
 
   client.connect();
@@ -46,5 +46,7 @@ function updateHandler(data: string, channel: string) {
       return ticketUpdateHandler(discordClient, data);
     case 'ban_updates':
       return banUpdateHandler(discordClient, data);
+    case 'appeal_updates':
+      return appealUpdateHandler(discordClient, data);
   }
 }

@@ -1,4 +1,5 @@
 export * from './alt-utils';
+export * from './appeal-events';
 export * from './array-utils';
 export * from './audit-log-utils';
 export * from './ban-events';

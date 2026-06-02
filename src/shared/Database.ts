@@ -1,5 +1,8 @@
-import sqlite3 from 'sqlite3';
+import path from 'path';
 import { open, Database as SqliteDatabase } from 'sqlite';
+import sqlite3 from 'sqlite3';
+import { Message } from '../events';
+import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, TicketMessage, TicketPhrase } from '../types';
 import { serializeMessage, wait } from '../utils';
 import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping, KnowledgebaseItem, PrivateHelpTicket, GuildSetting } from '../types';
 import { Message } from '../events';
@@ -128,11 +131,23 @@ export class Database {
     console.log('SQLite database opened');
 
     await Database.ensure();
+
+    await Database.migrate();
   }
 
   private static async ensure() {
     await Database.db.exec(DB_SCHEMA);
     console.log('SQLite database ensured');
+  }
+
+  private static async migrate() {
+    console.log('Starting database migrations');
+
+    await Database.db.migrate({
+      migrationsPath: path.join(__dirname, '..', 'migrations')
+    });
+
+    console.log('Database migrations ran');
   }
 
   //#region WHOIS
@@ -302,6 +317,23 @@ export class Database {
 
       cb(ticketPhrase);
     });
+  }
+
+  //#endregion
+
+  //#region Appeals
+
+  static async putAppeal(appealId: number, messageId: string) {
+    await Database.db.run('INSERT INTO appeals(id, message_id) VALUES (?, ?)', appealId, messageId);
+  }
+
+  static async removeAppeal(appealId: number) {
+    await Database.db.run('DELETE from appeals WHERE id = ?', appealId);
+  }
+
+  static async getAppealMessageId(appealId: number): Promise<string | undefined> {
+    const appeal = await Database.db.get<Pick<AppealMessage, 'message_id'>>('SELECT message_id FROM appeals WHERE id = ?', appealId);
+    return appeal?.message_id;
   }
 
   //#endregion

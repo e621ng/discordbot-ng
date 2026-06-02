@@ -25,13 +25,19 @@ export type GuildSettings = {
   link_skip_channels?: string
   github_release_channel?: string
   moderator_channel_id?: string
-  private_help_channel_id?: string
+  private_help_channel_id?: string,
+  appeals_channel_id?: string
 }
 
 type GuildSetting = Exclude<keyof GuildSettings, 'guild_id'>
 export type GuildArraySetting = 'staff_categories' | 'safe_channels' | 'link_skip_channels';
 
 export type TicketMessage = {
+  id: number
+  message_id: string
+}
+
+export type AppealMessage = {
   id: number
   message_id: string
 }

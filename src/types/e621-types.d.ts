@@ -142,6 +142,24 @@ export type BanUpdate = {
   ban: Ban
 };
 
+export type Appeal = {
+  id: number
+  user_id: number
+  user: string
+  claimant: string | null
+  target?: string
+  accused_id: number
+  target_id: number
+  status: 'pending' | 'partial' | 'approved' | 'rejected'
+  category: 'flag'
+  reason: string
+}
+
+export type AppealUpdate = {
+  action: 'claim' | 'create' | 'unclaim' | 'update'
+  appeal: Appeal
+};
+
 export type RecordCategory = 'positive' | 'negative' | 'neutral'
 
 export type Record = {
