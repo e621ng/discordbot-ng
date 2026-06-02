@@ -1,10 +1,11 @@
 import { Client as DiscordClient, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
 import { config } from './config';
 import { handleAuditLogCreate, handleBanRemove, handleBulkMessageDelete, handleGuildCreate, handleMemberJoin, handleMessageCreate, handleMessageDelete, handleMessageUpdate, handleThreadCreate, handleVoiceStateUpdate } from './events';
+import { ScheduledTasks, Scheduler } from './scheduler';
 import { Database } from './shared/Database';
 import { openRedisClient } from './shared/RedisClient';
 import { Handler } from './types';
-import { checkExpiredBans, closeOldTickets, initIfNecessary, loadHandlersFrom, refreshCommands } from './utils';
+import { initIfNecessary, loadHandlersFrom, refreshCommands } from './utils';
 import { initializeWebserver } from './webserver';
 
 let ready = false;
@@ -27,6 +28,8 @@ const client = new DiscordClient({
     repliedUser: false
   }
 });
+
+const scheduler: Scheduler = new Scheduler(client);
 
 const commands: Handler[] = [];
 const contextMenus: Handler[] = [];
@@ -135,16 +138,9 @@ client.on('clientReady', async () => {
 
   await initializeWebserver(client);
 
-  // Check for expired bans every 5 minutes
-  checkExpiredBans(client);
-  setInterval(checkExpiredBans.bind(null, client), 300000);
-
-  // Close old tickets every hour
-  closeOldTickets(client);
-  setInterval(closeOldTickets.bind(null, client), 3.6e+6);
+  ScheduledTasks.forEach((task) => scheduler.add(task));
 
   ready = true;
-
   console.log('Ready');
 });
 
