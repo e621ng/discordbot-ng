@@ -23,6 +23,12 @@ export default {
     )
     .addChannelOption(option =>
       option
+        .setName('appeals-channel')
+        .setDescription('Set the appeal logs channel.')
+        .setRequired(false)
+    )
+    .addChannelOption(option =>
+      option
         .setName('event-logs-channel')
         .setDescription('Set the event logs channel.')
         .setRequired(false)
@@ -142,6 +148,14 @@ export default {
       await Database.setGuildTicketsLogsChannelId(interaction.guildId!, ticketsChannel.id);
 
       response += `Tickets logs channel set to ${ticketsChannel}.\n`;
+    }
+
+    const appealsChannel = interaction.options.getChannel('appeals-channel');
+
+    if (appealsChannel) {
+      await Database.setGuildAppealsLogsChannelId(interaction.guildId!, appealsChannel.id);
+
+      response += `Appeals logs channel set to ${appealsChannel}.\n`;
     }
 
     const eventLogsChannel = interaction.options.getChannel('event-logs-channel');

@@ -198,6 +198,10 @@ export class Database {
     await Database.db.run('UPDATE settings SET tickets_channel_id = ? WHERE guild_id = ?', id, guildId);
   }
 
+  static async setGuildAppealsLogsChannelId(guildId: string, id: string) {
+    await Database.db.run('UPDATE settings SET appeals_channel_id = ? WHERE guild_id = ?', id, guildId);
+  }
+
   static async setGuildEventsLogsChannelId(guildId: string, id: string) {
     await Database.db.run('UPDATE settings SET event_logs_channel_id = ? WHERE guild_id = ?', id, guildId);
   }
