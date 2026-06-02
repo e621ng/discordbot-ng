@@ -29,6 +29,7 @@ export type GuildSettings = {
   appeals_channel_id?: string
 }
 
+type GuildSetting = Exclude<keyof GuildSettings, 'guild_id'>
 export type GuildArraySetting = 'staff_categories' | 'safe_channels' | 'link_skip_channels';
 
 export type TicketMessage = {

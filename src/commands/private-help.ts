@@ -22,6 +22,8 @@ export default {
         .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
+    if (!interaction.guildId) return;
+
     if (!interaction.channel || !interaction.channel.isSendable())
       return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Missing permissions to send to channel.' });
 
@@ -37,9 +39,7 @@ export default {
       .addComponents(button);
 
     await interaction.channel.send({ components: [row], content });
-
-    await Database.setPrivateHelpChannel(interaction.guildId!, interaction.channelId);
-
+    await Database.updateGuildSettings(interaction.guildId, 'private_help_channel_id', interaction.channelId);
     interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Sent.' });
   }
 };

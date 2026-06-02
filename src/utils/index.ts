@@ -8,6 +8,7 @@ export * from './channel-utils';
 export * from './commands';
 export * from './debug-utils';
 export * from './discord-user-utils';
+export * from './embed-utils';
 export * from './e621-utils';
 export * from './event-log-utils';
 export * from './file-utils';

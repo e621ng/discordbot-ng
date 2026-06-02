@@ -2,112 +2,112 @@ import path from 'path';
 import { open, Database as SqliteDatabase } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import { Message } from '../events';
-import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, TicketMessage, TicketPhrase } from '../types';
+import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, TicketMessage, TicketPhrase } from '../types';
 import { serializeMessage, wait } from '../utils';
 
 const DB_SCHEMA = `
-    CREATE TABLE IF NOT EXISTS discord_names (
-        id INTEGER PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        discord_id TEXT NOT NULL,
-        discord_username TEXT NOT NULL,
-        added_on datetime NOT NULL DEFAULT (datetime('now', 'localtime'))
-    );
+  CREATE TABLE IF NOT EXISTS discord_names (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    discord_id TEXT NOT NULL,
+    discord_username TEXT NOT NULL,
+    added_on datetime NOT NULL DEFAULT (datetime('now', 'localtime'))
+  );
 
-    CREATE TABLE IF NOT EXISTS settings (
-        guild_id TEXT PRIMARY KEY,
-        general_chat_id TEXT,
-        new_member_channel_id TEXT,
-        tickets_channel_id TEXT,
-        event_logs_channel_id TEXT,
-        discord_logs_channel_id TEXT,
-        audit_logs_channel_id TEXT,
-        voice_logs_channel_id TEXT,
-        admin_role_id TEXT,
-        private_help_role_id TEXT,
-        devwatch_role_id TEXT,
-        staff_categories TEXT,
-        safe_channels TEXT,
-        link_skip_channels TEXT,
-        github_release_channel TEXT,
-        moderator_channel_id TEXT,
-        private_help_channel_id TEXT
-    );
+  CREATE TABLE IF NOT EXISTS settings (
+    guild_id TEXT PRIMARY KEY,
+    general_chat_id TEXT,
+    new_member_channel_id TEXT,
+    tickets_channel_id TEXT,
+    event_logs_channel_id TEXT,
+    discord_logs_channel_id TEXT,
+    audit_logs_channel_id TEXT,
+    voice_logs_channel_id TEXT,
+    admin_role_id TEXT,
+    private_help_role_id TEXT,
+    devwatch_role_id TEXT,
+    staff_categories TEXT,
+    safe_channels TEXT,
+    link_skip_channels TEXT,
+    github_release_channel TEXT,
+    moderator_channel_id TEXT,
+    private_help_channel_id TEXT
+  );
 
-    CREATE TABLE IF NOT EXISTS messages (
-      id TEXT PRIMARY KEY ON CONFLICT REPLACE,
-      author_id TEXT NOT NULL,
-      author_name TEXT NOT NULL,
-      channel_id TEXT NOT NULL,
-      attachments TEXT NOT NULL,
-      stickers TEXT NOT NULL,
-      content TEXT NOT NULL
-    );
+  CREATE TABLE IF NOT EXISTS messages (
+    id TEXT PRIMARY KEY ON CONFLICT REPLACE,
+    author_id TEXT NOT NULL,
+    author_name TEXT NOT NULL,
+    channel_id TEXT NOT NULL,
+    attachments TEXT NOT NULL,
+    stickers TEXT NOT NULL,
+    content TEXT NOT NULL
+  );
 
-    CREATE INDEX IF NOT EXISTS index_authors ON messages (author_id);
+  CREATE INDEX IF NOT EXISTS index_authors ON messages (author_id);
 
-    CREATE INDEX IF NOT EXISTS index_channels ON messages (channel_id);
+  CREATE INDEX IF NOT EXISTS index_channels ON messages (channel_id);
 
-    CREATE TABLE IF NOT EXISTS tickets (
-			id INTEGER PRIMARY KEY,
-			message_id TEXT NOT NULL
-		);
+  CREATE TABLE IF NOT EXISTS tickets (
+		id INTEGER PRIMARY KEY,
+		message_id TEXT NOT NULL
+	);
 
-    CREATE TABLE IF NOT EXISTS ticket_phrases (
-			id INTEGER PRIMARY KEY,
-			user_id TEXT NOT NULL,
-      phrase TEXT NOT NULL
-		);
+  CREATE TABLE IF NOT EXISTS ticket_phrases (
+		id INTEGER PRIMARY KEY,
+		user_id TEXT NOT NULL,
+    phrase TEXT NOT NULL
+	);
 
-    CREATE TABLE IF NOT EXISTS notes (
-      id INTEGER PRIMARY KEY,
-      user_id TEXT,
-      reason TEXT,
-      mod_id TEXT,
-      timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime'))
-    );
+  CREATE TABLE IF NOT EXISTS notes (
+    id INTEGER PRIMARY KEY,
+    user_id TEXT,
+    reason TEXT,
+    mod_id TEXT,
+    timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime'))
+  );
 
-    CREATE INDEX IF NOT EXISTS index_user_ids ON notes (user_id);
+  CREATE INDEX IF NOT EXISTS index_user_ids ON notes (user_id);
 
-    CREATE TABLE IF NOT EXISTS note_edits (
-      id INTEGER PRIMARY KEY,
-      note_id INTEGER,
-      mod_id TEXT,
-      previous_reason TEXT,
-      timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime')),
-      FOREIGN KEY(note_id) REFERENCES notes(id)
-    );
+  CREATE TABLE IF NOT EXISTS note_edits (
+    id INTEGER PRIMARY KEY,
+    note_id INTEGER,
+    mod_id TEXT,
+    previous_reason TEXT,
+    timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime')),
+    FOREIGN KEY(note_id) REFERENCES notes(id)
+  );
 
-    CREATE TABLE IF NOT EXISTS bans (
-      id INTEGER PRIMARY KEY,
-      user_id TEXT,
-      expires INTEGER,
-      expires_at datetime,
-      full_ban INTEGER
-    );
+  CREATE TABLE IF NOT EXISTS bans (
+    id INTEGER PRIMARY KEY,
+    user_id TEXT,
+    expires INTEGER,
+    expires_at datetime,
+    full_ban INTEGER
+  );
 
-    CREATE TABLE IF NOT EXISTS github_user_mapping (
-      id INTEGER PRIMARY KEY,
-      discord_id TEXT,
-      github_username TEXT
-    );
+  CREATE TABLE IF NOT EXISTS github_user_mapping (
+    id INTEGER PRIMARY KEY,
+    discord_id TEXT,
+    github_username TEXT
+  );
 
-    CREATE TABLE IF NOT EXISTS knowledgebase (
-      id INTEGER PRIMARY KEY,
-      guild_id TEXT NOT NULL,
-      name TEXT NOT NULL,
-      content TEXT NOT NULL
-    );
+  CREATE TABLE IF NOT EXISTS knowledgebase (
+    id INTEGER PRIMARY KEY,
+    guild_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    content TEXT NOT NULL
+  );
 
-    CREATE TABLE IF NOT EXISTS private_help_tickets (
-      id INTEGER PRIMARY KEY,
-      thread_id TEXT NOT NULL,
-      user_id TEXT NOT NULL,
-      status INTEGER NOT NULL,
-      timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime'))
-    );
+  CREATE TABLE IF NOT EXISTS private_help_tickets (
+    id INTEGER PRIMARY KEY,
+    thread_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    status INTEGER NOT NULL,
+    timestamp datetime NOT NULL DEFAULT (datetime('now', 'localtime'))
+  );
 
-    CREATE INDEX IF NOT EXISTS index_timestamp ON private_help_tickets (timestamp);
+  CREATE INDEX IF NOT EXISTS index_timestamp ON private_help_tickets (timestamp);
 `;
 
 export const enum PrivateHelpTicketStatus {
@@ -148,7 +148,7 @@ export class Database {
     console.log('Database migrations ran');
   }
 
-  // -- START WHOIS --
+  //#region WHOIS
 
   static async getE621Ids(discordId: string): Promise<number[]> {
     const ids = await Database.db.all<{ user_id: number }[]>('SELECT DISTINCT user_id FROM discord_names WHERE discord_id = ?', discordId);
@@ -185,72 +185,20 @@ export class Database {
     await Database.db.run('DELETE from discord_names WHERE user_id = ? AND discord_id = ?', id, discordId);
   }
 
-  // -- END WHOIS --
+  //#endregion
 
-  // -- START SETTINGS --
+  //#region Guild Settings
 
-  static async getGuildSettings(guildId: string): Promise<GuildSettings | undefined> {
-    return await Database.db.get<GuildSettings>('SELECT * FROM settings WHERE guild_id = ?', guildId);
+  static async getGuildSettings(guildId: string): Promise<GuildSettings> {
+    return await Database.db.get<GuildSettings>('SELECT * FROM settings WHERE guild_id = ?', guildId) as GuildSettings;
   }
 
   static async putGuild(guildId: string) {
     await Database.db.run('INSERT INTO settings(guild_id) VALUES (?)', guildId);
   }
 
-  static async setGuildGeneralChatId(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET general_chat_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildTicketsLogsChannelId(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET tickets_channel_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildAppealsLogsChannelId(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET appeals_channel_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildEventsLogsChannelId(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET event_logs_channel_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildDiscordLogsChannelId(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET discord_logs_channel_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildAuditLogsChannelId(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET audit_logs_channel_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildVoiceLogsChannelId(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET voice_logs_channel_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildNewMemberLogsChannel(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET new_member_channel_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildModeratorChannel(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET moderator_channel_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildAdminRole(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET admin_role_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildPrivateHelperRole(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET private_help_role_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildDevWatchRole(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET devwatch_role_id = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setGuildGithubReleaseChannel(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET github_release_channel = ? WHERE guild_id = ?', id, guildId);
-  }
-
-  static async setPrivateHelpChannel(guildId: string, id: string) {
-    await Database.db.run('UPDATE settings SET private_help_channel_id = ? WHERE guild_id = ?', id, guildId);
+  static async updateGuildSettings(guildId: string, key: GuildSetting, value: string) {
+    await Database.db.run(`UPDATE settings SET ${key} = ? WHERE guild_id = ?`, value, guildId);
   }
 
   // Since "setting" has guaranteed values and is never set by the user, this shouldn't cause any security issues.
@@ -288,9 +236,9 @@ export class Database {
     return true;
   }
 
-  // -- END SETTINGS --
+  //#endregion
 
-  // START MESSAGE LOGS --
+  //#region Message Logs
 
   static async putMessage(message: Message): Promise<boolean> {
     try {
@@ -324,9 +272,9 @@ export class Database {
     }
   }
 
-  // -- END MESSAGE LOGS --
+  //#endregion
 
-  // -- START TICKETS --
+  //#region Tickets
 
   static async putTicket(ticketId: number, messageId: string) {
     await Database.db.run('INSERT INTO tickets(id, message_id) VALUES (?, ?)', ticketId, messageId);
@@ -369,9 +317,9 @@ export class Database {
     });
   }
 
-  // -- END TICKETS --
+  //#endregion
 
-  // -- START APPEALS --
+  //#region Appeals
 
   static async putAppeal(appealId: number, messageId: string) {
     await Database.db.run('INSERT INTO appeals(id, message_id) VALUES (?, ?)', appealId, messageId);
@@ -386,9 +334,9 @@ export class Database {
     return appeal?.message_id;
   }
 
-  // -- END APPEALS --
+  //#endregion
 
-  // -- START NOTES --
+  //#region Notes
 
   static async putNote(userId: string, reason: string, modId: string) {
     await Database.db.run('INSERT INTO notes(user_id, reason, mod_id) VALUES (?, ?, ?)', userId, reason, modId);
@@ -409,9 +357,9 @@ export class Database {
     return await Database.db.all<Note[]>('SELECT * from notes WHERE user_id = ?', userId);
   }
 
-  // -- END NOTES --
+  //#endregion
 
-  // -- START BANS --
+  //#region Bans
 
   static async putBan(userId: string, expiresAt: Date | null, fullBan = false) {
     await Database.db.run('INSERT INTO bans(user_id, expires, expires_at, full_ban) VALUES (?, ?, ?, ?)', userId, expiresAt != null ? 1 : 0, expiresAt, fullBan);
@@ -433,9 +381,9 @@ export class Database {
     await Database.db.run('DELETE from bans WHERE user_id = ?', userId);
   }
 
-  // -- END BANS --
+  //#endregion
 
-  // -- START GITHUB USER MAPPING --
+  //# GitHub User Mapping
 
   // github_user_mapping
   static async putGithubUserMapping(discordId: string, githubUsername: string) {
@@ -462,9 +410,9 @@ export class Database {
     await Database.db.run('DELETE from github_user_mapping WHERE discord_id = ?', discordId);
   }
 
-  // -- END GITHUB USER MAPPING --
+  //#endregion
 
-  // -- START KNOWLEDGEBASE --
+  //# Knowledgebase
 
   static async addToKnowledgebase(guildId: string, name: string, content: string) {
     if (content.length > 2000) return;
@@ -494,9 +442,9 @@ export class Database {
     return await Database.db.all<KnowledgebaseItem[]>('SELECT * from knowledgebase WHERE guild_id = ?', guildId);
   }
 
-  // -- END KNOWLEDGEBASE --
+  //#endregion
 
-  // -- START PRIVATE HELP TICKETS --
+  //#region Private Help Tickets
 
   static async createPrivateHelpTicket(userId: string, threadId: string) {
     await Database.db.run('INSERT INTO private_help_tickets(user_id, thread_id, status) VALUES (?, ?, ?)', userId, threadId, PrivateHelpTicketStatus.OPEN);
@@ -514,5 +462,5 @@ export class Database {
     return await Database.db.all<PrivateHelpTicket[]>('SELECT * from private_help_tickets WHERE status = ?', PrivateHelpTicketStatus.OPEN);
   }
 
-  // -- END PRIVATE HELP TICKETS
+  //#endregion
 }
