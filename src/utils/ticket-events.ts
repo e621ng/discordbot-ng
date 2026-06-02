@@ -1,86 +1,11 @@
-import { APIEmbedField, ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedAuthorOptions, EmbedBuilder, SendableChannels } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, SendableChannels } from 'discord.js';
 import { config } from '../config';
 import { Database } from '../shared/Database';
 import { Ticket, TicketPhrase, TicketUpdate } from '../types';
 import { PostAction, getE621Post, getE621User, spoilerOrBlacklist } from './e621-utils';
-import { blipIDRegex, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from './message-matcher-regex';
+import { getAuthor, getColor, getDescription, getFields } from './event-utils';
 import { humanizeCapitalization } from './string-utils';
 import { shouldAlert } from './ticket-utils';
-
-// TODO: Condense this and the message event handler regex array.
-const linkReplacers = [
-  {
-    regex: blipIDRegex,
-    replacement: '/blips/{match}',
-    encodeURI: false
-  },
-  {
-    regex: commentIDRegex,
-    replacement: '/comments/{match}',
-    encodeURI: false
-  },
-  {
-    regex: forumTopicIDRegex,
-    replacement: '/forum_topics/{match}',
-    encodeURI: false
-  },
-  {
-    regex: poolIDRegex,
-    replacement: '/pools/{match}',
-    encodeURI: false
-  },
-  {
-    regex: postIDRegex,
-    tester: async (postId: string, before: string, after: string) => {
-      const post = await getE621Post(postId);
-      if (!post) return { allowed: true, before, after };
-      const allowed = spoilerOrBlacklist(post).action != PostAction.Blacklist;
-
-      return { allowed, before, after };
-    },
-    replacement: '/posts/{match}',
-    encodeURI: false
-  },
-  {
-    regex: recordIDRegex,
-    replacement: '/user_feedbacks/{match}',
-    encodeURI: false
-  },
-  {
-    regex: searchLinkRegex,
-    replacement: '/posts?tags={match}',
-    encodeURI: true
-  },
-  {
-    regex: setIDRegex,
-    replacement: '/post_sets/{match}',
-    encodeURI: false
-  },
-  {
-    regex: takedownIDRegex,
-    replacement: '/takedowns/{match}',
-    encodeURI: false
-  },
-  {
-    regex: ticketIDRegex,
-    replacement: '/tickets/{match}',
-    encodeURI: false
-  },
-  {
-    regex: userIDRegex,
-    replacement: '/users/{match}',
-    encodeURI: false
-  },
-  {
-    regex: wikiLinkRegex,
-    replacement: '/wiki_pages/{match}',
-    encodeURI: true
-  }
-];
-
-const urlRegex = new RegExp('"((?:[\\S]| )+?)":\\[?((?:https?:\\/\\/[\\w\\d.\\/?=#&%]+)|\\/[\\w\\d.\\/?=#\\[\\]]+)\\]?', 'gi');
-
-const MAX_DESCRIPTION_LENGTH = 500;
 
 export async function ticketUpdateHandler(client: Client, update: string) {
   const data: TicketUpdate = JSON.parse(update);
@@ -168,90 +93,6 @@ function getTitle(ticket: Ticket): string {
 
 function getURL(ticket: Ticket): string {
   return `${config.E621_BASE_URL}/tickets/${ticket.id}`;
-}
-
-async function getLinks(input: string, limit: number = Number.MAX_SAFE_INTEGER): Promise<string> {
-  const length = input.length;
-
-  const replacedIndexes: { start: number, end: number }[] = [];
-  const checks: Promise<{ allowed: boolean, before: string, after: string }>[] = [];
-
-  for (const replacer of linkReplacers) {
-    input = input.replaceAll(replacer.regex, (match, group1) => {
-      const replaced = `[${match}](${config.E621_BASE_URL}${(replacer.replacement).replace('{match}', replacer.encodeURI ? encodeURIComponent(group1) : group1)})`;
-      if (replacer.tester) checks.push(replacer.tester(group1, match, replaced));
-      const start = input.indexOf(match);
-      replacedIndexes.push({ start, end: start + replaced.length });
-
-      return replaced;
-    });
-  }
-
-  input = input.replaceAll(urlRegex, (match, group1, group2) => {
-    const replaced = group2.startsWith('/') ? `[${group1}](${config.E621_BASE_URL}${group2})` : `[${group1}](${group2})`;
-    const start = input.indexOf(match);
-    replacedIndexes.push({ start, end: start + replaced.length });
-    return replaced;
-  });
-
-  const values = await Promise.all(checks);
-
-  for (const check of values) {
-    if (!check.allowed) {
-      input = input.replace(check.after, check.before);
-    }
-  }
-
-  if (length > limit) {
-    for (const replacedIndex of replacedIndexes) {
-      if (replacedIndex.start < limit && replacedIndex.end >= limit) {
-        return input.substring(0, replacedIndex.end) + '...';
-      }
-    }
-
-    return input.substring(0, limit) + '...';
-  }
-
-  return input;
-}
-
-async function getDescription(ticket: Ticket): Promise<string> {
-  return ticket.reason.length <= MAX_DESCRIPTION_LENGTH ? await getLinks(ticket.reason) : await getLinks(ticket.reason, MAX_DESCRIPTION_LENGTH);
-}
-
-function getAuthor(ticket: Ticket): EmbedAuthorOptions {
-  return {
-    url: `${config.E621_BASE_URL}/users/${ticket.user_id}`,
-    name: ticket.user
-  };
-}
-
-function getColor(ticket: Ticket): number {
-  if (!ticket.claimant) {
-    return 0xff0000;
-  } else {
-    return 0x00ffff;
-  }
-}
-
-function getFields(ticket: Ticket): APIEmbedField[] {
-  return [
-    {
-      name: 'Type',
-      value: ticket.category,
-      inline: true
-    },
-    {
-      name: 'Status',
-      value: ticket.status,
-      inline: true
-    },
-    {
-      name: 'Claimed By',
-      value: !ticket.claimant ? '<Unclaimed>' : ticket.claimant,
-      inline: true
-    }
-  ];
 }
 
 async function createEmbedFromTicket(ticket: Ticket): Promise<EmbedBuilder> {

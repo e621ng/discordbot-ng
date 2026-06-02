@@ -1,7 +1,7 @@
 import sqlite3 from 'sqlite3';
 import { open, Database as SqliteDatabase } from 'sqlite';
 import { serializeMessage, wait } from '../utils';
-import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping, KnowledgebaseItem, PrivateHelpTicket } from '../types';
+import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping, KnowledgebaseItem, PrivateHelpTicket, AppealMessage } from '../types';
 import { Message } from '../events';
 
 const DB_SCHEMA = `
@@ -30,7 +30,8 @@ const DB_SCHEMA = `
         link_skip_channels TEXT,
         github_release_channel TEXT,
         moderator_channel_id TEXT,
-        private_help_channel_id TEXT
+        private_help_channel_id TEXT,
+        appeals_channel_id TEXT
     );
 
     CREATE TABLE IF NOT EXISTS messages (
@@ -56,6 +57,11 @@ const DB_SCHEMA = `
 			id INTEGER PRIMARY KEY,
 			user_id TEXT NOT NULL,
       phrase TEXT NOT NULL
+		);
+
+    CREATE TABLE IF NOT EXISTS appeals (
+			id INTEGER PRIMARY KEY,
+			message_id TEXT NOT NULL
 		);
 
     CREATE TABLE IF NOT EXISTS notes (
@@ -353,6 +359,23 @@ export class Database {
   }
 
   // -- END TICKETS --
+
+  // -- START APPEALS --
+
+  static async putAppeal(appealId: number, messageId: string) {
+    await Database.db.run('INSERT INTO appeals(id, message_id) VALUES (?, ?)', appealId, messageId);
+  }
+
+  static async removeAppeal(appealId: number) {
+    await Database.db.run('DELETE from appeals WHERE id = ?', appealId);
+  }
+
+  static async getAppealMessageId(appealId: number): Promise<string | undefined> {
+    const appeal = await Database.db.get<Pick<AppealMessage, 'message_id'>>('SELECT message_id FROM appeals WHERE id = ?', appealId);
+    return appeal?.message_id;
+  }
+
+  // -- END APPEALS --
 
   // -- START NOTES --
 
