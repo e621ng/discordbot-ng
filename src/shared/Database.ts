@@ -1,8 +1,9 @@
-import sqlite3 from 'sqlite3';
+import path from 'path';
 import { open, Database as SqliteDatabase } from 'sqlite';
-import { serializeMessage, wait } from '../utils';
-import { GuildSettings, LoggedMessage, TicketMessage, TicketPhrase, Note, Ban, GuildArraySetting, GithubUserMapping, KnowledgebaseItem, PrivateHelpTicket, AppealMessage } from '../types';
+import sqlite3 from 'sqlite3';
 import { Message } from '../events';
+import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, TicketMessage, TicketPhrase } from '../types';
+import { serializeMessage, wait } from '../utils';
 
 const DB_SCHEMA = `
     CREATE TABLE IF NOT EXISTS discord_names (
@@ -30,8 +31,7 @@ const DB_SCHEMA = `
         link_skip_channels TEXT,
         github_release_channel TEXT,
         moderator_channel_id TEXT,
-        private_help_channel_id TEXT,
-        appeals_channel_id TEXT
+        private_help_channel_id TEXT
     );
 
     CREATE TABLE IF NOT EXISTS messages (
@@ -57,11 +57,6 @@ const DB_SCHEMA = `
 			id INTEGER PRIMARY KEY,
 			user_id TEXT NOT NULL,
       phrase TEXT NOT NULL
-		);
-
-    CREATE TABLE IF NOT EXISTS appeals (
-			id INTEGER PRIMARY KEY,
-			message_id TEXT NOT NULL
 		);
 
     CREATE TABLE IF NOT EXISTS notes (
@@ -134,11 +129,23 @@ export class Database {
     console.log('SQLite database opened');
 
     await Database.ensure();
+
+    await Database.migrate();
   }
 
   private static async ensure() {
     await Database.db.exec(DB_SCHEMA);
     console.log('SQLite database ensured');
+  }
+
+  private static async migrate() {
+    console.log('Starting database migrations');
+
+    await Database.db.migrate({
+      migrationsPath: path.join(__dirname, '..', 'migrations')
+    });
+
+    console.log('Database migrations ran');
   }
 
   // -- START WHOIS --
