@@ -142,7 +142,7 @@ export class Database {
     console.log('Starting database migrations');
 
     await Database.db.migrate({
-      migrationsPath: path.join(__dirname, '..', 'migrations')
+      migrationsPath: path.join(__dirname, '..', '..', 'migrations')
     });
 
     console.log('Database migrations ran');
