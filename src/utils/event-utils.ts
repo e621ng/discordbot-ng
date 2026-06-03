@@ -135,7 +135,9 @@ export async function getLinks(input: string, limit: number = Number.MAX_SAFE_IN
 }
 
 export async function getDescription(data: { reason: string }): Promise<string> {
-  return parseDTextToMarkdown(data.reason.length <= MAX_DESCRIPTION_LENGTH ? await getLinks(data.reason) : await getLinks(data.reason, MAX_DESCRIPTION_LENGTH)).output;
+  return parseDTextToMarkdown(data.reason.length <= MAX_DESCRIPTION_LENGTH ? await getLinks(data.reason) : await getLinks(data.reason, MAX_DESCRIPTION_LENGTH), {
+    baseUrl: 'https://e621.net'
+  }).output;
 }
 
 export function getAuthor(data: { user_id: number, user: string }): EmbedAuthorOptions {
