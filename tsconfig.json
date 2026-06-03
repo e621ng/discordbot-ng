@@ -16,7 +16,10 @@
       "ES2021.String"
     ]
   },
-
   "include": ["src"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "verbose": false
+  }
 }
