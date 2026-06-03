@@ -111,17 +111,6 @@ async function createEmbedFromAppeal(appeal: Appeal, flag: PostFlag, post: E621P
 async function getButtons(appeal: Appeal, flag: PostFlag, post: E621Post): Promise<ActionRowBuilder<ButtonBuilder>> {
   const row = new ActionRowBuilder<ButtonBuilder>();
 
-  const primaryButton = new ButtonBuilder()
-    .setStyle(ButtonStyle.Link);
-
-  if (appeal.category == 'flag') {
-    primaryButton
-      .setLabel('Open Flag')
-      .setURL(`${config.E621_BASE_URL}/post_flags/${appeal.target_id}`);
-
-    row.addComponents(primaryButton);
-  }
-
   const button = new ButtonBuilder()
     .setLabel('Open Post')
     .setStyle(ButtonStyle.Link)
