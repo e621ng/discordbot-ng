@@ -1,6 +1,6 @@
-import { Client } from "discord.js";
-import { Task } from "../../types";
-import { checkExpiredBans } from "../../utils";
+import { Client } from 'discord.js';
+import { Task } from '../../types';
+import { checkExpiredBans } from '../../utils';
 
 class CheckExpiredBansTask implements Task {
   interval: number = 300000;

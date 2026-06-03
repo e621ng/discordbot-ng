@@ -138,7 +138,7 @@ client.on('clientReady', async () => {
 
   await initializeWebserver(client);
 
-  ScheduledTasks.forEach((task) => scheduler.add(task));
+  ScheduledTasks.forEach(task => scheduler.add(task));
 
   ready = true;
   console.log('Ready');

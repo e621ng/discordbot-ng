@@ -1,6 +1,6 @@
-import { Client } from "discord.js";
-import { Task } from "../types";
-import ScheduledTasks from "./tasks";
+import { Client } from 'discord.js';
+import { Task } from '../types';
+import ScheduledTasks from './tasks';
 
 class Scheduler {
   private tasks = new Map<Task, NodeJS.Timeout>();

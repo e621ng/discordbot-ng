@@ -1,6 +1,6 @@
-import { Client } from "discord.js";
-import { Task } from "../../types";
-import { closeOldTickets } from "../../utils";
+import { Client } from 'discord.js';
+import { Task } from '../../types';
+import { closeOldTickets } from '../../utils';
 
 class CloseStaleTicketsTask implements Task {
   interval: number = 3.6e6;
