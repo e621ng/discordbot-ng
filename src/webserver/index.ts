@@ -1,16 +1,17 @@
+import bodyParser from 'body-parser';
+import crypto from 'crypto';
+import { Client } from 'discord.js';
 import express, { Request, Response } from 'express';
+import session from 'express-session';
+import fs from 'fs';
+import MemoryStore from 'memorystore';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { config } from '../config';
 import { Database } from '../shared/Database';
-import crypto from 'crypto';
-import session from 'express-session';
-import MemoryStore from 'memorystore';
-import fs from 'fs';
-import path from 'path';
-import { Client } from 'discord.js';
-import bodyParser from 'body-parser';
-import { fixPings, removeIssueLinks } from '../utils/github-user-utils';
-import { logDebug } from '../utils/debug-utils';
 import { AltData, comprehensiveAltLookupFromE621, DiscordOAuth2 } from '../utils';
+import { logDebug } from '../utils/debug-utils';
+import { fixPings, removeIssueLinks } from '../utils/github-user-utils';
 
 declare module 'express-session' {
   interface SessionData {
@@ -26,6 +27,7 @@ const PROD_BASE_URL = 'https://discord.e621.net';
 
 const OAUTH_SCOPES = ['identify', 'guilds.join'];
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const PAGE_TEMPLATE = fs.readFileSync(path.join(__dirname, 'templates', 'page.html'), { encoding: 'utf-8' });
 
 const oauth = new DiscordOAuth2({

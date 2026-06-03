@@ -37,12 +37,6 @@ const buttons: Handler[] = [];
 const modals: Handler[] = [];
 const menus: Handler[] = [];
 
-loadHandlersFrom('commands', commands);
-loadHandlersFrom('context-menus', contextMenus);
-loadHandlersFrom('buttons', buttons);
-loadHandlersFrom('modals', modals);
-loadHandlersFrom('menus', menus);
-
 // Due to their reliance on each other, these two events (interactionCreate, and ready) have to stay here.
 // Alternatively, they can move to another single file. Or use static classes.
 client.on('interactionCreate', async (interaction) => {
@@ -125,6 +119,12 @@ client.on('interactionCreate', async (interaction) => {
 
 client.on('clientReady', async () => {
   console.log(`Logged in as ${client.user!.tag}!`);
+
+  await loadHandlersFrom('commands', commands);
+  await loadHandlersFrom('context-menus', contextMenus);
+  await loadHandlersFrom('buttons', buttons);
+  await loadHandlersFrom('modals', modals);
+  await loadHandlersFrom('menus', menus);
 
   await refreshCommands(client);
 

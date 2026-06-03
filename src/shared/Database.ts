@@ -1,6 +1,7 @@
-import path from 'path';
+import path, { dirname } from 'path';
 import { open, Database as SqliteDatabase } from 'sqlite';
 import sqlite3 from 'sqlite3';
+import { fileURLToPath } from 'url';
 import { Message } from '../events';
 import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, TicketMessage, TicketPhrase } from '../types';
 import { serializeMessage, wait } from '../utils';
@@ -141,6 +142,7 @@ export class Database {
   private static async migrate() {
     console.log('Starting database migrations');
 
+    const __dirname = dirname(fileURLToPath(import.meta.url));
     await Database.db.migrate({
       migrationsPath: path.join(__dirname, '..', '..', 'migrations')
     });
