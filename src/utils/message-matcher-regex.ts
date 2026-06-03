@@ -9,6 +9,7 @@ export const takedownIDRegex = new RegExp('takedown #([0-9]+)', 'gi');
 export const recordIDRegex = new RegExp('record #([0-9]+)', 'gi');
 export const ticketIDRegex = new RegExp('ticket #([0-9]+)', 'gi');
 export const artistIDRegex = new RegExp('artist #([0-9]+)', 'gi');
+export const appealIDRegex = new RegExp('appeal #([0-9]+)', 'gi');
 
 const tagSearchRegex = '(?:[\\S]| )+?';
 export const wikiLinkRegex = new RegExp(`\\[\\[(${tagSearchRegex})]]`, 'gi');
