@@ -1,9 +1,9 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder } from 'discord.js';
 import { config } from '../config';
+import { Database } from '../shared/Database';
 import { Appeal, AppealUpdate } from '../types';
 import { getAuthor, getColor, getDescription, getFields } from './event-utils';
 import { humanizeCapitalization } from './string-utils';
-import { Database } from '../shared/Database';
 
 export async function appealUpdateHandler(client: Client, update: string) {
   const data: AppealUpdate = JSON.parse(update);
@@ -30,7 +30,7 @@ async function postAppeal(client: Client, data: AppealUpdate) {
 
   const row = await getButtons(appeal);
 
-  const message = await channel.send({ embeds: [embed], components: [row] });
+  const message = await channel.send({ embeds: [embed], components: row.components.length > 0 ? [row] : [] });
 
   await Database.putAppeal(appeal.id, message.id);
 }
@@ -96,9 +96,9 @@ async function getButtons(appeal: Appeal): Promise<ActionRowBuilder<ButtonBuilde
     primaryButton
       .setLabel('Open Flag')
       .setURL(`${config.E621_BASE_URL}/post_flags/${appeal.target_id}`);
-  }
 
-  row.addComponents(primaryButton);
+    row.addComponents(primaryButton);
+  }
 
   return row;
 }

@@ -1,7 +1,7 @@
-import { EmbedAuthorOptions, APIEmbedField } from 'discord.js';
+import { APIEmbedField, EmbedAuthorOptions } from 'discord.js';
 import { config } from '../config';
-import { getE621Post, spoilerOrBlacklist, PostAction } from './e621-utils';
-import { blipIDRegex, commentIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from './message-matcher-regex';
+import { getE621Post, PostAction, spoilerOrBlacklist } from './e621-utils';
+import { appealIDRegex, blipIDRegex, commentIDRegex, flagIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from './message-matcher-regex';
 
 // TODO: Condense this and the message event handler regex array.
 const linkReplacers = [
@@ -60,6 +60,16 @@ const linkReplacers = [
   {
     regex: ticketIDRegex,
     replacement: '/tickets/{match}',
+    encodeURI: false
+  },
+  {
+    regex: appealIDRegex,
+    replacement: '/appeals/{match}',
+    encodeURI: false
+  },
+  {
+    regex: flagIDRegex,
+    replacement: '/flags/{match}',
     encodeURI: false
   },
   {
