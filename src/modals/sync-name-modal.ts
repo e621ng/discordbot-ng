@@ -9,8 +9,6 @@ export default {
 
     const e621Id = Number(interaction.fields.getTextInputValue('id') ?? 0);
 
-    console.log(e621Id);
-
     if (isNaN(e621Id)) return await interaction.editReply('Provided id is not a number');
 
     const member = await interaction.guild?.members.fetch(id);
