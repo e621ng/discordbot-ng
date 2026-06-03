@@ -282,6 +282,18 @@ export class Database {
     await Database.db.run('INSERT INTO tickets(id, message_id) VALUES (?, ?)', ticketId, messageId);
   }
 
+  static async updateTicketMessageId(ticketId: number, messageId: string) {
+    await Database.db.run('UPDATE tickets SET message_id = ? WHERE id = ?', messageId, ticketId);
+  }
+
+  static async putTicketOrUpdate(ticketId: number, messageId: string) {
+    if (await Database.getTicketMessageId(ticketId)) {
+      await Database.updateTicketMessageId(ticketId, messageId);
+    } else {
+      await Database.putTicket(ticketId, messageId);
+    }
+  }
+
   static async removeTicket(ticketId: number) {
     await Database.db.run('DELETE from tickets WHERE id = ?', ticketId);
   }
@@ -325,6 +337,18 @@ export class Database {
 
   static async putAppeal(appealId: number, messageId: string) {
     await Database.db.run('INSERT INTO appeals(id, message_id) VALUES (?, ?)', appealId, messageId);
+  }
+
+  static async updateAppealMessageId(appealId: number, messageId: string) {
+    await Database.db.run('UPDATE appeals SET message_id = ? WHERE id = ?', messageId, appealId);
+  }
+
+  static async putAppealOrUpdate(ticketId: number, messageId: string) {
+    if (await Database.getAppealMessageId(ticketId)) {
+      await Database.updateAppealMessageId(ticketId, messageId);
+    } else {
+      await Database.putAppeal(ticketId, messageId);
+    }
   }
 
   static async removeAppeal(appealId: number) {

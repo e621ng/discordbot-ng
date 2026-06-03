@@ -173,3 +173,19 @@ export type Record = {
   updater_id: number
   is_deleted: boolean
 }
+
+export type PostFlag = {
+  id: number
+  post_id: number
+  creator_id: number
+  reason: string
+  is_resolved: boolean
+  created_at: string
+  updated_at: string
+  is_deletion: boolean
+  note: string | null
+  reason_name: string
+  needs_parent_id: boolean
+  needs_staff_reason: boolean
+  type: string
+}

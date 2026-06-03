@@ -1,9 +1,10 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder } from 'discord.js';
+import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonStyle, Client, DiscordAPIError, EmbedBuilder, Message } from 'discord.js';
 import { config } from '../config';
 import { Database } from '../shared/Database';
-import { Appeal, AppealUpdate } from '../types';
+import { Appeal, AppealUpdate, E621Post, PostFlag } from '../types';
 import { getAuthor, getColor, getDescription, getFields } from './event-utils';
 import { humanizeCapitalization } from './string-utils';
+import { getE621Post, getE621PostFlag } from './e621-utils';
 
 export async function appealUpdateHandler(client: Client, update: string) {
   const data: AppealUpdate = JSON.parse(update);
@@ -26,13 +27,16 @@ async function postAppeal(client: Client, data: AppealUpdate) {
 
   const appeal = data.appeal;
 
-  const embed = await createEmbedFromAppeal(appeal);
+  const flag = await getE621PostFlag(appeal.target_id);
+  const post = await getE621Post(flag!.post_id);
 
-  const row = await getButtons(appeal);
+  const embed = await createEmbedFromAppeal(appeal, flag!, post!);
+
+  const row = await getButtons(appeal, flag!, post!);
 
   const message = await channel.send({ embeds: [embed], components: row.components.length > 0 ? [row] : [] });
 
-  await Database.putAppeal(appeal.id, message.id);
+  await Database.putAppealOrUpdate(appeal.id, message.id);
 }
 
 async function updateAppeal(client: Client, data: AppealUpdate) {
@@ -48,16 +52,24 @@ async function updateAppeal(client: Client, data: AppealUpdate) {
 
   if (!messageId) return postAppeal(client, data);
 
-  const message = await channel.messages.fetch(messageId);
-  const embed = await createEmbedFromAppeal(data.appeal);
+  let message: Message | undefined;
 
-  if (!message || message.author.id != config.DISCORD_CLIENT_ID) {
-    const newMessage = await channel.send({ embeds: [embed] });
-    await Database.removeAppeal(data.appeal.id);
-    await Database.putAppeal(data.appeal.id, newMessage.id);
-  } else {
-    await message.edit({ embeds: [embed] });
+  try {
+    message = await channel.messages.fetch(messageId);
+  } catch (e) {
+    // Ignore unknown message errors
+    if (!(e instanceof DiscordAPIError && e.code == 10008)) {
+      throw e;
+    }
   }
+
+  if (!message || message.author.id != config.DISCORD_CLIENT_ID) return postAppeal(client, data);
+
+  const flag = await getE621PostFlag(data.appeal.target_id);
+  const post = await getE621Post(flag!.post_id);
+
+  const embed = await createEmbedFromAppeal(data.appeal, flag!, post!);
+  await message.edit({ embeds: [embed] });
 }
 
 function getTitle(appeal: Appeal): string {
@@ -75,18 +87,28 @@ function getURL(appeal: Appeal): string {
   return `${config.E621_BASE_URL}/appeals/${appeal.id}`;
 }
 
-async function createEmbedFromAppeal(appeal: Appeal): Promise<EmbedBuilder> {
+function getCustomFields(appeal: Appeal, flag: PostFlag, post: E621Post): APIEmbedField[] {
+  return [
+    {
+      name: 'Deletion Reason',
+      value: flag.reason,
+      inline: true
+    }
+  ];
+}
+
+async function createEmbedFromAppeal(appeal: Appeal, flag: PostFlag, post: E621Post): Promise<EmbedBuilder> {
   return new EmbedBuilder()
     .setTitle(getTitle(appeal))
     .setURL(await getURL(appeal))
     .setDescription(await getDescription(appeal))
     .setAuthor(getAuthor(appeal))
     .setColor(getColor(appeal))
-    .setFields(...getFields(appeal))
+    .setFields(...getFields(appeal), ...getCustomFields(appeal, flag, post))
     .setFooter({ text: `Appeal #${appeal.id}` });
 }
 
-async function getButtons(appeal: Appeal): Promise<ActionRowBuilder<ButtonBuilder>> {
+async function getButtons(appeal: Appeal, flag: PostFlag, post: E621Post): Promise<ActionRowBuilder<ButtonBuilder>> {
   const row = new ActionRowBuilder<ButtonBuilder>();
 
   const primaryButton = new ButtonBuilder()
@@ -99,6 +121,13 @@ async function getButtons(appeal: Appeal): Promise<ActionRowBuilder<ButtonBuilde
 
     row.addComponents(primaryButton);
   }
+
+  const button = new ButtonBuilder()
+    .setLabel('Open Post')
+    .setStyle(ButtonStyle.Link)
+    .setURL(`${config.E621_BASE_URL}/posts/${post.id}`);
+
+  row.addComponents(button);
 
   return row;
 }

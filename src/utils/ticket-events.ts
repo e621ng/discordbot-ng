@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, SendableChannels } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, DiscordAPIError, EmbedBuilder, Message, SendableChannels } from 'discord.js';
 import { config } from '../config';
 import { Database } from '../shared/Database';
 import { Ticket, TicketPhrase, TicketUpdate } from '../types';
@@ -34,7 +34,7 @@ async function postTicket(client: Client, data: TicketUpdate) {
 
   const message = await channel.send({ embeds: [embed], components: [row] });
 
-  await Database.putTicket(ticket.id, message.id);
+  await Database.putTicketOrUpdate(ticket.id, message.id);
 
   sendTicketAlerts(ticket, channel);
 }
@@ -52,16 +52,22 @@ async function updateTicket(client: Client, data: TicketUpdate) {
 
   if (!messageId) return postTicket(client, data);
 
-  const message = await channel.messages.fetch(messageId);
+  let message: Message | undefined;
+
+  try {
+    message = await channel.messages.fetch(messageId);
+  } catch (e) {
+    // Ignore unknown message errors
+    if (!(e instanceof DiscordAPIError && e.code == 10008)) {
+      throw e;
+    }
+  }
+
+  if (!message || message.author.id != config.DISCORD_CLIENT_ID) return postTicket(client, data);
+
   const embed = await createEmbedFromTicket(data.ticket);
 
-  if (!message || message.author.id != config.DISCORD_CLIENT_ID) {
-    const newMessage = await channel.send({ embeds: [embed] });
-    await Database.removeTicket(data.ticket.id);
-    await Database.putTicket(data.ticket.id, newMessage.id);
-  } else {
-    await message.edit({ embeds: [embed] });
-  }
+  await message.edit({ embeds: [embed] });
 }
 
 function getTitle(ticket: Ticket): string {

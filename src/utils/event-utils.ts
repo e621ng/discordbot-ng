@@ -2,7 +2,7 @@ import { APIEmbedField, EmbedAuthorOptions } from 'discord.js';
 import { config } from '../config';
 import { getE621Post, PostAction, spoilerOrBlacklist } from './e621-utils';
 import { appealIDRegex, blipIDRegex, commentIDRegex, flagIDRegex, forumTopicIDRegex, poolIDRegex, postIDRegex, recordIDRegex, searchLinkRegex, setIDRegex, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from './message-matcher-regex';
-import { dtextToMarkdown } from './dtext-utils';
+import { parseDTextToMarkdown } from '@clynamic/dmark';
 
 // TODO: Condense this and the message event handler regex array.
 const linkReplacers = [
@@ -135,7 +135,7 @@ export async function getLinks(input: string, limit: number = Number.MAX_SAFE_IN
 }
 
 export async function getDescription(data: { reason: string }): Promise<string> {
-  return dtextToMarkdown(data.reason.length <= MAX_DESCRIPTION_LENGTH ? await getLinks(data.reason) : await getLinks(data.reason, MAX_DESCRIPTION_LENGTH));
+  return parseDTextToMarkdown(data.reason.length <= MAX_DESCRIPTION_LENGTH ? await getLinks(data.reason) : await getLinks(data.reason, MAX_DESCRIPTION_LENGTH)).output;
 }
 
 export function getAuthor(data: { user_id: number, user: string }): EmbedAuthorOptions {

@@ -1,5 +1,5 @@
 import { config } from '../config';
-import { E621Post, E621User, Record } from '../types';
+import { E621Post, E621User, PostFlag, Record } from '../types';
 
 const BLACKLISTED_TAGS: string[] = [];
 const BLACKLISTED_NONSAFE_TAGS: string[] = ['young'];
@@ -35,11 +35,15 @@ export async function getE621User(idOrName: string | number): Promise<E621User |
 }
 
 export async function getE621Post(id: string | number): Promise<E621Post | null> {
-  return (await request(`/posts/${id}`))?.post as E621Post ?? null;
+  return (await request(`/posts/${id}`, { v2: 'true' })) as E621Post ?? null;
 }
 
 export async function getE621PostByMd5(md5: string): Promise<E621Post | null> {
-  return (await request('/posts', { md5 }))?.post as E621Post ?? null;
+  return (await request('/posts', { md5, v2: 'true' })) as E621Post ?? null;
+}
+
+export async function getE621PostFlag(id: number): Promise<PostFlag | null> {
+  return await request(`/post_flags/${id}`) as PostFlag ?? null;
 }
 
 export const enum PostAction {
