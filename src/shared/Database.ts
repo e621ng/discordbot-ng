@@ -122,7 +122,7 @@ export class Database {
   static async open(file: string): Promise<void> {
     if (Database.db) return;
 
-    console.log('Opening SQLite database')
+    console.log('Opening SQLite database');
 
     Database.db = await open({
       filename: file,
