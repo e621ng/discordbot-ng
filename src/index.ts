@@ -140,20 +140,21 @@ client.on('clientReady', async () => {
 
   ScheduledTasks.forEach(task => scheduler.add(task));
 
+  client.on('guildAuditLogEntryCreate', handleAuditLogCreate);
+  client.on('guildBanRemove', handleBanRemove);
+  client.on('guildCreate', handleGuildCreate);
+  client.on('guildMemberAdd', handleMemberJoin);
+  client.on('messageCreate', handleMessageCreate);
+  client.on('messageDelete', handleMessageDelete);
+  client.on('messageDeleteBulk', handleBulkMessageDelete);
+  client.on('messageUpdate', handleMessageUpdate);
+  client.on('threadCreate', handleThreadCreate);
+  client.on('voiceStateUpdate', handleVoiceStateUpdate);
+
   ready = true;
   console.log('Ready');
 });
 
-client.on('guildAuditLogEntryCreate', handleAuditLogCreate);
-client.on('guildBanRemove', handleBanRemove);
-client.on('guildCreate', handleGuildCreate);
-client.on('guildMemberAdd', handleMemberJoin);
-client.on('messageCreate', handleMessageCreate);
-client.on('messageDelete', handleMessageDelete);
-client.on('messageDeleteBulk', handleBulkMessageDelete);
-client.on('messageUpdate', handleMessageUpdate);
-client.on('threadCreate', handleThreadCreate);
-client.on('voiceStateUpdate', handleVoiceStateUpdate);
 
 client.on('error', console.error);
 process.on('uncaughtException', console.error);

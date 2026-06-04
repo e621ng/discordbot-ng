@@ -50,6 +50,7 @@ const regexTesters = [
 const uniqueRegexMatches = (g, i, a) => a.findIndex(v => v[1] == g[1]) == i;
 
 export async function handleMessageCreate(message: Message) {
+  console.log('message created');
   if (message.author.bot) return;
   if (message.inGuild()) await Database.putMessage(message);
 
