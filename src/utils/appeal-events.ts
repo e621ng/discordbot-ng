@@ -2,9 +2,10 @@ import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonStyle, Client, Di
 import { config } from '../config';
 import { Database } from '../shared/Database';
 import { Appeal, AppealUpdate, E621Post, PostFlag } from '../types';
-import { getAuthor, getColor, getDescription, getFields } from './event-utils';
+import { getAuthor, getColor, getDescription, getFields, getLinks } from './event-utils';
 import { humanizeCapitalization } from './string-utils';
 import { getE621Post, getE621PostFlag } from './e621-utils';
+import { parseDTextToMarkdown } from '@clynamic/dmark';
 
 export async function appealUpdateHandler(client: Client, update: string) {
   const data: AppealUpdate = JSON.parse(update);
@@ -87,11 +88,11 @@ function getURL(appeal: Appeal): string {
   return `${config.E621_BASE_URL}/appeals/${appeal.id}`;
 }
 
-function getCustomFields(appeal: Appeal, flag: PostFlag, post: E621Post): APIEmbedField[] {
+async function getCustomFields(appeal: Appeal, flag: PostFlag, post: E621Post): Promise<APIEmbedField[]> {
   return [
     {
       name: 'Deletion Reason',
-      value: flag.reason,
+      value: parseDTextToMarkdown(await getLinks(flag.reason)).output,
       inline: true
     }
   ];
@@ -104,7 +105,7 @@ async function createEmbedFromAppeal(appeal: Appeal, flag: PostFlag, post: E621P
     .setDescription(await getDescription(appeal))
     .setAuthor(getAuthor(appeal))
     .setColor(getColor(appeal))
-    .setFields(...getFields(appeal), ...getCustomFields(appeal, flag, post))
+    .setFields(...getFields(appeal), ...(await getCustomFields(appeal, flag, post)))
     .setFooter({ text: `Appeal #${appeal.id}` });
 }
 
