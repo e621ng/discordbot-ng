@@ -1,11 +1,11 @@
-const eslint = require('@eslint/js');
-const globals = require('globals');
-const tseslint = require('typescript-eslint');
-const stylistic = require('@stylistic/eslint-plugin');
+import eslint from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
+import stylistic from '@stylistic/eslint-plugin';
 
-const ignores = ['dist/**/*', 'node_modules/**/*', 'eslint.config.js'];
+const ignores = ['dist/**/*', 'node_modules/**/*'];
 
-module.exports = tseslint.config(
+const config = tseslint.config(
   {
     ignores,
     extends: [
@@ -66,3 +66,6 @@ module.exports = tseslint.config(
     },
   }
 );
+
+
+export default config;
