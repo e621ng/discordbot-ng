@@ -202,7 +202,7 @@ export default {
     const devWatchRole = interaction.options.getRole('devwatch-role');
     if (devWatchRole) {
       await Database.updateGuildSettings(interaction.guildId, 'devwatch_role_id', devWatchRole.id);
-      response.push(`**private_help_role_id** has been set to ${devWatchRole}.`);
+      response.push(`**devwatch_role_id** has been set to ${devWatchRole}.`);
     }
 
     const addCategory = interaction.options.getChannel('add-staff-category');
