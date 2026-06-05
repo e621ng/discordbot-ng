@@ -14,7 +14,8 @@ export default {
 
       const bot = await interaction.guild.members.fetchMe();
       const role = await interaction.guild?.roles.fetch(settings.devwatch_role_id);
-      if (role?.position! > bot.roles.highest.position) throw new Error('The configured `devwatch_role_id` is higher than my highest role.');
+      if (!role) throw new Error('The configured `devwatch_role_id` does not exist.');
+      if (role.position > bot.roles.highest.position) throw new Error('The configured `devwatch_role_id` is higher than my highest role.');
 
       if (member.roles.cache.has(settings.devwatch_role_id)) {
         await member.roles.remove(settings.devwatch_role_id);
