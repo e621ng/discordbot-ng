@@ -1,9 +1,11 @@
-import { readFileSync } from 'fs';
 import path, { dirname } from 'path';
 import { open, Database as SqliteDatabase } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import { fileURLToPath } from 'url';
-import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSetting, GuildSettings, KnowledgebaseItem, Note, PrivateHelpTicket, TicketMessage, TicketPhrase } from '../types';
+import { Message } from '../events';
+import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, TicketMessage, TicketPhrase } from '../types';
+import { serializeMessage, wait } from '../utils';
+import { readFileSync } from 'fs';
 
 export const enum PrivateHelpTicketStatus {
   OPEN = 0,
@@ -134,6 +136,42 @@ export class Database {
     await Database.db.run(`UPDATE settings SET ${setting} = ? WHERE guild_id = ?`, newString, guildId);
 
     return true;
+  }
+
+  //#endregion
+
+  //#region Message Logs
+
+  static async putMessage(message: Message): Promise<boolean> {
+    try {
+      const serializedMessage = serializeMessage(message);
+
+      await Database.db.run(`
+        INSERT INTO messages (id, author_id, author_name, channel_id, attachments, stickers, content) VALUES
+        (:id, :author_id, :author_name, :channel_id, :attachments, :stickers, :content)
+      `, ...serializedMessage);
+
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  }
+
+  static async getMessage(id: string): Promise<LoggedMessage | undefined> {
+    return await Database.db.get<LoggedMessage>('SELECT * FROM messages WHERE id = ?', id);
+  }
+
+  static async getMessageWithRetry(id: string, retries = 5, delay = 500): Promise<LoggedMessage | undefined> {
+    let tried = 0;
+    while (tried < retries) {
+      tried++;
+      const message = await Database.db.get<LoggedMessage>('SELECT * FROM messages WHERE id = ?', id);
+
+      if (message) return message;
+
+      await wait(delay);
+    }
   }
 
   //#endregion
