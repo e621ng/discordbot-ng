@@ -84,3 +84,9 @@ export type PrivateHelpTicket = {
   status: PrivateHelpTicketStatus
   timestamp: string
 }
+
+export type RoleButton = {
+  id: number
+  message_id: string
+  role_id: string
+}

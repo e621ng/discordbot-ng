@@ -3,7 +3,7 @@ import { open, Database as SqliteDatabase } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import { fileURLToPath } from 'url';
 import { Message } from '../events';
-import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, TicketMessage, TicketPhrase } from '../types';
+import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, RoleButton, TicketMessage, TicketPhrase } from '../types';
 import { serializeMessage, wait } from '../utils';
 import { readFileSync } from 'fs';
 
@@ -387,6 +387,21 @@ export class Database {
   static async getAllOpenPrivateHelpTickets(): Promise<PrivateHelpTicket[]> {
     return await Database.db.all<PrivateHelpTicket[]>('SELECT * from private_help_tickets WHERE status = ?', PrivateHelpTicketStatus.OPEN);
   }
+
+  //#endregion
+
+  //#region Role Buttons
+
+  static async putRoleButton(messageId: string, roleId: string) {
+    await Database.db.run('INSERT INTO role_buttons(message_id, role_id) VALUES (?, ?)', messageId, roleId);
+  }
+
+  static async getRoleFromButton(messageId: string): Promise<string | null> {
+    const data = await Database.db.get<Pick<RoleButton, 'role_id'>>('SELECT role_id from role_buttons WHERE message_id = ?', messageId);
+
+    return data?.role_id ?? null;
+  }
+
 
   //#endregion
 }
