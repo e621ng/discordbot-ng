@@ -1,6 +1,6 @@
 import { Client as DiscordClient, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
 import { config } from './config';
-import { handleAuditLogCreate, handleBanRemove, handleBulkMessageDelete, handleGuildCreate, handleMemberJoin, handleMessageCreate, handleMessageDelete, handleMessageUpdate, handleThreadCreate, handleVoiceStateUpdate } from './events';
+import { handleAuditLogCreate, handleBanRemove, handleGuildCreate, handleMemberJoin, handleMessageCreate, handleMessageUpdate, handleThreadCreate, handleVoiceStateUpdate } from './events';
 import { ScheduledTasks, Scheduler } from './scheduler';
 import { Database } from './shared/Database';
 import { openRedisClient } from './shared/RedisClient';
@@ -145,8 +145,6 @@ client.on('clientReady', async () => {
   client.on('guildCreate', handleGuildCreate);
   client.on('guildMemberAdd', handleMemberJoin);
   client.on('messageCreate', handleMessageCreate);
-  client.on('messageDelete', handleMessageDelete);
-  client.on('messageDeleteBulk', handleBulkMessageDelete);
   client.on('messageUpdate', handleMessageUpdate);
   client.on('threadCreate', handleThreadCreate);
   client.on('voiceStateUpdate', handleVoiceStateUpdate);

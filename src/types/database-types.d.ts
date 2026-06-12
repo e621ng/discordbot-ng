@@ -1,13 +1,3 @@
-export type LoggedMessage = {
-  id: string
-  author_id: string
-  author_name: string
-  channel_id: string
-  attachments: string
-  stickers: string
-  content: string
-}
-
 export type GuildSettings = {
   guild_id: string
   general_chat_id?: string

@@ -1,4 +1,4 @@
-import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, GuildTextBasedChannel, MessageFlags, ModalSubmitInteraction } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, GuildTextBasedChannel, MessageFlags, ModalSubmitInteraction } from 'discord.js';
 import { Database } from '../shared/Database';
 import { canOpenPrivateHelpTicket, createPrivateHelpTicketThread } from '../utils';
 
@@ -85,8 +85,6 @@ export default {
       embeds: [embed],
       components: createPrivateHelpTicket && !wantsTicketButCantOpen ? [] : [row]
     });
-
-    await reportsChannel.send({ files: [new AttachmentBuilder(Buffer.from(reportedMessage.content), { name: 'message-content.txt' })] });
 
     if (createPrivateHelpTicket && !wantsTicketButCantOpen) {
       if (!guildSettings.private_help_channel_id) {

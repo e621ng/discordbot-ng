@@ -1,8 +1,7 @@
-import { Message as DiscordMessage, GuildBasedChannel, GuildTextBasedChannel, OmitPartialGroupDMChannel, PartialMessage, ReadonlyCollection, spoiler } from 'discord.js';
+import { Message as DiscordMessage, GuildBasedChannel, GuildTextBasedChannel, OmitPartialGroupDMChannel, PartialMessage, spoiler } from 'discord.js';
 import { config } from '../config';
-import { Database } from '../shared/Database';
 import { E621Post } from '../types';
-import { ALLOWED_MIMETYPES, appealIDRegex, artistIDRegex, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, flagIDRegex, forumTopicIDRegex, getE621Post, getE621PostByMd5, getPostUrl, isEdited, isInSpoilerTags, issueRegex, logDeletion, logEdit, poolIDRegex, PostAction, postIDRegex, prRegex, recordIDRegex, searchLinkRegex, setIDRegex, spoilerOrBlacklist, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
+import { ALLOWED_MIMETYPES, appealIDRegex, artistIDRegex, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, flagIDRegex, forumTopicIDRegex, getE621Post, getE621PostByMd5, getPostUrl, isInSpoilerTags, issueRegex, poolIDRegex, PostAction, postIDRegex, prRegex, recordIDRegex, searchLinkRegex, setIDRegex, spoilerOrBlacklist, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
 
 export type Message<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<DiscordMessage<InGuild>>;
 export type Partial = OmitPartialGroupDMChannel<PartialMessage>;
@@ -50,9 +49,7 @@ const regexTesters = [
 const uniqueRegexMatches = (g, i, a) => a.findIndex(v => v[1] == g[1]) == i;
 
 export async function handleMessageCreate(message: Message) {
-  console.log('message created');
   if (message.author.bot) return;
-  if (message.inGuild()) await Database.putMessage(message);
 
   const responses: string[] = [];
 
@@ -113,22 +110,9 @@ export async function handleMessageCreate(message: Message) {
 }
 
 export async function handleMessageUpdate(oldMessage: Message | PartialMessage, newMessage: Message) {
-  if (newMessage.author.bot) return;
+  if (newMessage.author.bot || !oldMessage.content) return;
 
-  const loggedMessage = await Database.getMessageWithRetry(newMessage.id);
-
-  if (!loggedMessage) {
-    if (newMessage.inGuild()) await Database.putMessage(newMessage);
-
-    return;
-  }
-
-  if (newMessage.inGuild() && isEdited(loggedMessage, newMessage)) {
-    await Database.putMessage(newMessage);
-    await logEdit(loggedMessage, newMessage);
-  }
-
-  if (loggedMessage.content == newMessage.content) return;
+  if (oldMessage.content == newMessage.content) return;
 
   const responses: string[] = [];
 
@@ -148,7 +132,7 @@ export async function handleMessageUpdate(oldMessage: Message | PartialMessage, 
       }
       test.regex.lastIndex = 0;
 
-      while ((match = test.regex.exec(loggedMessage.content)) != null) {
+      while ((match = test.regex.exec(oldMessage.content)) != null) {
         oldMatches.push(match);
       }
       test.regex.lastIndex = 0;
@@ -171,20 +155,6 @@ export async function handleMessageUpdate(oldMessage: Message | PartialMessage, 
 
   if (responses.length > 0) {
     await newMessage.reply(responses.join('\n'));
-  }
-}
-
-export async function handleMessageDelete(message: Message | PartialMessage) {
-  const loggedMessage = await Database.getMessageWithRetry(message.id);
-
-  if (!loggedMessage) return;
-
-  if (message.inGuild()) await logDeletion(loggedMessage, message);
-}
-
-export async function handleBulkMessageDelete(messages: ReadonlyCollection<string, Message | Partial>, channel: GuildTextBasedChannel) {
-  for (const message of messages.values()) {
-    await handleMessageDelete(message);
   }
 }
 
