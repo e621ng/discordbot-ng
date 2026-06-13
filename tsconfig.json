@@ -4,6 +4,8 @@
     "noUnusedLocals": true,
     "noImplicitAny": false,
 
+    "target": "esnext",
+    "module": "es2022",
     "moduleResolution": "bundler",
     "esModuleInterop": true,
 
