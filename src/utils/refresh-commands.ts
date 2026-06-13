@@ -1,11 +1,10 @@
 import { Client, REST, RESTPostAPIApplicationCommandsJSONBody, Routes } from 'discord.js';
 import fs from 'fs';
-import path, { dirname } from 'path';
-import { fileURLToPath, pathToFileURL } from 'url';
+import path from 'path';
+import { pathToFileURL } from 'url';
 import { config } from '../config';
 import { Command } from '../types';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, '..');
 
 const rest = new REST({ version: '10' }).setToken(config.DISCORD_TOKEN!);
