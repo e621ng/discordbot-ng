@@ -1,7 +1,6 @@
 import { Client, REST, RESTPostAPIApplicationCommandsJSONBody, Routes } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
-import { pathToFileURL } from 'url';
 import { config } from '../config';
 import { Command } from '../types';
 
@@ -21,7 +20,8 @@ export async function refreshCommands(client: Client) {
     for (const [folderName, files] of Object.entries(commandFiles)) {
       for (const file of files) {
         const p = `${ROOT_DIR}/${folderName}/${file}`;
-        const command: Command = (await import(pathToFileURL(p).href)).default;
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const command: Command = require(p).default;
 
         if (!command) {
           console.warn(`File at ${p} has no export. Skipping registering.`);

@@ -1,7 +1,6 @@
 import { Client } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
-import { pathToFileURL } from 'url';
 import { Handler } from '../types';
 
 const ROOT_DIR = path.resolve(__dirname, '..');
@@ -11,7 +10,8 @@ export async function loadHandlersFrom(dir: string, handlerArray: Handler[]): Pr
 
   const files = fs.readdirSync(`${ROOT_DIR}/${dir}`).filter(file => file.endsWith('.js') || file.endsWith('.ts'));
   for (const file of files) {
-    handlerArray.push((await import(pathToFileURL(`${ROOT_DIR}/${dir}/${file}`).href)).default);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    handlerArray.push(require(`${ROOT_DIR}/${dir}/${file}`).default);
   }
 }
 
