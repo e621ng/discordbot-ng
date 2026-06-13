@@ -1,14 +1,13 @@
 {
-  "type": "module",
   "devDependencies": {
     "@eslint/js": "9.27.0",
     "@stylistic/eslint-plugin": "4.2.0",
     "@types/express": "5.0.2",
     "@types/express-session": "1.18.1",
+    "copyfiles": "2.4.1",
     "eslint": "9.27.0",
     "rimraf": "6.0.1",
-    "tsc-alias": "1.8.17",
-    "tsx": "4.19.4",
+    "tsx": "4.22.4",
     "typescript": "5.8.3",
     "typescript-eslint": "8.32.1"
   },
@@ -28,8 +27,8 @@
   "scripts": {
     "dev": "tsx watch --enable-source-maps src/index.ts",
     "start": "node dist/index.js",
-    "build": "npm run clean && npx tsc && npx tsc-alias && npm run copyfiles",
-    "clean": "npx rimraf dist",
-    "copyfiles": "npx copyfiles -u 1 \"./src/**/*.html\" ./dist"
+    "build": "npm run clean && node scripts/build.js && npm run copyfiles",
+    "clean": "rimraf dist",
+    "copyfiles": "copyfiles -u 1 \"./src/**/*.html\" ./dist"
   }
 }

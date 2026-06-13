@@ -1,7 +1,6 @@
-import path, { dirname } from 'path';
+import path from 'path';
 import { open, Database as SqliteDatabase } from 'sqlite';
 import sqlite3 from 'sqlite3';
-import { fileURLToPath } from 'url';
 import { Message } from '../events';
 import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, RoleButton, TicketMessage, TicketPhrase } from '../types';
 import { serializeMessage, wait } from '../utils';
@@ -33,7 +32,6 @@ export class Database {
   }
 
   private static async ensure() {
-    const __dirname = dirname(fileURLToPath(import.meta.url));
     const schema = readFileSync(path.join(__dirname, '..', '..', 'sql', 'structure.sql'), { encoding: 'utf-8' });
     await Database.db.exec(schema);
     console.log('SQLite database ensured');
@@ -42,7 +40,6 @@ export class Database {
   private static async migrate() {
     console.log('Starting database migrations');
 
-    const __dirname = dirname(fileURLToPath(import.meta.url));
     await Database.db.migrate({
       migrationsPath: path.join(__dirname, '..', '..', 'sql', 'migrations')
     });

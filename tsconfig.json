@@ -1,25 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "esnext",
+    "target": "esnext",
+    "module": "es2022",
     "moduleResolution": "bundler",
-    "forceConsistentCasingInFileNames": false,
-    "inlineSourceMap": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "noImplicitAny": false,
-    "noUnusedLocals": true,
-    "esModuleInterop": true,
     "strict": true,
+    "noUnusedLocals": true,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "lib": ["ES2021.String"],
     "skipLibCheck": true,
-    "lib": [
-      "ES2021.String"
-    ]
-  },
-  "include": ["src"],
-  "exclude": ["node_modules"],
-  "tsc-alias": {
-    "resolveFullPaths": true,
-    "verbose": false
+    "inlineSourceMap": true,
+    "forceConsistentCasingInFileNames": false
   }
 }
