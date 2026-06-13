@@ -5,8 +5,7 @@ import express, { Request, Response } from 'express';
 import session from 'express-session';
 import fs from 'fs';
 import MemoryStore from 'memorystore';
-import path, { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import path from 'path';
 import { config } from '../config';
 import { Database } from '../shared/Database';
 import { AltData, comprehensiveAltLookupFromE621, DiscordOAuth2 } from '../utils';
@@ -26,8 +25,6 @@ const DEV_BASE_URL = `http://localhost:${config.PORT}`;
 const PROD_BASE_URL = 'https://discord.e621.net';
 
 const OAUTH_SCOPES = ['identify', 'guilds.join'];
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const PAGE_TEMPLATE = fs.readFileSync(path.join(__dirname, 'templates', 'page.html'), { encoding: 'utf-8' });
 
 const oauth = new DiscordOAuth2({
