@@ -3,7 +3,7 @@ import { config } from '../config';
 import { Database } from '../shared/Database';
 import { Ticket, TicketPhrase, TicketUpdate } from '../types';
 import { PostAction, getE621Post, getE621User, spoilerOrBlacklist } from './e621-utils';
-import { getAuthor, getColor, getDescription, getFields } from './event-utils';
+import { getAuthor, getColor, parseMarkdownToField, getFields } from './event-utils';
 import { humanizeCapitalization } from './string-utils';
 import { shouldAlert } from './ticket-utils';
 
@@ -105,10 +105,16 @@ async function createEmbedFromTicket(ticket: Ticket): Promise<EmbedBuilder> {
   return new EmbedBuilder()
     .setTitle(getTitle(ticket))
     .setURL(await getURL(ticket))
-    .setDescription(await getDescription(ticket))
     .setAuthor(getAuthor(ticket))
     .setColor(getColor(ticket))
-    .setFields(...getFields(ticket))
+    .setFields(
+      {
+        name: 'Reason',
+        value: await parseMarkdownToField(ticket.reason),
+        inline: false
+      },
+      ...getFields(ticket)
+    )
     .setFooter({ text: `Ticket #${ticket.id}` });
 }
 

@@ -2,10 +2,10 @@ import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonStyle, Client, Di
 import { config } from '../config';
 import { Database } from '../shared/Database';
 import { Appeal, AppealUpdate, E621Post, PostFlag } from '../types';
-import { getAuthor, getColor, getDescription, getFields, getLinks } from './event-utils';
+import { getAuthor, getColor, parseMarkdownToField, getFields } from './event-utils';
 import { humanizeCapitalization } from './string-utils';
-import { getE621Post, getE621PostFlag } from './e621-utils';
-import { parseDTextToMarkdown } from '@clynamic/dmark';
+import { getE621Post, getE621PostFlag, PostAction, spoilerOrBlacklist } from './e621-utils';
+import { parseDTextToMarkdown } from './dtext-utils';
 
 export async function appealUpdateHandler(client: Client, update: string) {
   const data: AppealUpdate = JSON.parse(update);
@@ -92,7 +92,7 @@ async function getCustomFields(appeal: Appeal, flag: PostFlag, post: E621Post): 
   return [
     {
       name: 'Deletion Reason',
-      value: parseDTextToMarkdown(await getLinks(flag.reason)).output,
+      value: await parseDTextToMarkdown(flag.reason),
       inline: true
     }
   ];
@@ -102,22 +102,31 @@ async function createEmbedFromAppeal(appeal: Appeal, flag: PostFlag, post: E621P
   return new EmbedBuilder()
     .setTitle(getTitle(appeal))
     .setURL(await getURL(appeal))
-    .setDescription(await getDescription(appeal))
     .setAuthor(getAuthor(appeal))
     .setColor(getColor(appeal))
-    .setFields(...getFields(appeal), ...(await getCustomFields(appeal, flag, post)))
+    .setFields(
+      {
+        name: 'Reason',
+        value: await parseMarkdownToField(appeal.reason),
+        inline: false
+      },
+      ...getFields(appeal),
+      ...(await getCustomFields(appeal, flag, post))
+    )
     .setFooter({ text: `Appeal #${appeal.id}` });
 }
 
 async function getButtons(appeal: Appeal, flag: PostFlag, post: E621Post): Promise<ActionRowBuilder<ButtonBuilder>> {
   const row = new ActionRowBuilder<ButtonBuilder>();
 
-  const button = new ButtonBuilder()
-    .setLabel('Open Post')
-    .setStyle(ButtonStyle.Link)
-    .setURL(`${config.E621_BASE_URL}/posts/${post.id}`);
+  if (spoilerOrBlacklist(post).action != PostAction.Blacklist) {
+    const button = new ButtonBuilder()
+      .setLabel('Open Post')
+      .setStyle(ButtonStyle.Link)
+      .setURL(`${config.E621_BASE_URL}/posts/${post.id}`);
 
-  row.addComponents(button);
+    row.addComponents(button);
+  }
 
   return row;
 }

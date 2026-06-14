@@ -9,6 +9,8 @@ const SPOILERED_NONSAFE_TAGS: string[] = [];
 
 const USER_AGENT = 'E621DiscordBot';
 
+export const SEARCH_LIMIT = 320;
+
 async function request(path: string, query?: { [name: string]: string }): Promise<any> {
   const url = new URL(config.E621_BASE_URL!);
   url.pathname = path + '.json';
@@ -36,6 +38,10 @@ export async function getE621User(idOrName: string | number): Promise<E621User |
 
 export async function getE621Post(id: string | number): Promise<E621Post | null> {
   return (await request(`/posts/${id}`, { v2: 'true' })) as E621Post ?? null;
+}
+
+export async function getManyE621Posts(ids: string[] | number[]): Promise<E621Post[]> {
+  return (await request('/posts', { v2: 'true', tags: `id:${ids.join(',')}` })) as E621Post[] ?? [];
 }
 
 export async function getE621PostByMd5(md5: string): Promise<E621Post | null> {
