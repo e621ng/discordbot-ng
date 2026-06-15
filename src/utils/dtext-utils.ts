@@ -48,6 +48,8 @@ export async function parseDTextToMarkdown(text: string): Promise<string> {
           out.push(']');
           out.push(`(${node.href.startsWith('/') ? config.E621_BASE_URL : ''}${node.href})`);
         }
+      } else if (node.linkType == 'url') {
+        out.push(`${node.href.startsWith('/') ? config.E621_BASE_URL : ''}${node.href}`);
       } else {
         out.push('[');
         markdownHandlers.link(node, out, ctx);
