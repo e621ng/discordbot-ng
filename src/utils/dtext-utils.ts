@@ -1,4 +1,4 @@
-import { BlockNode, DocumentNode, formatMarkdown, InlineNode, LinkNode, MarkdownFormatContext, MarkdownHandlers, markdownHandlers, parseDTextToAST, TableBodyNode, TableHeadNode, TableLiteralNode, TableRowNode, TextNode } from '@clynamic/dmark';
+import { BlockNode, DocumentNode, formatMarkdown, InlineNode, LinkNode, MarkdownFormatContext, MarkdownHandlers, markdownHandlers, parseDTextToAST, SpoilerBlockNode, TableBodyNode, TableHeadNode, TableLiteralNode, TableRowNode, TextNode } from '@clynamic/dmark';
 import { config } from '../config';
 import { E621Post } from '../types';
 import { getManyE621Posts, PostAction, SEARCH_LIMIT, spoilerOrBlacklist } from './e621-utils';
@@ -33,6 +33,20 @@ export async function parseDTextToMarkdown(text: string): Promise<string> {
 
   const handlers: MarkdownHandlers = {
     ...markdownHandlers,
+
+    spoiler_block: (node: SpoilerBlockNode, out: string[], ctx: MarkdownFormatContext) => {
+      for (let i = 0; i < node.children.length; i++) {
+        ctx.atLineStart = true;
+
+        if (i > 0) out.push('\n\n');
+
+        out.push('||');
+        ctx.render(node.children[i], out);
+        out.push('||');
+      }
+
+      ctx.atLineStart = false;
+    },
 
     link: (node: LinkNode, out: string[], ctx: MarkdownFormatContext) => {
       ctx.atLineStart = false;

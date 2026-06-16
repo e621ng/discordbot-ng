@@ -2,10 +2,9 @@ import { ActionRowBuilder, APIEmbedField, ButtonBuilder, ButtonStyle, Client, Di
 import { config } from '../config';
 import { Database } from '../shared/Database';
 import { Appeal, AppealUpdate, E621Post, PostFlag } from '../types';
-import { getAuthor, getColor, parseMarkdownToField, getFields } from './event-utils';
-import { humanizeCapitalization } from './string-utils';
 import { getE621Post, getE621PostFlag, PostAction, spoilerOrBlacklist } from './e621-utils';
-import { parseDTextToMarkdown } from './dtext-utils';
+import { getAuthor, getColor, getFields, parseMarkdownToField } from './event-utils';
+import { humanizeCapitalization } from './string-utils';
 
 export async function appealUpdateHandler(client: Client, update: string) {
   const data: AppealUpdate = JSON.parse(update);
@@ -92,7 +91,7 @@ async function getCustomFields(appeal: Appeal, flag: PostFlag, post: E621Post): 
   return [
     {
       name: 'Deletion Reason',
-      value: await parseDTextToMarkdown(flag.reason),
+      value: await parseMarkdownToField(flag.reason),
       inline: true
     }
   ];

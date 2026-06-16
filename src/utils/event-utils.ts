@@ -2,11 +2,11 @@ import { APIEmbedField, EmbedAuthorOptions } from 'discord.js';
 import { config } from '../config';
 import { parseDTextToMarkdown } from './dtext-utils';
 
-const MAX_DESCRIPTION_LENGTH = 1024;
+const MAX_FIELD_LENGTH = 1024;
 
 export async function parseMarkdownToField(input: string): Promise<string> {
   const text = await parseDTextToMarkdown(input);
-  return text.length >= MAX_DESCRIPTION_LENGTH ? text.slice(0, MAX_DESCRIPTION_LENGTH - 3) + '...' : text;
+  return text.length >= MAX_FIELD_LENGTH ? text.slice(0, MAX_FIELD_LENGTH - 3) + '...' : text;
 }
 
 export function getAuthor(data: { user_id: number, user: string }): EmbedAuthorOptions {
