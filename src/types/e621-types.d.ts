@@ -189,3 +189,17 @@ export type PostFlag = {
   needs_staff_reason: boolean
   type: string
 }
+
+export type E621Pool = {
+  id: number
+  name: string
+  created_at: string
+  updated_at: string
+  creator_id: number
+  creator_name: string
+  description: string
+  is_active: boolean
+  category: 'collection' | 'series'
+  post_ids: number[]
+  post_count: number
+}

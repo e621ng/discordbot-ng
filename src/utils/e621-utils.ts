@@ -1,5 +1,5 @@
 import { config } from '../config';
-import { E621Post, E621User, PostFlag, Record } from '../types';
+import { E621Pool, E621Post, E621User, PostFlag, Record } from '../types';
 
 const BLACKLISTED_TAGS: string[] = [];
 const BLACKLISTED_NONSAFE_TAGS: string[] = ['young'];
@@ -52,6 +52,10 @@ export async function getE621PostFlag(id: number): Promise<PostFlag | null> {
   return await request(`/post_flags/${id}`) as PostFlag ?? null;
 }
 
+export async function getE621Pool(id: string | number): Promise<E621Pool | null> {
+  return (await request(`/pools/${id}`)) as E621Pool ?? null;
+}
+
 export const enum PostAction {
   NoAction = 0,
   Spoiler = 1,
@@ -77,6 +81,10 @@ export function spoilerOrBlacklist(post: E621Post): { action: PostAction, tag: s
 export function getPostUrl(post: E621Post): string {
   if (post.rating == 's') return `${config.E926_BASE_URL}/posts/${post.id}`;
   return `${config.E621_BASE_URL}/posts/${post.id}`;
+}
+
+export function getPoolUrl(pool: E621Pool): string {
+  return `${config.E621_BASE_URL}/pools/${pool.id}`;
 }
 
 export async function userIsBanned(idOrName: string | number): Promise<boolean> {

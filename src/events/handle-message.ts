@@ -1,8 +1,8 @@
 import { Message as DiscordMessage, GuildBasedChannel, GuildTextBasedChannel, OmitPartialGroupDMChannel, PartialMessage, ReadonlyCollection, spoiler } from 'discord.js';
 import { config } from '../config';
 import { Database } from '../shared/Database';
-import { E621Post } from '../types';
-import { ALLOWED_MIMETYPES, appealIDRegex, artistIDRegex, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, flagIDRegex, forumTopicIDRegex, getE621Post, getE621PostByMd5, getPostUrl, isEdited, isInSpoilerTags, issueRegex, logDeletion, logEdit, poolIDRegex, PostAction, postIDRegex, prRegex, recordIDRegex, searchLinkRegex, setIDRegex, spoilerOrBlacklist, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
+import { E621Pool, E621Post } from '../types';
+import { ALLOWED_MIMETYPES, appealIDRegex, artistIDRegex, blipIDRegex, calculateMD5FromURL, channelIgnoresLinks, channelIsInStaffCategory, channelIsSafe, commentIDRegex, flagIDRegex, forumTopicIDRegex, getE621Pool, getE621Post, getE621PostByMd5, getManyE621Posts, getPoolUrl, getPostUrl, isEdited, isInSpoilerTags, issueRegex, logDeletion, logEdit, poolIDRegex, PostAction, postIDRegex, prRegex, recordIDRegex, searchLinkRegex, setIDRegex, spoilerOrBlacklist, takedownIDRegex, ticketIDRegex, userIDRegex, wikiLinkRegex } from '../utils';
 
 export type Message<InGuild extends boolean = boolean> = OmitPartialGroupDMChannel<DiscordMessage<InGuild>>;
 export type Partial = OmitPartialGroupDMChannel<PartialMessage>;
@@ -11,9 +11,11 @@ export type Partial = OmitPartialGroupDMChannel<PartialMessage>;
 const postRegex = new RegExp('!?https?://(?:.*@)?(?:e621|e926)\\.net/+posts/+([0-9]+)', 'gi');
 const postShareRegex = new RegExp('!?https?://(?:.*@)?(?:e621|e926)\\.net/+p/+([a-z0-9]+)', 'gi');
 const imageRegex = new RegExp('!?https?://(?:.*@)?static[0-9]*\\.(?:e621|e926)\\.net/+data/+(?:sample/+|preview/+|)[\\da-f]{2}/+[\\da-f]{2}/+([\\da-f]{32})\\.[\\da-z]+', 'gi');
+const poolRegex = new RegExp('!?https?://(?:.*@)?(?:e621|e926)\\.net/+pools/+([0-9]+)', 'gi');
 
 const postRegex_DEV = new RegExp('!?https?://(?:.*@)?localhost:3000/+posts/+([0-9]+)', 'gi');
 const imageRegex_DEV = new RegExp('!?https?://(?:.*@)?localhost:3000/+data/+(?:sample/+|preview/+|)[\\da-f]{2}/+[\\da-f]{2}/+([\\da-f]{32})\\.[\\da-z]+', 'gi');
+const poolRegex_DEV = new RegExp('!?https?://(?:.*@)?localhost:3000/+pools/+([0-9]+)', 'gi');
 
 const md5Regex = new RegExp('^([a-f0-9]{32}).(?:png|apng|jpg|jpeg|gif|webm|mp4)$', 'gi');
 
@@ -25,14 +27,16 @@ const regexTesters = [
     })
   },
   { runInDev: false, regex: imageRegex, handler: imageHandler },
+  { runInDev: false, regex: poolRegex, handler: poolHandler },
   { runInDev: true, regex: postRegex_DEV, handler: postHandler.bind(null, null) },
   { runInDev: true, regex: imageRegex_DEV, handler: imageHandler },
+  { runInDev: true, regex: poolRegex_DEV, handler: poolHandler },
   { runInDev: true, regex: postIDRegex, handler: postIdHandler },
+  { runInDev: true, regex: poolIDRegex, handler: poolIdHandler },
   { runInDev: true, regex: userIDRegex, handler: idHandler.bind(null, 'users') },
   { runInDev: true, regex: forumTopicIDRegex, handler: idHandler.bind(null, 'forum_topics') },
   { runInDev: true, regex: commentIDRegex, handler: idHandler.bind(null, 'comments') },
   { runInDev: true, regex: blipIDRegex, handler: idHandler.bind(null, 'blips') },
-  { runInDev: true, regex: poolIDRegex, handler: idHandler.bind(null, 'pools') },
   { runInDev: true, regex: setIDRegex, handler: idHandler.bind(null, 'post_sets') },
   { runInDev: true, regex: takedownIDRegex, handler: idHandler.bind(null, 'takedowns') },
   { runInDev: true, regex: recordIDRegex, handler: idHandler.bind(null, 'user_feedbacks') },
@@ -294,6 +298,42 @@ async function postIdHandler(message: Message, matchedGroups: RegExpExecArray[])
   return true;
 }
 
+async function poolIdHandler(message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
+  if (!message.guildId) return true;
+
+  const pools: E621Pool[] = [];
+
+  for (const match of matchedGroups) {
+    try {
+      const pool = await getE621Pool(match[1]);
+      if (pool) pools.push(pool);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const posts: E621Post[] = [];
+
+  try {
+    const res = await getManyE621Posts(pools.map(p => p.post_ids[0]));
+    if (res) posts.push(...res);
+  } catch (e) {
+    console.error(e);
+  }
+
+  if (await blacklistIfNecessary(message, posts)) return false;
+
+  const skip = await channelIgnoresLinks(message.channel as GuildBasedChannel);
+
+  if (skip) return true;
+
+  const content = pools.map(getPoolUrl).join('\n');
+
+  if (content.trim().length > 0) return content.trim();
+
+  return true;
+}
+
 async function idHandler(path: string, message: Message, matchedGroups: RegExpExecArray[]): Promise<string | boolean> {
   if (!message.guildId) return true;
 
@@ -350,6 +390,34 @@ async function imageHandler(message: Message, matchedGroups: RegExpExecArray[]):
   const content = posts.map(post => `<${getPostUrl(post)}>`).join('\n');
 
   if (content.trim().length > 0) return content.trim();
+
+  return true;
+}
+
+async function poolHandler(message: Message, matchedGroups: RegExpExecArray[]) {
+  if (!message.guildId) return true;
+
+  const pools: E621Pool[] = [];
+
+  for (const match of matchedGroups) {
+    try {
+      const pool = await getE621Pool(match[1]);
+      if (pool) pools.push(pool);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  const posts: E621Post[] = [];
+
+  try {
+    const res = await getManyE621Posts(pools.map(p => p.post_ids[0]));
+    if (res) posts.push(...res);
+  } catch (e) {
+    console.error(e);
+  }
+
+  if (await blacklistIfNecessary(message, posts)) return false;
 
   return true;
 }
