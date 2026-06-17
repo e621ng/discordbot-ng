@@ -7,5 +7,6 @@ esbuild.buildSync({
 
   platform: 'node',
   format: 'cjs',
+  sourcemap: 'inline',
   minify: true
 });
