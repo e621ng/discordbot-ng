@@ -32,7 +32,7 @@ async function postTicket(client: Client, data: TicketUpdate) {
 
   const row = await getButtons(ticket);
 
-  const message = await channel.send({ embeds: [embed], components: [row] });
+  const message = await channel.send({ embeds: [embed], components: row.components.length > 0 ? [row] : [] });
 
   await Database.putTicketOrUpdate(ticket.id, message.id);
 
