@@ -64,6 +64,17 @@ export async function parseDTextToMarkdown(text: string): Promise<string> {
         }
       } else if (node.linkType == 'url') {
         out.push(`${node.href.startsWith('/') ? config.E621_BASE_URL : ''}${node.href}`);
+      } else if (node.linkType == 'inline') {
+        out.push('[');
+        if (node.children) {
+          for (const child of node.children) {
+            ctx.render(child, out);
+          }
+        } else {
+          out.push('-NO TITLE-');
+        }
+        out.push(']');
+        out.push(`(${node.href.startsWith('/') ? config.E621_BASE_URL : ''}${node.href})`);
       } else {
         out.push('[');
         markdownHandlers.link(node, out, ctx);
