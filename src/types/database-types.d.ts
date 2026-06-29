@@ -1,11 +1,13 @@
 export type LoggedMessage = {
   id: string
+  id_encrypted: string
   author_id: string
   author_name: string
   channel_id: string
   attachments: string
   stickers: string
   content: string
+  timestamp: Date
 }
 
 export type GuildSettings = {
@@ -45,12 +47,14 @@ export type AppealMessage = {
 export type TicketPhrase = {
   id: number
   user_id: string
+  user_id_hash: string
   phrase: string
 }
 
 export type Note = {
   id: number
   user_id: string
+  user_id_hash: string
   reason: string
   mod_id: string
   timestamp: string
@@ -59,6 +63,7 @@ export type Note = {
 export type Ban = {
   id: number
   user_id: string
+  user_id_hash: string
   expires: 0 | 1
   expires_at: string
   full_ban: 0 | 1
@@ -67,6 +72,7 @@ export type Ban = {
 export type GithubUserMapping = {
   id: number
   discord_id: string
+  discord_id_hash: string
   github_username: string
 }
 
@@ -80,6 +86,7 @@ export type KnowledgebaseItem = {
 export type PrivateHelpTicket = {
   id: number
   user_id: string
+  user_id_hash: string
   thread_id: string
   status: PrivateHelpTicketStatus
   timestamp: string

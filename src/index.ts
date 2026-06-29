@@ -7,6 +7,7 @@ import { openRedisClient } from './shared/RedisClient';
 import { Handler } from './types';
 import { initIfNecessary, loadHandlersFrom, refreshCommands } from './utils';
 import { initializeWebserver } from './webserver';
+import { Encrypter } from './shared/Encrypter';
 
 let ready = false;
 
@@ -133,6 +134,7 @@ client.on('clientReady', async () => {
   await initIfNecessary(client, modals);
   await initIfNecessary(client, menus);
 
+  Encrypter.initialize(config.DATABASE_SECRET!);
   await Database.open('./data/discord-main.db');
   await openRedisClient(config.REDIS_URL!, client);
 

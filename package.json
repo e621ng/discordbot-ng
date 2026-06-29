@@ -29,6 +29,7 @@
     "start": "node dist/index.js",
     "build": "npm run clean && node scripts/build.js && npm run copyfiles",
     "clean": "rimraf dist",
-    "copyfiles": "copyfiles -u 1 \"./src/**/*.html\" ./dist"
+    "copyfiles": "copyfiles -u 1 \"./src/**/*.html\" ./dist",
+    "encrypt": "node ./scripts/encrypt-data.js"
   }
 }

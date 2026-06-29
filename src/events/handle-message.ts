@@ -181,8 +181,11 @@ export async function handleMessageDelete(message: Message | PartialMessage) {
   const loggedMessage = await Database.getMessageWithRetry(message.id);
 
   if (!loggedMessage) return;
+  else await Database.removeMessge(message.id);
 
-  if (message.inGuild()) await logDeletion(loggedMessage, message);
+  if (message.inGuild()) {
+    await logDeletion(loggedMessage, message);
+  }
 }
 
 export async function handleBulkMessageDelete(messages: ReadonlyCollection<string, Message | Partial>, channel: GuildTextBasedChannel) {

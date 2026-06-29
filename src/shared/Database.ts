@@ -3,8 +3,9 @@ import { open, Database as SqliteDatabase } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import { Message } from '../events';
 import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, RoleButton, TicketMessage, TicketPhrase } from '../types';
-import { serializeMessage, wait } from '../utils';
+import { deserializeMessage, serializeMessage, wait } from '../utils';
 import { readFileSync } from 'fs';
+import { Encrypter } from './Encrypter';
 
 export const enum PrivateHelpTicketStatus {
   OPEN = 0,
@@ -50,7 +51,7 @@ export class Database {
   //#region WHOIS
 
   static async getE621Ids(discordId: string): Promise<number[]> {
-    const ids = await Database.db.all<{ user_id: number }[]>('SELECT DISTINCT user_id FROM discord_names WHERE discord_id = ?', discordId);
+    const ids = await Database.db.all<{ user_id: number }[]>('SELECT DISTINCT user_id FROM discord_names WHERE discord_id_hash = ?', Encrypter.hash(discordId));
 
     return ids.map(r => r.user_id);
   }
@@ -59,29 +60,15 @@ export class Database {
     // Perhaps this would be better and then we can return all the data: SELECT * FROM (SELECT * FROM discord_names WHERE user_id = ?  ORDER BY id DESC) GROUP BY discord_id;
     const ids = await Database.db.all<{ discord_id: string }[]>('SELECT DISTINCT discord_id FROM discord_names WHERE user_id = ?', e621Id);
 
-    return ids.map(r => r.discord_id);
-  }
-
-  static async getCombinedIds(id: string): Promise<{ userId: string, discordId: string }[]> {
-    const ids = await Database.db.all<{ discord_id: string, user_id: number }[]>(`
-        WITH RECURSIVE rec AS (
-            SELECT DISTINCT d1.user_id, d1.discord_id, 1 AS depth FROM discord_names d1 WHERE d1.user_id = ? or d1.discord_id = ?
-            UNION
-            SELECT d3.user_id, d3.discord_id, depth + 1 AS depth FROM rec
-                LEFT OUTER JOIN discord_names d2 ON rec.discord_id = d2.discord_id
-                LEFT OUTER JOIN discord_names d3 ON d2.user_id = d3.user_id
-            WHERE depth <= 5 AND rec.depth = depth
-        ) SELECT DISTINCT user_id, discord_id FROM rec`, id, id);
-
-    return ids.map(r => ({ userId: r.user_id.toString(), discordId: r.discord_id }));
+    return ids.map(r => Encrypter.decrypt(r.discord_id));
   }
 
   static async putUser(id: number, user: { id: string, username: string }) {
-    await Database.db.run('INSERT INTO discord_names(user_id, discord_id, discord_username) VALUES (?, ?, ?)', id, user.id, user.username);
+    await Database.db.run('INSERT INTO discord_names(user_id, discord_id, discord_id_hash, discord_username, discord_username_hash) VALUES (?, ?, ?, ?, ?)', id, Encrypter.encrypt(user.id), Encrypter.hash(user.id), Encrypter.encrypt(user.username), Encrypter.hash(user.username));
   }
 
   static async removeUser(id: number, discordId: string) {
-    await Database.db.run('DELETE from discord_names WHERE user_id = ? AND discord_id = ?', id, discordId);
+    await Database.db.run('DELETE from discord_names WHERE user_id = ? AND discord_id_hash = ?', id, Encrypter.hash(discordId));
   }
 
   //#endregion
@@ -144,8 +131,8 @@ export class Database {
       const serializedMessage = serializeMessage(message);
 
       await Database.db.run(`
-        INSERT INTO messages (id, author_id, author_name, channel_id, attachments, stickers, content) VALUES
-        (:id, :author_id, :author_name, :channel_id, :attachments, :stickers, :content)
+        INSERT INTO messages (id, id_hash, author_id, author_name, channel_id, attachments, stickers, content) VALUES
+        (:id, :id_hash, :author_id, :author_name, :channel_id, :attachments, :stickers, :content)
       `, ...serializedMessage);
 
       return true;
@@ -155,20 +142,34 @@ export class Database {
     }
   }
 
-  static async getMessage(id: string): Promise<LoggedMessage | undefined> {
-    return await Database.db.get<LoggedMessage>('SELECT * FROM messages WHERE id = ?', id);
+  static async getMessage(id: string): Promise<LoggedMessage | null> {
+    const data = await Database.db.get<LoggedMessage>('SELECT * FROM messages WHERE id_hash = ?', Encrypter.hash(id));
+
+    if (!data) return null;
+
+    return deserializeMessage(data);
   }
 
-  static async getMessageWithRetry(id: string, retries = 5, delay = 500): Promise<LoggedMessage | undefined> {
+  static async getMessageWithRetry(id: string, retries = 5, delay = 500): Promise<LoggedMessage | null> {
     let tried = 0;
     while (tried < retries) {
       tried++;
-      const message = await Database.db.get<LoggedMessage>('SELECT * FROM messages WHERE id = ?', id);
+      const message = await Database.getMessage(id);
 
       if (message) return message;
 
       await wait(delay);
     }
+
+    return null;
+  }
+
+  static async removeMessge(id: string) {
+    await Database.db.run('DELETE from messages WHERE id_hash = ?', Encrypter.hash(id));
+  }
+
+  static async pruneOldMessages() {
+    await Database.db.run('DELETE from messages WHERE datetime(timestamp) < datetime("now", "-28 days")');
   }
 
   //#endregion
@@ -201,11 +202,15 @@ export class Database {
   }
 
   static async putTicketPhrase(userId: string, phrase: string) {
-    await Database.db.run('INSERT INTO ticket_phrases(user_id, phrase) VALUES (?, ?)', userId, phrase);
+    await Database.db.run('INSERT INTO ticket_phrases(user_id, user_id_hash, phrase) VALUES (?, ?, ?)', Encrypter.encrypt(userId), Encrypter.hash(userId), phrase);
   }
 
   static async getTicketPhrase(id: number): Promise<TicketPhrase | undefined> {
-    return await Database.db.get<TicketPhrase>('SELECT * FROM ticket_phrases WHERE id = ?', id);
+    const data: TicketPhrase | undefined = await Database.db.get<TicketPhrase>('SELECT * FROM ticket_phrases WHERE id = ?', id);
+    return data ? {
+      ...data,
+      user_id: Encrypter.decrypt(data.user_id)
+    } : undefined;
   }
 
   static async removeTicketPhrase(id: number) {
@@ -213,18 +218,27 @@ export class Database {
   }
 
   static async removeAllTicketPhrasesFor(id: string): Promise<number> {
-    return (await Database.db.run('DELETE from ticket_phrases WHERE user_id = ?', id)).changes!;
+    return (await Database.db.run('DELETE from ticket_phrases WHERE user_id_hash = ?', Encrypter.hash(id))).changes!;
   }
 
-  static async getTicketPhrasesFor(userId: string): Promise<TicketPhrase[]> {
-    return await Database.db.all<TicketPhrase[]>('SELECT * from ticket_phrases WHERE user_id = ?', userId);
+  static async getTicketPhrasesFor(id: string): Promise<TicketPhrase[]> {
+    const data: TicketPhrase[] = await Database.db.all<TicketPhrase[]>('SELECT * from ticket_phrases WHERE user_id_hash = ?', Encrypter.hash(id));
+    return data.map((ticketPhrase) => {
+      return {
+        ...ticketPhrase,
+        user_id: Encrypter.decrypt(ticketPhrase.user_id)
+      };
+    });
   }
 
   static async getAllTicketPhrases(cb: (ticketPhrase: TicketPhrase) => void) {
     await Database.db.each<TicketPhrase>('SELECT * from ticket_phrases', (err: any, ticketPhrase: TicketPhrase) => {
       if (err) return console.error(err);
 
-      cb(ticketPhrase);
+      cb({
+        ...ticketPhrase,
+        user_id: Encrypter.decrypt(ticketPhrase.user_id)
+      });
     });
   }
 
@@ -262,12 +276,12 @@ export class Database {
   //#region Notes
 
   static async putNote(userId: string, reason: string, modId: string) {
-    await Database.db.run('INSERT INTO notes(user_id, reason, mod_id) VALUES (?, ?, ?)', userId, reason, modId);
+    await Database.db.run('INSERT INTO notes(user_id, user_id_hash, reason, mod_id) VALUES (?, ?, ?, ?)', Encrypter.encrypt(userId), Encrypter.hash(userId), reason, Encrypter.encrypt(modId));
   }
 
   static async editNote(id: number, oldReason: string, newReason: string, modId: string) {
-    await Database.db.run('UPDATE notes SET reason = ?, mod_id = ? WHERE id = ?', newReason, modId, id);
-    await Database.db.run('INSERT INTO note_edits(note_id, mod_id, previous_reason) VALUES (?, ?, ?)', id, modId, oldReason);
+    await Database.db.run('UPDATE notes SET reason = ?, mod_id = ? WHERE id = ?', newReason, Encrypter.encrypt(modId), id);
+    await Database.db.run('INSERT INTO note_edits(note_id, mod_id, previous_reason) VALUES (?, ?, ?)', id, Encrypter.encrypt(modId), oldReason);
   }
 
   static async removeNote(id: number): Promise<boolean> {
@@ -277,7 +291,13 @@ export class Database {
   }
 
   static async getNotes(userId: string): Promise<Note[]> {
-    return await Database.db.all<Note[]>('SELECT * from notes WHERE user_id = ?', userId);
+    const data: Note[] = await Database.db.all<Note[]>('SELECT * from notes WHERE user_id_hash = ?', Encrypter.hash(userId));
+    return data.map((note) => {
+      return {
+        ...note,
+        user_id: Encrypter.decrypt(note.user_id)
+      };
+    });
   }
 
   //#endregion
@@ -285,15 +305,25 @@ export class Database {
   //#region Bans
 
   static async putBan(userId: string, expiresAt: Date | null, fullBan = false) {
-    await Database.db.run('INSERT INTO bans(user_id, expires, expires_at, full_ban) VALUES (?, ?, ?, ?)', userId, expiresAt != null ? 1 : 0, expiresAt, fullBan);
+    await Database.db.run('INSERT INTO bans(user_id, user_id_hash, expires, expires_at, full_ban) VALUES (?, ?, ?, ?, ?)', Encrypter.encrypt(userId), Encrypter.hash(userId), expiresAt != null ? 1 : 0, expiresAt, fullBan);
   }
 
   static async getBan(userId: string): Promise<Ban | undefined> {
-    return await Database.db.get('SELECT * from bans WHERE user_id = ? ORDER BY id DESC', userId);
+    const data: Ban | undefined = await Database.db.get('SELECT * from bans WHERE user_id_hash = ? ORDER BY id DESC', Encrypter.hash(userId));
+    return data ? {
+      ...data,
+      user_id: Encrypter.decrypt(data.user_id)
+    } : undefined;
   }
 
   static async getExpiredBans(date: Date): Promise<Ban[]> {
-    return await Database.db.all<Ban[]>('SELECT * from bans WHERE expires = 1 AND expires_at <= ?', date);
+    const data: Ban[] = await Database.db.all<Ban[]>('SELECT * from bans WHERE expires = 1 AND expires_at <= ?', date);
+    return data.map((ban) => {
+      return {
+        ...ban,
+        user_id: Encrypter.decrypt(ban.user_id)
+      };
+    });
   }
 
   static async pruneExpiredBans(date: Date) {
@@ -301,7 +331,7 @@ export class Database {
   }
 
   static async removeBan(userId: string) {
-    await Database.db.run('DELETE from bans WHERE user_id = ?', userId);
+    await Database.db.run('DELETE from bans WHERE user_id_hash = ?', Encrypter.hash(userId));
   }
 
   //#endregion
@@ -310,27 +340,33 @@ export class Database {
 
   // github_user_mapping
   static async putGithubUserMapping(discordId: string, githubUsername: string) {
-    await Database.db.run('INSERT INTO github_user_mapping(discord_id, github_username) VALUES (?, ?)', discordId, githubUsername);
+    await Database.db.run('INSERT INTO github_user_mapping(discord_id, discord_id_hash, github_username) VALUES (?, ?, ?)', Encrypter.encrypt(discordId), Encrypter.hash(discordId), githubUsername);
   }
 
   static async getDiscordIdFromGithub(githubUsername: string): Promise<string | null> {
     const mapping = await Database.db.get<Pick<GithubUserMapping, 'discord_id'>>('SELECT discord_id FROM github_user_mapping WHERE github_username = ?', githubUsername);
 
-    return mapping?.discord_id ?? null;
+    return mapping?.discord_id ? Encrypter.decrypt(mapping.discord_id) : null;
   }
 
   static async getGithubFromDiscordId(discordId: string): Promise<string | null> {
-    const mapping = await Database.db.get<Pick<GithubUserMapping, 'github_username'>>('SELECT github_username FROM github_user_mapping WHERE discord_id = ?', discordId);
+    const mapping = await Database.db.get<Pick<GithubUserMapping, 'github_username'>>('SELECT github_username FROM github_user_mapping WHERE discord_id_hash = ?', Encrypter.hash(discordId));
 
     return mapping?.github_username ?? null;
   }
 
   static async getAllGithubUserMappings(): Promise<GithubUserMapping[]> {
-    return await Database.db.all<GithubUserMapping[]>('SELECT * from github_user_mapping');
+    const mappings: GithubUserMapping[] = await Database.db.all<GithubUserMapping[]>('SELECT * from github_user_mapping');
+    return mappings.map((mapping) => {
+      return {
+        ...mapping,
+        discord_id: Encrypter.decrypt(mapping.discord_id)
+      };
+    });
   }
 
   static async removeGithubUserMapping(discordId: string) {
-    await Database.db.run('DELETE from github_user_mapping WHERE discord_id = ?', discordId);
+    await Database.db.run('DELETE from github_user_mapping WHERE discord_id_hash = ?', Encrypter.encrypt(discordId));
   }
 
   //#endregion
@@ -370,7 +406,7 @@ export class Database {
   //#region Private Help Tickets
 
   static async createPrivateHelpTicket(userId: string, threadId: string) {
-    await Database.db.run('INSERT INTO private_help_tickets(user_id, thread_id, status) VALUES (?, ?, ?)', userId, threadId, PrivateHelpTicketStatus.OPEN);
+    await Database.db.run('INSERT INTO private_help_tickets(user_id, user_id_hash, thread_id, status) VALUES (?, ?, ?, ?)', Encrypter.encrypt(userId), Encrypter.hash(userId), threadId, PrivateHelpTicketStatus.OPEN);
   }
 
   static async closePrivateHelpTicket(threadId: string) {
@@ -378,11 +414,17 @@ export class Database {
   }
 
   static async getLatestPrivateHelpTicketBy(userId: string): Promise<PrivateHelpTicket | undefined> {
-    return await Database.db.get<PrivateHelpTicket>('SELECT * from private_help_tickets WHERE user_id = ? ORDER BY timestamp DESC LIMIT 1', userId);
+    return await Database.db.get<PrivateHelpTicket>('SELECT * from private_help_tickets WHERE user_id_hash = ? ORDER BY timestamp DESC LIMIT 1', Encrypter.hash(userId));
   }
 
   static async getAllOpenPrivateHelpTickets(): Promise<PrivateHelpTicket[]> {
-    return await Database.db.all<PrivateHelpTicket[]>('SELECT * from private_help_tickets WHERE status = ?', PrivateHelpTicketStatus.OPEN);
+    const tickets: PrivateHelpTicket[] = await Database.db.all<PrivateHelpTicket[]>('SELECT * from private_help_tickets WHERE status = ?', PrivateHelpTicketStatus.OPEN);
+    return tickets.map((ticket) => {
+      return {
+        ...ticket,
+        user_id: Encrypter.decrypt(ticket.user_id)
+      };
+    });
   }
 
   //#endregion

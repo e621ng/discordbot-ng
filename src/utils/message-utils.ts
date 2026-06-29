@@ -1,4 +1,5 @@
 import { Message } from '../events';
+import { Encrypter } from '../shared/Encrypter';
 import { LoggedMessage } from '../types';
 
 export const ARRAY_SEPARATOR = '$';
@@ -9,7 +10,17 @@ export function serializeMessage(message: Message): string[] {
   const attachments = message.attachments.map(a => `${a.name}:${a.id}`);
   const stickers = message.stickers.map(s => `${s.name}:${s.id}`);
 
-  return [message.id, message.author.id, message.author.username, message.channelId, attachments.join(ARRAY_SEPARATOR), stickers.join(ARRAY_SEPARATOR), message.content];
+  return [Encrypter.encrypt(message.id), Encrypter.hash(message.id), Encrypter.encrypt(message.author.id), Encrypter.encrypt(message.author.username), message.channelId, attachments.join(ARRAY_SEPARATOR), stickers.join(ARRAY_SEPARATOR), Encrypter.encrypt(message.content)];
+}
+
+export function deserializeMessage(loggedMessage: LoggedMessage): LoggedMessage {
+  return {
+    ...loggedMessage,
+    id: Encrypter.decrypt(loggedMessage.id),
+    author_id: Encrypter.decrypt(loggedMessage.author_id),
+    author_name: Encrypter.decrypt(loggedMessage.author_name),
+    content: Encrypter.decrypt(loggedMessage.content)
+  };
 }
 
 export function deserializeMessagePart(part: string): string[] {
