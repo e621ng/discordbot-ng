@@ -58,7 +58,7 @@ export class Database {
 
   static async getDiscordIds(e621Id: string | number): Promise<string[]> {
     // Perhaps this would be better and then we can return all the data: SELECT * FROM (SELECT * FROM discord_names WHERE user_id = ?  ORDER BY id DESC) GROUP BY discord_id;
-    const ids = await Database.db.all<{ discord_id: string }[]>('SELECT DISTINCT discord_id FROM discord_names WHERE user_id = ?', e621Id);
+    const ids = await Database.db.all<{ discord_id: string }[]>('SELECT discord_id FROM discord_names WHERE user_id = ? GROUP BY discord_id_hash', e621Id);
 
     return ids.map(r => Encrypter.decrypt(r.discord_id));
   }
