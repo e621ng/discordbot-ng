@@ -77,7 +77,7 @@ class Encrypter {
   static encrypt(clearText) {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
-    const encrypted = cipher.update(clearText, 'utf8', 'hex');
+    const encrypted = cipher.update(clearText.toString(), 'utf8', 'hex');
     return [
       encrypted + cipher.final('hex'),
       Buffer.from(iv).toString('hex'),
