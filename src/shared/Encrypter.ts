@@ -38,6 +38,6 @@ export class Encrypter {
   }
 
   static hash(clearText: string): string {
-    return crypto.createHash('sha256', this.key).update(clearText).digest('base64');
+    return crypto.createHmac('sha256', this.key).update(clearText).digest('base64');
   }
 }
