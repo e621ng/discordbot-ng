@@ -295,7 +295,8 @@ export class Database {
     return data.map((note) => {
       return {
         ...note,
-        user_id: Encrypter.decrypt(note.user_id)
+        user_id: Encrypter.decrypt(note.user_id),
+        mod_id: Encrypter.decrypt(note.mod_id)
       };
     });
   }
