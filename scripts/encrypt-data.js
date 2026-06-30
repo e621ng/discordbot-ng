@@ -17,7 +17,7 @@ async function main() {
 
   db.exec('BEGIN TRANSACTION');
   for (const name of discordNames) {
-    db.run('UPDATE discord_names SET discord_id = ?, discord_username = ?, discord_id_hash = ?, discord_username_hash = ? WHERE id = ?', Encrypter.encrypt(name.user_id), Encrypter.encrypt(name.discord_username), Encrypter.hash(name.user_id), Encrypter.hash(name.discord_username), name.id);
+    db.run('UPDATE discord_names SET discord_id = ?, discord_username = ?, discord_id_hash = ?, discord_username_hash = ? WHERE id = ?', Encrypter.encrypt(name.discord_id), Encrypter.encrypt(name.discord_username), Encrypter.hash(name.discord_id), Encrypter.hash(name.discord_username), name.id);
   }
   db.exec('COMMIT');
 
