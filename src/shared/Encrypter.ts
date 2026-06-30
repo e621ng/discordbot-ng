@@ -5,11 +5,11 @@ import crypto from 'crypto';
 
 export class Encrypter {
   private static algorithm = 'aes-256-cbc';
-  private static key: string;
+  private static key: Buffer;
 
   static initialize(encryptionKey: string) {
     console.log(`Initializing encrypter with key: ${encryptionKey}`);
-    this.key = encryptionKey;
+    this.key = crypto.scryptSync(encryptionKey, 'salt', 32);
   }
 
   static encrypt(clearText: string): string {
@@ -38,6 +38,6 @@ export class Encrypter {
   }
 
   static hash(clearText: string): string {
-    return crypto.createHmac('sha256', this.key).update(clearText).digest('base64');
+    return crypto.createHash('sha256', this.key).update(clearText).digest('base64');
   }
 }

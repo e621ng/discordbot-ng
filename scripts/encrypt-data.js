@@ -73,7 +73,7 @@ async function main() {
 class Encrypter {
   static initialize(encryptionKey) {
     console.log(`Initializing encrypter with key: ${encryptionKey}`);
-    this.key = encryptionKey;
+    this.key = crypto.scryptSync(encryptionKey, 'salt', 32);
   }
   static encrypt(clearText) {
     const iv = crypto.randomBytes(16);
@@ -92,7 +92,7 @@ class Encrypter {
     return decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8');
   }
   static hash(clearText) {
-    return crypto.createHmac('sha256', this.key).update(clearText).digest('base64');
+    return crypto.createHash('sha256', this.key).update(clearText).digest('base64');
   }
 }
 Encrypter.algorithm = 'aes-256-cbc';
