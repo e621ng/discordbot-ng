@@ -72,12 +72,13 @@ async function main() {
 
 class Encrypter {
   static initialize(encryptionKey) {
-    this.key = crypto.scryptSync(encryptionKey, 'salt', 32);
+    console.log(`Initializing encrypter with key: ${encryptionKey}`);
+    this.key = encryptionKey;
   }
   static encrypt(clearText) {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv(this.algorithm, this.key, iv);
-    const encrypted = cipher.update(clearText.toString(), 'utf8', 'hex');
+    const encrypted = cipher.update(clearText, 'utf8', 'hex');
     return [
       encrypted + cipher.final('hex'),
       Buffer.from(iv).toString('hex'),
@@ -91,7 +92,7 @@ class Encrypter {
     return decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8');
   }
   static hash(clearText) {
-    return crypto.createHmac('sha256', this.key).update(clearText.toString()).digest('base64');
+    return crypto.createHmac('sha256', this.key).update(clearText).digest('base64');
   }
 }
 Encrypter.algorithm = 'aes-256-cbc';
