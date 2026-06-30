@@ -2,27 +2,27 @@
 -- Up
 --------------------------------------------------------------------------------
 DELETE FROM messages;
-ALTER TABLE messages ADD id_hash TEXT NOT NULL;
+ALTER TABLE messages ADD id_hash TEXT NOT NULL DEFAULT '';
 ALTER TABLE messages ADD timestamp datetime NOT NULL DEFAULT (datetime ('now', 'localtime'));
 CREATE INDEX IF NOT EXISTS index_id_hash ON messages (id_hash);
 
-ALTER TABLE discord_names ADD discord_id_hash TEXT NOT NULL;
-ALTER TABLE discord_names ADD discord_username_hash TEXT NOT NULL;
+ALTER TABLE discord_names ADD discord_id_hash TEXT NOT NULL DEFAULT '';
+ALTER TABLE discord_names ADD discord_username_hash TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS index_discord_id_hash ON discord_names (discord_id_hash);
 
-ALTER TABLE ticket_phrases ADD user_id_hash TEXT NOT NULL;
+ALTER TABLE ticket_phrases ADD user_id_hash TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS index_user_id_hash ON ticket_phrases (user_id_hash);
 
-ALTER TABLE notes ADD user_id_hash TEXT NOT NULL;
+ALTER TABLE notes ADD user_id_hash TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS index_user_id_hash ON notes (user_id_hash);
 
-ALTER TABLE bans ADD user_id_hash TEXT NOT NULL;
+ALTER TABLE bans ADD user_id_hash TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS index_user_id_hash ON bans (user_id_hash);
 
-ALTER TABLE github_user_mapping ADD discord_id_hash TEXT NOT NULL;
+ALTER TABLE github_user_mapping ADD discord_id_hash TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS index_discord_id_hash ON github_user_mapping (discord_id_hash);
 
-ALTER TABLE private_help_tickets ADD user_id_hash TEXT NOT NULL;
+ALTER TABLE private_help_tickets ADD user_id_hash TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS index_user_id_hash ON private_help_tickets (user_id_hash);
 
 --------------------------------------------------------------------------------
