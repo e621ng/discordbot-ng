@@ -64,8 +64,8 @@ async function main() {
   const privateHelpTickets = await db.all('SELECT * FROM private_help_tickets');
 
   db.exec('BEGIN TRANSACTION');
-  for (const mapping of privateHelpTickets) {
-    db.run('UPDATE private_help_tickets SET user_id = ?, user_id_hash = ? WHERE id = ?', Encrypter.encrypt(mapping.user_id), Encrypter.hash(mapping.user_id), mapping.id);
+  for (const tickets of privateHelpTickets) {
+    db.run('UPDATE private_help_tickets SET user_id = ?, user_id_hash = ? WHERE id = ?', Encrypter.encrypt(tickets.user_id), Encrypter.hash(tickets.user_id), tickets.id);
   }
   db.exec('COMMIT');
 }
@@ -91,7 +91,7 @@ class Encrypter {
     return decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8');
   }
   static hash(clearText) {
-    return crypto.createHash('sha256', this.key).update(clearText.toString()).digest('base64');
+    return crypto.createHmac('sha256', this.key).update(clearText.toString()).digest('base64');
   }
 }
 Encrypter.algorithm = 'aes-256-cbc';
