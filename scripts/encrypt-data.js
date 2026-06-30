@@ -72,7 +72,6 @@ async function main() {
 
 class Encrypter {
   static initialize(encryptionKey) {
-    console.log(`Initializing encrypter with key: ${encryptionKey}`);
     this.key = crypto.scryptSync(encryptionKey, 'salt', 32);
   }
   static encrypt(clearText) {

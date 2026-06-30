@@ -8,7 +8,6 @@ export class Encrypter {
   private static key: Buffer;
 
   static initialize(encryptionKey: string) {
-    console.log(`Initializing encrypter with key: ${encryptionKey}`);
     this.key = crypto.scryptSync(encryptionKey, 'salt', 32);
   }
 
