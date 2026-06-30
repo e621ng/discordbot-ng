@@ -91,7 +91,7 @@ class Encrypter {
     return decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8');
   }
   static hash(clearText) {
-    return crypto.createHash('sha256', this.key).update(clearText).digest('base64');
+    return crypto.createHash('sha256', this.key).update(clearText.toString()).digest('base64');
   }
 }
 Encrypter.algorithm = 'aes-256-cbc';
