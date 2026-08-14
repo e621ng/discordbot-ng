@@ -25,7 +25,7 @@ export async function closeOldTickets(client: Client) {
 }
 
 export async function createPrivateHelpTicketThread(client: Client, guild: Guild, creator: GuildMember | null, reason: string, customTitle: string = '', additionalMembersToAdd: string[] = []): Promise<PrivateThreadChannel | null> {
-  const guildSettings = await Database.getGuildSettings(guild.id);
+  const guildSettings = await Database.GetOrCreateSettings(guild.id);
 
   if (!guildSettings || !guildSettings.private_help_channel_id || !guildSettings.private_help_role_id) return null;
 

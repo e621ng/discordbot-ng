@@ -134,80 +134,79 @@ export default {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const response: string[] = [];
-    const settings = await Database.getGuildSettings(interaction.guildId!);
-    if (!settings) await Database.putGuild(interaction.guildId);
+    await Database.GetOrCreateSettings(interaction.guildId);
 
     const generalChannel = interaction.options.getChannel('general-channel');
     if (generalChannel) {
-      await Database.updateGuildSettings(interaction.guildId, 'general_chat_id', generalChannel.id);
+      await Database.updateSettings(interaction.guildId, 'general_chat_id', generalChannel.id);
       response.push(`**general_chat_id** has been set to: ${generalChannel}.`);
     }
 
     const ticketsChannel = interaction.options.getChannel('tickets-channel');
     if (ticketsChannel) {
-      await Database.updateGuildSettings(interaction.guildId, 'tickets_channel_id', ticketsChannel.id);
+      await Database.updateSettings(interaction.guildId, 'tickets_channel_id', ticketsChannel.id);
       response.push(`**tickets_channel_id** has been set to: ${ticketsChannel}.`);
     }
 
     const appealsChannel = interaction.options.getChannel('appeals-channel');
 
     if (appealsChannel) {
-      await Database.updateGuildSettings(interaction.guildId, 'appeals_channel_id', appealsChannel.id);
+      await Database.updateSettings(interaction.guildId, 'appeals_channel_id', appealsChannel.id);
 
       response.push(`**appeals_channel_id** has been set to ${appealsChannel}.`);
     }
 
     const eventLogsChannel = interaction.options.getChannel('event-logs-channel');
     if (eventLogsChannel) {
-      await Database.updateGuildSettings(interaction.guildId, 'event_logs_channel_id', eventLogsChannel.id);
+      await Database.updateSettings(interaction.guildId, 'event_logs_channel_id', eventLogsChannel.id);
       response.push(`**event_logs_channel_id** has been set to: ${eventLogsChannel}.`);
     }
 
     const discordLogsChannel = interaction.options.getChannel('discord-logs-channel');
     if (discordLogsChannel) {
-      await Database.updateGuildSettings(interaction.guildId, 'discord_logs_channel_id', discordLogsChannel.id);
+      await Database.updateSettings(interaction.guildId, 'discord_logs_channel_id', discordLogsChannel.id);
       response.push(`**discord_logs_channel_id** has been set to: ${discordLogsChannel}.`);
     }
 
     const auditLogsChannel = interaction.options.getChannel('audit-logs-channel');
     if (auditLogsChannel) {
-      await Database.updateGuildSettings(interaction.guildId, 'audit_logs_channel_id', auditLogsChannel.id);
+      await Database.updateSettings(interaction.guildId, 'audit_logs_channel_id', auditLogsChannel.id);
       response.push(`**audit_logs_channel_id** has been set to: ${auditLogsChannel}.`);
     }
 
     const voiceLogsChannel = interaction.options.getChannel('voice-logs-channel');
     if (voiceLogsChannel) {
-      await Database.updateGuildSettings(interaction.guildId, 'voice_logs_channel_id', voiceLogsChannel.id);
+      await Database.updateSettings(interaction.guildId, 'voice_logs_channel_id', voiceLogsChannel.id);
       response.push(`**voice_logs_channel_id** has been set to: ${voiceLogsChannel}.`);
     }
 
     const newMemberLogsChannel = interaction.options.getChannel('new-member-channel');
     if (newMemberLogsChannel) {
-      await Database.updateGuildSettings(interaction.guildId, 'new_member_channel_id', newMemberLogsChannel.id);
+      await Database.updateSettings(interaction.guildId, 'new_member_channel_id', newMemberLogsChannel.id);
       response.push(`**new_member_channel_id** has been set to: ${newMemberLogsChannel}.`);
     }
 
     const moderatorChannel = interaction.options.getChannel('moderator-channel');
     if (moderatorChannel) {
-      await Database.updateGuildSettings(interaction.guildId, 'moderator_channel_id', moderatorChannel.id);
+      await Database.updateSettings(interaction.guildId, 'moderator_channel_id', moderatorChannel.id);
       response.push(`**moderator_channel_id** has been set to": ${moderatorChannel}.`);
     }
 
     const adminRole = interaction.options.getRole('admin-role');
     if (adminRole) {
-      await Database.updateGuildSettings(interaction.guildId, 'admin_role_id', adminRole.id);
+      await Database.updateSettings(interaction.guildId, 'admin_role_id', adminRole.id);
       response.push(`**admin_role_id** has been set to: ${adminRole}.`);
     }
 
     const privateHelperRole = interaction.options.getRole('private-helper-role');
     if (privateHelperRole) {
-      await Database.updateGuildSettings(interaction.guildId, 'private_help_role_id', privateHelperRole.id);
+      await Database.updateSettings(interaction.guildId, 'private_help_role_id', privateHelperRole.id);
       response.push(`**private_help_role_id** has been set to: ${privateHelperRole}.`);
     }
 
     const devWatchRole = interaction.options.getRole('devwatch-role');
     if (devWatchRole) {
-      await Database.updateGuildSettings(interaction.guildId, 'devwatch_role_id', devWatchRole.id);
+      await Database.updateSettings(interaction.guildId, 'devwatch_role_id', devWatchRole.id);
       response.push(`**devwatch_role_id** has been set to ${devWatchRole}.`);
     }
 
@@ -264,13 +263,13 @@ export default {
 
     const githubReleaseChannel = interaction.options.getChannel('github-release-channel');
     if (githubReleaseChannel) {
-      await Database.updateGuildSettings(interaction.guildId, 'github_release_channel', githubReleaseChannel.id);
+      await Database.updateSettings(interaction.guildId, 'github_release_channel', githubReleaseChannel.id);
       response.push(`**github_release_channel** has been set to ${githubReleaseChannel}.`);
     }
 
     const siteBreakerRole = interaction.options.getRole('site-breaker-role');
     if (siteBreakerRole) {
-      await Database.updateGuildSettings(interaction.guildId, 'site_breaker_role_id', siteBreakerRole.id);
+      await Database.updateSettings(interaction.guildId, 'site_breaker_role_id', siteBreakerRole.id);
       response.push(`**site_breaker_role_id** has been set to ${siteBreakerRole}.`);
     }
 

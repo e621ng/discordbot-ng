@@ -10,12 +10,11 @@ const IGNORED_ACTIONS = [
 
 export async function handleAuditLogCreate(entry: GuildAuditLogsEntry, guild: Guild) {
   if (!await shouldLog(entry, guild)) return;
-  const settings = await Database.getGuildSettings(guild.id);
 
-  if (!settings || !settings.audit_logs_channel_id) return;
+  const settings = await Database.GetOrCreateSettings(guild.id);
+  if (!settings.audit_logs_channel_id) return;
 
   const channel = await guild.channels.fetch(settings.audit_logs_channel_id);
-
   if (!channel || !channel.isSendable()) return;
 
   const fields: APIEmbedField[] = [

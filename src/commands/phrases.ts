@@ -174,12 +174,12 @@ async function purgePhrases(interaction: ChatInputCommandInteraction, user: User
 async function dumpPhrases(interaction: ChatInputCommandInteraction) {
   let content = '';
 
-  const guildSettings = await Database.getGuildSettings(interaction.guildId!);
+  const settings = await Database.GetOrCreateSettings(interaction.guildId!);
 
   await Database.getAllTicketPhrases((phrase: TicketPhrase) => {
-    if (phrase.user_id == 'admin' && (!guildSettings || !guildSettings.admin_role_id)) return;
+    if (phrase.user_id == 'admin' && (!settings.admin_role_id)) return;
 
-    const mention = phrase.user_id == 'admin' ? `<@&${guildSettings?.admin_role_id}>` : `<@${phrase.user_id}>`;
+    const mention = phrase.user_id == 'admin' ? `<@&${settings.admin_role_id}>` : `<@${phrase.user_id}>`;
 
     content += `${mention}: \`${phrase.phrase}\`\n`;
   });

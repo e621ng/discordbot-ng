@@ -2,7 +2,7 @@ import path from 'path';
 import { open, Database as SqliteDatabase } from 'sqlite';
 import sqlite3 from 'sqlite3';
 import { Message } from '../events';
-import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, RoleButton, TicketMessage, TicketPhrase } from '../types';
+import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, RoleButton, TicketMessage, TicketPhrase } from '../types';
 import { deserializeMessage, serializeMessage, wait } from '../utils';
 import { readFileSync } from 'fs';
 import { Encrypter } from './Encrypter';
@@ -13,7 +13,7 @@ export const enum PrivateHelpTicketStatus {
 }
 
 export class Database {
-  private static db: SqliteDatabase;
+  static db: SqliteDatabase;
 
   static async open(file: string): Promise<void> {
     if (Database.db) return;
@@ -28,7 +28,6 @@ export class Database {
     console.log('SQLite database opened');
 
     await Database.ensure();
-
     await Database.migrate();
   }
 
@@ -75,50 +74,38 @@ export class Database {
 
   //#region Guild Settings
 
-  static async getGuildSettings(guildId: string): Promise<GuildSettings> {
+  static async GetOrCreateSettings(guildId: string): Promise<GuildSettings> {
+    await Database.db.run('INSERT OR IGNORE INTO settings (guild_id) VALUES (?)', guildId);
     return await Database.db.get<GuildSettings>('SELECT * FROM settings WHERE guild_id = ?', guildId) as GuildSettings;
   }
 
-  static async putGuild(guildId: string) {
-    await Database.db.run('INSERT INTO settings(guild_id) VALUES (?)', guildId);
-  }
-
-  static async updateGuildSettings(guildId: string, key: GuildSetting, value: string) {
+  static async updateSettings(guildId: string, key: Exclude<keyof GuildSettings, 'guild_id'>, value: string) {
     await Database.db.run(`UPDATE settings SET ${key} = ? WHERE guild_id = ?`, value, guildId);
   }
 
-  // Since "setting" has guaranteed values and is never set by the user, this shouldn't cause any security issues.
-  // But it does allow me to skip rewriting this a bunch.
   static async getGuildArraySetting(setting: GuildArraySetting, guildId: string): Promise<string[]> {
-    const settings = await Database.db.get<{ [setting]: string }>(`SELECT ${setting} FROM settings WHERE guild_id = ?`, guildId);
+    const settings = await Database.GetOrCreateSettings(guildId);
 
-    if (!settings || !settings[setting]) return [];
-
+    if (!settings[setting]) return [];
     return settings[setting].split(',');
   }
 
   static async putGuildArraySetting(setting: GuildArraySetting, guildId: string, value: string) {
     const values = await Database.getGuildArraySetting(setting, guildId);
+    if (!values.includes(value)) values.push(value);
 
-    if (values.indexOf(value) == -1) values.push(value);
-
-    const newString = values.join(',');
-
-    await Database.db.run(`UPDATE settings SET ${setting} = ? WHERE guild_id = ?`, newString, guildId);
+    await Database.updateSettings(guildId, setting, values.join(','));
   }
 
   static async removeGuildArraySetting(setting: GuildArraySetting, guildId: string, value: string): Promise<boolean> {
     const values = await Database.getGuildArraySetting(setting, guildId);
 
     const index = values.indexOf(value);
-    if (index == -1) return false;
+    if (index === -1) return false;
 
     values.splice(index, 1);
 
-    const newString = values.join(',');
-
-    await Database.db.run(`UPDATE settings SET ${setting} = ? WHERE guild_id = ?`, newString, guildId);
-
+    await Database.updateSettings(guildId, setting, values.join(','));
     return true;
   }
 
@@ -332,10 +319,10 @@ export class Database {
   }
 
   static async pruneExpiredBans(date: Date) {
-    await Database.db.all<Ban[]>('DELETE from bans WHERE expires = 1 AND expires_at <= ?', date);
+    
   }
 
-  static async removeBan(userId: string) {
+  static async deleteBan(userId: string) {
     await Database.db.run('DELETE from bans WHERE user_id_hash = ?', Encrypter.hash(userId));
   }
 

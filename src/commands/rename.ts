@@ -17,23 +17,14 @@ export default {
         .setRequired(true)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    const guildSettings = await Database.getGuildSettings(interaction.guildId!);
-
-    if (!guildSettings || !guildSettings.general_chat_id) {
-      return interaction.reply('No general chat id found.');
-    }
+    const settings = await Database.GetOrCreateSettings(interaction.guildId!);
+    if (!settings.general_chat_id) return interaction.reply('No general chat id found.');
 
     const name = interaction.options.getString('new-name', true);
+    if (name.length > 100) return interaction.reply('Name must be less than 100 characters in length.');
 
-    if (name.length > 100) {
-      return interaction.reply('Name must be less than 100 characters in length.');
-    }
-
-    const channel = await interaction.guild!.channels.fetch(guildSettings.general_chat_id)!;
-
-    if (!channel) {
-      return interaction.reply('No general chat id found.');
-    }
+    const channel = await interaction.guild!.channels.fetch(settings.general_chat_id)!;
+    if (!channel) return interaction.reply('No general chat id found.');
 
     try {
       await channel.setName(name);

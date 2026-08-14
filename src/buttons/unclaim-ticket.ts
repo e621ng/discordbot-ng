@@ -17,10 +17,8 @@ export default {
 
     const guild = await client.guilds.fetch(interaction.guildId!);
 
-    const guildSettings = await Database.getGuildSettings(guild.id);
-
-    if (!guildSettings || !guildSettings.private_help_role_id)
-      return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Failed to unclaim ticket.' });
+    const settings = await Database.GetOrCreateSettings(guild.id);
+    if (!settings.private_help_role_id) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Failed to unclaim ticket.' });
 
     const closeButton = new ButtonBuilder()
       .setCustomId('close-ticket')

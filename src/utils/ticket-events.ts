@@ -18,7 +18,7 @@ export async function ticketUpdateHandler(client: Client, update: string) {
 }
 
 async function postTicket(client: Client, data: TicketUpdate) {
-  const guildSettings = await Database.getGuildSettings(config.DISCORD_GUILD_ID!);
+  const guildSettings = await Database.GetOrCreateSettings(config.DISCORD_GUILD_ID!);
 
   if (!guildSettings || !guildSettings.tickets_channel_id) return;
 
@@ -40,7 +40,7 @@ async function postTicket(client: Client, data: TicketUpdate) {
 }
 
 async function updateTicket(client: Client, data: TicketUpdate) {
-  const guildSettings = await Database.getGuildSettings(config.DISCORD_GUILD_ID!);
+  const guildSettings = await Database.GetOrCreateSettings(config.DISCORD_GUILD_ID!);
 
   if (!guildSettings || !guildSettings.tickets_channel_id) return;
 
@@ -205,7 +205,7 @@ async function getButtons(ticket: Ticket): Promise<ActionRowBuilder<ButtonBuilde
 }
 
 async function sendTicketAlerts(ticket: Ticket, channel: SendableChannels) {
-  const guildSettings = await Database.getGuildSettings(config.DISCORD_GUILD_ID!);
+  const guildSettings = await Database.GetOrCreateSettings(config.DISCORD_GUILD_ID!);
 
   if (!guildSettings || !guildSettings.admin_role_id) return;
 

@@ -49,49 +49,15 @@ export default {
 
       modal.addLabelComponents(additionalInfoLabel, createPrivateTicket);
 
-      const guildSettings = await Database.getGuildSettings(interaction.guildId!);
+      const settings = await Database.GetOrCreateSettings(interaction.guildId!);
+      if (!settings.moderator_channel_id)
+        return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Moderator channel missing. Unable to submit report' });
 
-      if (!guildSettings || !guildSettings.moderator_channel_id)
-        return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Report channel missing. Unable to submit report' });
-
-      const reportsChannel = await interaction.guild!.channels.fetch(guildSettings.moderator_channel_id);
-
+      const reportsChannel = await interaction.guild!.channels.fetch(settings.moderator_channel_id);
       if (!reportsChannel || !reportsChannel.isSendable())
         return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Report channel missing. Unable to submit report' });
 
       await interaction.showModal(modal);
-
-      // await reportsChannel.send({
-      //   embeds: [{
-      //     title: 'New Message Report!',
-      //     fields: [
-      //       {
-      //         name: 'Message',
-      //         value: interaction.targetMessage.url,
-      //         inline: false
-      //       },
-      //       {
-      //         name: 'Author',
-      //         value: interaction.targetMessage.author.toString(),
-      //         inline: false
-      //       },
-      //       {
-      //         name: 'Reporter',
-      //         value: interaction.user.toString(),
-      //         inline: false
-      //       }
-      //     ]
-      //   }]
-      // });
-
-      // await interaction.reply({
-      //   embeds: [{
-      //     color: 0x014995,
-      //     description:
-      //       "Thanks for making a report! I've notified the moderators who can take further action."
-      //   }],
-      //   flags: [MessageFlags.Ephemeral]
-      // });
     } catch (error) {
       console.error(error);
       if (!interaction.replied) {

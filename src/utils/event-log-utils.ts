@@ -86,7 +86,7 @@ export async function logCustomEvent(guild: Guild, data: CustomEventLogData) {
 }
 
 async function getEventLogChannel(guild: Guild, channel: GuildBasedChannel | null = null): Promise<GuildTextBasedChannel | null> {
-  const settings = await Database.getGuildSettings(guild.id);
+  const settings = await Database.GetOrCreateSettings(guild.id);
 
   if (!settings) return null;
 

@@ -18,7 +18,7 @@ export default {
     if (!reportedMessageChannel || !reportedMessage)
       return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Failed to submit report. Please report this to a staff member.' });
 
-    const guildSettings = await Database.getGuildSettings(interaction.guildId!);
+    const guildSettings = await Database.GetOrCreateSettings(interaction.guildId!);
 
     if (!guildSettings || !guildSettings.moderator_channel_id)
       return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Report channel missing. Unable to submit report.' });
