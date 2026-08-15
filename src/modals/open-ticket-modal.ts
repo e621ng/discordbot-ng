@@ -8,7 +8,7 @@ export default {
     const guild = await client.guilds.fetch(interaction.guildId!);
     const member = await guild.members.fetch(interaction.user.id);
 
-    const guildSettings = await Database.GetOrCreateSettings(guild.id);
+    const guildSettings = await Database.getOrCreateSettings(guild.id);
 
     if (!guildSettings || !guildSettings.private_help_role_id)
       return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Failed to create ticket. Please report this to a staff member.' });

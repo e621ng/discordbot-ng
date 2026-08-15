@@ -15,7 +15,7 @@ export default {
 
     const guild = await client.guilds.fetch(interaction.guildId!);
 
-    const settings = await Database.GetOrCreateSettings(guild.id);
+    const settings = await Database.getOrCreateSettings(guild.id);
     if (!settings.private_help_role_id) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Failed to claim ticket.' });
 
     const closeButton = new ButtonBuilder()

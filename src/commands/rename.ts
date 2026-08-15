@@ -17,7 +17,7 @@ export default {
         .setRequired(true)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    const settings = await Database.GetOrCreateSettings(interaction.guildId!);
+    const settings = await Database.getOrCreateSettings(interaction.guildId!);
     if (!settings.general_chat_id) return interaction.reply('No general chat id found.');
 
     const name = interaction.options.getString('new-name', true);

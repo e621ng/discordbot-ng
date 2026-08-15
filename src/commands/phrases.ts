@@ -174,7 +174,7 @@ async function purgePhrases(interaction: ChatInputCommandInteraction, user: User
 async function dumpPhrases(interaction: ChatInputCommandInteraction) {
   let content = '';
 
-  const settings = await Database.GetOrCreateSettings(interaction.guildId!);
+  const settings = await Database.getOrCreateSettings(interaction.guildId!);
 
   await Database.getAllTicketPhrases((phrase: TicketPhrase) => {
     if (phrase.user_id == 'admin' && (!settings.admin_role_id)) return;

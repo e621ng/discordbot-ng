@@ -17,7 +17,7 @@ export async function appealUpdateHandler(client: Client, update: string) {
 }
 
 async function postAppeal(client: Client, data: AppealUpdate) {
-  const guildSettings = await Database.GetOrCreateSettings(config.DISCORD_GUILD_ID!);
+  const guildSettings = await Database.getOrCreateSettings(config.DISCORD_GUILD_ID!);
 
   if (!guildSettings || !guildSettings.appeals_channel_id) return;
 
@@ -40,7 +40,7 @@ async function postAppeal(client: Client, data: AppealUpdate) {
 }
 
 async function updateAppeal(client: Client, data: AppealUpdate) {
-  const guildSettings = await Database.GetOrCreateSettings(config.DISCORD_GUILD_ID!);
+  const guildSettings = await Database.getOrCreateSettings(config.DISCORD_GUILD_ID!);
 
   if (!guildSettings || !guildSettings.appeals_channel_id) return;
 

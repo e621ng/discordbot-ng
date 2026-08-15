@@ -3,7 +3,7 @@ import { Database } from '../shared/Database';
 import { getE621Alts } from '../utils';
 
 export async function handleMemberJoin(member: GuildMember) {
-  const guildSettings = await Database.GetOrCreateSettings(member.guild.id);
+  const guildSettings = await Database.getOrCreateSettings(member.guild.id);
 
   if (guildSettings.new_member_channel_id) {
     const channel = await member.guild.channels.fetch(guildSettings.new_member_channel_id) as GuildTextBasedChannel;

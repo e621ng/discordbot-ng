@@ -13,7 +13,8 @@ export const enum PrivateHelpTicketStatus {
 }
 
 export class Database {
-  static db: SqliteDatabase;
+  private static db: SqliteDatabase;
+  private static settings: Map<string, GuildSettings>;
 
   static async open(file: string): Promise<void> {
     if (Database.db) return;
@@ -74,9 +75,15 @@ export class Database {
 
   //#region Guild Settings
 
-  static async GetOrCreateSettings(guildId: string): Promise<GuildSettings> {
+  static async getOrCreateSettings(guildId: string): Promise<GuildSettings> {
+    const localStore = this.settings.get(guildId);
+    if (localStore) return localStore;
+
     await Database.db.run('INSERT OR IGNORE INTO settings (guild_id) VALUES (?)', guildId);
-    return await Database.db.get<GuildSettings>('SELECT * FROM settings WHERE guild_id = ?', guildId) as GuildSettings;
+    const store = await Database.db.get<GuildSettings>('SELECT * FROM settings WHERE guild_id = ?', guildId) as GuildSettings;
+
+    this.settings.set(guildId, store);
+    return store;
   }
 
   static async updateSettings(guildId: string, key: Exclude<keyof GuildSettings, 'guild_id'>, value: string) {
@@ -84,7 +91,7 @@ export class Database {
   }
 
   static async getGuildArraySetting(setting: GuildArraySetting, guildId: string): Promise<string[]> {
-    const settings = await Database.GetOrCreateSettings(guildId);
+    const settings = await Database.getOrCreateSettings(guildId);
 
     if (!settings[setting]) return [];
     return settings[setting].split(',');

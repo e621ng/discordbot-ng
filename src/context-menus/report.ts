@@ -49,7 +49,7 @@ export default {
 
       modal.addLabelComponents(additionalInfoLabel, createPrivateTicket);
 
-      const settings = await Database.GetOrCreateSettings(interaction.guildId!);
+      const settings = await Database.getOrCreateSettings(interaction.guildId!);
       if (!settings.moderator_channel_id)
         return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Moderator channel missing. Unable to submit report' });
 

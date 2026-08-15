@@ -205,7 +205,7 @@ async function handleGithubRelease(client: Client, req: Request, res: Response):
 
   if (data.action != 'published' || data.repository.id != GITHUB_REPO_ID) return;
 
-  const settings = await Database.GetOrCreateSettings(config.DISCORD_GUILD_ID!);
+  const settings = await Database.getOrCreateSettings(config.DISCORD_GUILD_ID!);
 
   if (!settings || !settings.github_release_channel) return;
 

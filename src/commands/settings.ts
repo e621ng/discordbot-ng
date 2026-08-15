@@ -134,7 +134,7 @@ export default {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     const response: string[] = [];
-    await Database.GetOrCreateSettings(interaction.guildId);
+    await Database.getOrCreateSettings(interaction.guildId);
 
     const generalChannel = interaction.options.getChannel('general-channel');
     if (generalChannel) {

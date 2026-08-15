@@ -7,7 +7,7 @@ export default {
     try {
       if (!interaction.guild) throw new Error('This action must be run in a guild.');
 
-      const settings = await Database.GetOrCreateSettings(interaction.guild.id);
+      const settings = await Database.getOrCreateSettings(interaction.guild.id);
       if (!settings.devwatch_role_id) throw new Error('`devwatch_role_id` was not configured. Please configure a role then try again.');
 
       const member = await interaction.guild.members.fetch(interaction.user.id);
