@@ -326,7 +326,7 @@ export class Database {
   }
 
   static async pruneExpiredBans(date: Date) {
-    
+    await Database.db.all<Ban[]>('DELETE from bans WHERE expires = 1 AND expires_at <= ?', date);
   }
 
   static async deleteBan(userId: string) {
