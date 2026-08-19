@@ -14,7 +14,7 @@ export const enum PrivateHelpTicketStatus {
 
 export class Database {
   private static db: SqliteDatabase;
-  private static settings: Map<string, GuildSettings>;
+  private static settings: Map<string, GuildSettings> = [];
 
   static async open(file: string): Promise<void> {
     if (Database.db) return;
@@ -328,7 +328,7 @@ export class Database {
   static async pruneExpiredBans(date: Date) {
     await Database.db.all<Ban[]>('DELETE from bans WHERE expires = 1 AND expires_at <= ?', date);
   }
- 
+
   static async removeBan(userId: string) {
     await Database.db.run('DELETE from bans WHERE user_id_hash = ?', Encrypter.hash(userId));
   }
