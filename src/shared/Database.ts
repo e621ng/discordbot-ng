@@ -14,7 +14,7 @@ export const enum PrivateHelpTicketStatus {
 
 export class Database {
   private static db: SqliteDatabase;
-  private static settings: Map<string, GuildSettings> = [] = [];
+  private static settings: Map<string, GuildSettings> = [];
 
   static async open(file: string): Promise<void> {
     if (Database.db) return;
