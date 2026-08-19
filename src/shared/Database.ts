@@ -88,6 +88,7 @@ export class Database {
 
   static async updateSettings(guildId: string, key: Exclude<keyof GuildSettings, 'guild_id'>, value: string) {
     await Database.db.run(`UPDATE settings SET ${key} = ? WHERE guild_id = ?`, value, guildId);
+    this.settings.delete(guildId);
   }
 
   static async getGuildArraySetting(setting: GuildArraySetting, guildId: string): Promise<string[]> {
