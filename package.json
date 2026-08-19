@@ -1,4 +1,6 @@
 {
+  "name": "discordbot-ng",
+
   "devDependencies": {
     "@eslint/js": "9.27.0",
     "@stylistic/eslint-plugin": "4.2.0",
