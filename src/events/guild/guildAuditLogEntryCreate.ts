@@ -89,7 +89,6 @@ export default {
     channel.send({
       embeds: [{
         ...CreateDefaultEmbed(guild.client),
-
         fields: fields,
       }]
     });

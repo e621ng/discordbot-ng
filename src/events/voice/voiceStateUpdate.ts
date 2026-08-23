@@ -42,7 +42,6 @@ async function memberLeftChannel(state: VoiceState, _: VoiceState) {
       ...SetSeverity('error'),
 
       title: 'Left Voice Channel',
-
       fields: [
         { name: 'Member', value: `<@${state.member?.id}>`, inline: false },
         { name: 'Channel', value: `${state.channel?.name} (${state.channelId})`, inline: true },
