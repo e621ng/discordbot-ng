@@ -13,7 +13,7 @@ export async function checkExpiredBans(client: Client) {
     try {
       await guild.bans.remove(ban.user_id, 'Ban expired.');
     } catch (e) {
-      console.error(`Error unbanning user: ${ban.user_id}:\n${e}`);
+      console.error(`Error unbanning user: ${ban.user_id}`, e);
     }
   }
 
