@@ -4,6 +4,10 @@ export default {
   event: 'threadCreate',
 
   handler: async (thread: AnyThreadChannel, newlyCreated: boolean) => {
-    await thread.join();
+    try {
+      await thread.join();
+    } catch (e) {
+      console.error(`Failed to join thread: ${thread.name} (${thread.id})`, e);
+    }
   }
 };
