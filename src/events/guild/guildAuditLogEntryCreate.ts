@@ -1,4 +1,4 @@
-import { APIEmbedField, APIRole, AuditLogEvent, Guild, GuildAuditLogsEntry, RoleFlags } from 'discord.js';
+import { APIEmbedField, APIRole, AuditLogEvent, Guild, GuildAuditLogsEntry, RoleFlags, SnowflakeUtil } from 'discord.js';
 import { Database } from '../../shared/Database';
 import { CreateDefaultEmbed, formatChanges, formatExtras, formatSnowflake, getTargetType } from '../../utils';
 
@@ -90,6 +90,7 @@ export default {
       embeds: [{
         ...CreateDefaultEmbed(guild.client),
         title: Object.keys(AuditLogEvent)[Object.values(AuditLogEvent).indexOf(entry.action)],
+        timestamp: String(SnowflakeUtil.decode(entry.id).timestamp),
         fields: fields,
       }]
     });
