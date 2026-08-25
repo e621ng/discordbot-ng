@@ -8,7 +8,7 @@ export default {
   handler: async (messages: ReadonlyCollection<string, Message | OmitPartialGroupDMChannel<PartialMessage>>, channel: GuildTextBasedChannel) => {
     for (const message of messages.values()) {
       const loggedMessage = await Database.getMessageWithRetry(message.id);
-      if (!loggedMessage) return;
+      if (!loggedMessage) continue;
 
       await Database.removeMessge(message.id);
 
