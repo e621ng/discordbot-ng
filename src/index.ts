@@ -144,8 +144,10 @@ client.on('clientReady', async () => {
   ScheduledTasks.forEach(task => scheduler.add(task));
 
   events.forEach(event =>
-    //@ts-ignore TypeScript doesn't like my patchwork, neither would anyone else for that matter.
-    client.on(event.event, async (...args) => await event.handler(...args))
+    client.on(event.event, (...args) =>
+      Promise.resolve(event.handler(...args)).catch(e =>
+        console.error(`Error in ${event.event} handler:`, e))
+    )
   );
 
   ready = true;
