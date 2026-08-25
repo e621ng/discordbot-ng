@@ -145,8 +145,8 @@ client.on('clientReady', async () => {
 
   events.forEach(event =>
     client.on(event.event, (...args) =>
-      Promise.resolve(event.handler(...args)).catch(e =>
-        console.error(`Error in ${event.event} handler:`, e))
+      Promise.resolve((event.handler as (...args: unknown[]) => Promise<void>)(...args))
+        .catch(e => console.error(`Error in ${event.event} handler:`, e))
     )
   );
 
