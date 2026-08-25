@@ -90,7 +90,6 @@ export default {
       embeds: [{
         ...CreateDefaultEmbed(guild.client),
         title: Object.keys(AuditLogEvent)[Object.values(AuditLogEvent).indexOf(entry.action)],
-        timestamp: String(SnowflakeUtil.decode(entry.id).timestamp),
         fields: fields,
       }]
     });
