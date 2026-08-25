@@ -11,10 +11,9 @@ export async function checkExpiredBans(client: Client) {
 
   for (const ban of await Database.getExpiredBans(date)) {
     try {
-      await guild.bans.remove(ban.user_id);
+      await guild.bans.remove(ban.user_id, 'Ban expired.');
     } catch (e) {
-      console.error(`Error unbanning user: ${ban.user_id}`);
-      console.error(e);
+      console.error(`Error unbanning user: ${ban.user_id}`, e);
     }
   }
 

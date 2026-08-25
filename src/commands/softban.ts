@@ -70,7 +70,7 @@ export default {
     }
 
     try {
-      await interaction.guild.bans.remove(user);
+      await interaction.guild.bans.remove(user, 'User was softbanned.');
     } catch (e) {
       console.error(e);
       return await interaction.editReply("Error softbanning user (couldn't remove ban).");
