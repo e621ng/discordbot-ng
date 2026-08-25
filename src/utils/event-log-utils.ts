@@ -1,7 +1,7 @@
 import { APIEmbedField, AttachmentBuilder, EmbedBuilder, Guild, GuildBasedChannel, GuildTextBasedChannel, MessageCreateOptions } from 'discord.js';
-import { Message } from '../events';
 import { Database } from '../shared/Database';
 import { LoggedMessage } from '../types';
+import { Message } from '../utils';
 import { channelIsInStaffCategory } from './channel-utils';
 import { deserializeMessagePart, getModifiedAttachments, getModifiedStickers } from './message-utils';
 

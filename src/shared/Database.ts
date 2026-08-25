@@ -1,10 +1,9 @@
+import { readFileSync } from 'fs';
 import path from 'path';
 import { open, Database as SqliteDatabase } from 'sqlite';
 import sqlite3 from 'sqlite3';
-import { Message } from '../events';
 import { AppealMessage, Ban, GithubUserMapping, GuildArraySetting, GuildSettings, KnowledgebaseItem, LoggedMessage, Note, PrivateHelpTicket, RoleButton, TicketMessage, TicketPhrase } from '../types';
-import { deserializeMessage, serializeMessage, wait } from '../utils';
-import { readFileSync } from 'fs';
+import { deserializeMessage, Message, serializeMessage, wait } from '../utils';
 import { Encrypter } from './Encrypter';
 
 export const enum PrivateHelpTicketStatus {
