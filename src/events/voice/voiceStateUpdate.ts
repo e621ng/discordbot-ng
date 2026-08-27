@@ -16,7 +16,7 @@ async function memberJoinedChannel(_: VoiceState, state: VoiceState) {
   const channel = await getVoiceLogsChannel(state.guild);
   if (!channel) return;
 
-  channel.send({
+  await channel.send({
     embeds: [{
       ...CreateDefaultEmbed(state.client),
       ...SetSeverity('success'),
@@ -36,7 +36,7 @@ async function memberLeftChannel(state: VoiceState, _: VoiceState) {
   const channel = await getVoiceLogsChannel(state.guild);
   if (!channel) return;
 
-  channel.send({
+  await channel.send({
     embeds: [{
       ...CreateDefaultEmbed(state.client),
       ...SetSeverity('error'),
@@ -55,7 +55,7 @@ async function memberMovedChannel(oldState: VoiceState, newState: VoiceState) {
   const channel = await getVoiceLogsChannel(newState.guild);
   if (!channel) return;
 
-  channel.send({
+  await channel.send({
     embeds: [{
       ...CreateDefaultEmbed(newState.client),
       ...SetSeverity('warning'),

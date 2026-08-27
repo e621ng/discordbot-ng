@@ -86,7 +86,7 @@ export default {
       });
     }
 
-    channel.send({
+    await channel.send({
       embeds: [{
         ...CreateDefaultEmbed(guild.client),
         title: Object.keys(AuditLogEvent)[Object.values(AuditLogEvent).indexOf(entry.action)],
