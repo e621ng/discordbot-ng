@@ -1,13 +1,13 @@
 import { Client as DiscordClient, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
 import { config } from './config';
 import events from './events';
-import { ScheduledTasks, Scheduler } from './scheduler';
 import { Database } from './shared/Database';
 import { openRedisClient } from './shared/RedisClient';
 import { Handler } from './types';
 import { initIfNecessary, loadHandlersFrom, refreshCommands } from './utils';
 import { initializeWebserver } from './webserver';
 import { Encrypter } from './shared/Encrypter';
+import tasks from './tasks';
 
 
 let ready = false;
@@ -30,8 +30,6 @@ const client = new DiscordClient({
     repliedUser: false
   }
 });
-
-const scheduler: Scheduler = new Scheduler(client);
 
 const commands: Handler[] = [];
 const contextMenus: Handler[] = [];
@@ -141,7 +139,15 @@ client.on('clientReady', async () => {
 
   await initializeWebserver(client);
 
-  ScheduledTasks.forEach(task => scheduler.add(task));
+  tasks.forEach((task) => {
+    const handler = () => {
+      Promise.resolve(task.handle(client))
+        .catch(e => console.error(`Error in '${task.id}' task:`, e));
+    };
+
+    if (task.firstRun) handler();
+    setInterval(handler, task.interval);
+  });
 
   events.forEach(event =>
     client.on(event.event, (...args) =>
