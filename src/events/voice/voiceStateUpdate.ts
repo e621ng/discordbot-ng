@@ -69,7 +69,7 @@ async function memberMovedChannel(oldState: VoiceState, newState: VoiceState) {
   });
 }
 
-class VoiceStateUpdateEvent extends Event<Client, 'voiceStateUpdate'> {
+class VoiceStateUpdateEvent implements Event<Client, 'voiceStateUpdate'> {
   event = 'voiceStateUpdate' as const;
 
   async execute(context: Client<boolean>, oldState: VoiceState, newState: VoiceState): Promise<void> {

@@ -4,7 +4,7 @@ import { Database } from '../../shared/Database';
 import { Event } from '../../types';
 import { isEdited, logEdit, Message, regexTesters, uniqueRegexMatches } from '../../utils';
 
-class MessageUpdateEvent extends Event<Client, 'messageUpdate'> {
+class MessageUpdateEvent implements Event<Client, 'messageUpdate'> {
   event = 'messageUpdate' as const;
 
   async execute(context: Client<boolean>, oldMessage: Message | PartialMessage, newMessage: Message): Promise<void> {

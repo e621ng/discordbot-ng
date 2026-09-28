@@ -3,7 +3,7 @@ import { Database } from '../../shared/Database';
 import { Event } from '../../types';
 import { logDeletion } from '../../utils';
 
-class MessageDeleteBulkEvent extends Event<Client, 'messageDeleteBulk'> {
+class MessageDeleteBulkEvent implements Event<Client, 'messageDeleteBulk'> {
   event = 'messageDeleteBulk' as const;
 
   async execute(context: Client<boolean>, messages: ReadonlyCollection<string, Message | OmitPartialGroupDMChannel<PartialMessage>>, channel: GuildTextBasedChannel): Promise<void> {

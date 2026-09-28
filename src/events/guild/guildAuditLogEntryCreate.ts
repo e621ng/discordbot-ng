@@ -34,7 +34,7 @@ async function shouldLogRoleChanges(entry: GuildAuditLogsEntry<AuditLogEvent.Mem
   return false;
 }
 
-class GuildAuditLogEntryCreateEvent extends Event<Client, 'guildAuditLogEntryCreate'> {
+class GuildAuditLogEntryCreateEvent implements Event<Client, 'guildAuditLogEntryCreate'> {
   event = 'guildAuditLogEntryCreate' as const;
 
   async execute(context: Client, entry: GuildAuditLogsEntry, guild: Guild): Promise<void> {

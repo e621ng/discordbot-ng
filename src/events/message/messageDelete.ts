@@ -3,7 +3,7 @@ import { Database } from '../../shared/Database';
 import { Event } from '../../types';
 import { logDeletion } from '../../utils';
 
-class MessageDeleteEvent extends Event<Client, 'messageDelete'> {
+class MessageDeleteEvent implements Event<Client, 'messageDelete'> {
   event = 'messageDelete' as const;
 
   async execute(context: Client<boolean>, message: Message | PartialMessage): Promise<void> {

@@ -3,7 +3,7 @@ import { Database } from '../../shared/Database';
 import { Event } from '../../types';
 import { getE621Alts } from '../../utils';
 
-class GuildMemberAddEvent extends Event<Client, 'guildMemberAdd'> {
+class GuildMemberAddEvent implements Event<Client, 'guildMemberAdd'> {
   event = 'guildMemberAdd' as const;
 
   async execute(context: Client<boolean>, member: GuildMember): Promise<void> {

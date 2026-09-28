@@ -4,7 +4,7 @@ import { Database } from '../../shared/Database';
 import { Event } from '../../types';
 import { ALLOWED_MIMETYPES, blacklistIfNecessary, calculateMD5FromURL, getE621PostByMd5, getPostUrl, md5Regex, Message, regexTesters, uniqueRegexMatches } from '../../utils';
 
-class MessageCreateEvent extends Event<Client, 'messageCreate'> {
+class MessageCreateEvent implements Event<Client, 'messageCreate'> {
   event = 'messageCreate' as const;
 
   async execute(context: Client<boolean>, message: Message): Promise<void> {

@@ -1,7 +1,7 @@
 import { AnyThreadChannel, Client } from 'discord.js';
 import { Event } from '../../types';
 
-class ThreadCreateEvent extends Event<Client, 'threadCreate'> {
+class ThreadCreateEvent implements Event<Client, 'threadCreate'> {
   event = 'threadCreate' as const;
 
   async execute(context: Client<boolean>, thread: AnyThreadChannel, _newlyCreated: boolean) {
