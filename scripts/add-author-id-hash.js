@@ -1,9 +1,6 @@
 import crypto from 'crypto';
-import dotenv from 'dotenv';
 import { open } from 'sqlite';
 import sqlite3 from 'sqlite3';
-
-dotenv.config();
 
 async function main() {
   Encrypter.initialize(process.env.DATABASE_SECRET);
