@@ -20,7 +20,6 @@
     "discord.js": "14.27.0",
     "express": "5.1.0",
     "express-session": "1.19.0",
-    "markdown-it": "15.0.0",
     "memorystore": "1.6.7",
     "sqlite": "5.1.1",
     "sqlite3": "6.0.1"
