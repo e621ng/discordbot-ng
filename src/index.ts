@@ -1,4 +1,4 @@
-import { Client as DiscordClient, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
+import { Client, Client as DiscordClient, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
 import { config } from './config';
 import events from './events';
 import { Database } from './shared/Database';
@@ -151,7 +151,7 @@ client.on('clientReady', async () => {
 
   events.forEach(event =>
     client.on(event.event, (...args) =>
-      Promise.resolve((event.handler as (...args: unknown[]) => Promise<void>)(...args))
+      Promise.resolve((event.execute as (context: Client, ...args: unknown[]) => Promise<void>)(client, ...args))
         .catch(e => console.error(`Error in ${event.event} handler:`, e))
     )
   );
@@ -159,7 +159,6 @@ client.on('clientReady', async () => {
   ready = true;
   console.log('Ready');
 });
-
 
 client.on('error', console.error);
 process.on('uncaughtException', console.error);

@@ -1,5 +1,6 @@
-import { Guild, GuildTextBasedChannel, VoiceState } from 'discord.js';
+import { Client, Guild, GuildTextBasedChannel, VoiceState } from 'discord.js';
 import { Database } from '../../shared/Database';
+import { Event } from '../../types';
 import { CreateDefaultEmbed, SetSeverity } from '../../utils';
 
 async function getVoiceLogsChannel(guild: Guild): Promise<GuildTextBasedChannel | undefined> {
@@ -22,7 +23,6 @@ async function memberJoinedChannel(_: VoiceState, state: VoiceState) {
       ...SetSeverity('success'),
 
       title: 'Joined Voice Channel',
-
       fields: [
         { name: 'Member', value: `<@${state.member?.id}>`, inline: false },
         { name: 'Channel', value: `${state.channel?.name} (${state.channelId})`, inline: true },
@@ -61,7 +61,6 @@ async function memberMovedChannel(oldState: VoiceState, newState: VoiceState) {
       ...SetSeverity('warning'),
 
       title: 'Moved Voice Channel',
-
       fields: [
         { name: 'Member', value: `<@${newState.member?.id}>`, inline: false },
         { name: 'Channel', value: `<#${oldState.channelId}> -> <#${newState.channelId}>`, inline: false },
@@ -70,10 +69,10 @@ async function memberMovedChannel(oldState: VoiceState, newState: VoiceState) {
   });
 }
 
-export default {
-  event: 'voiceStateUpdate',
+class VoiceStateUpdateEvent implements Event<Client, 'voiceStateUpdate'> {
+  event = 'voiceStateUpdate' as const;
 
-  handler: async (oldState: VoiceState, newState: VoiceState) => {
+  async execute(context: Client<boolean>, oldState: VoiceState, newState: VoiceState): Promise<void> {
     // Ignore non-movement voiceStateUpdate events.
     if (oldState.channelId === newState.channelId) return;
 
@@ -84,4 +83,6 @@ export default {
     else if (newState.channelId == null && oldState.channelId != null)
       await memberLeftChannel(oldState, newState);
   }
-};
+}
+
+export default new VoiceStateUpdateEvent();

@@ -1,11 +1,13 @@
+import { Client } from 'discord.js';
 import { config } from '../../config';
 import { Database } from '../../shared/Database';
+import { Event } from '../../types';
 import { ALLOWED_MIMETYPES, blacklistIfNecessary, calculateMD5FromURL, getE621PostByMd5, getPostUrl, md5Regex, Message, regexTesters, uniqueRegexMatches } from '../../utils';
 
-export default {
-  event: 'messageCreate',
+class MessageCreateEvent implements Event<Client, 'messageCreate'> {
+  event = 'messageCreate' as const;
 
-  handler: async (message: Message) => {
+  async execute(context: Client<boolean>, message: Message): Promise<void> {
     if (message.author.bot) return;
     if (message.inGuild()) await Database.putMessage(message);
 
@@ -66,4 +68,6 @@ export default {
       await message.reply(responses.join('\n'));
     }
   }
-};
+}
+
+export default new MessageCreateEvent();
