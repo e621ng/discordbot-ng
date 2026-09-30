@@ -1,11 +1,12 @@
-import { Message, PartialMessage } from 'discord.js';
+import { Client, Message, PartialMessage } from 'discord.js';
 import { Database } from '../../shared/Database';
+import { Event } from '../../types';
 import { logDeletion } from '../../utils';
 
-export default {
-  event: 'messageDelete',
+class MessageDeleteEvent implements Event<Client, 'messageDelete'> {
+  event = 'messageDelete' as const;
 
-  handler: async (message: Message | PartialMessage) => {
+  async execute(context: Client<boolean>, message: Message | PartialMessage): Promise<void> {
     const loggedMessage = await Database.getMessageWithRetry(message.id);
     if (!loggedMessage) return;
 
@@ -13,4 +14,6 @@ export default {
 
     if (message.inGuild()) await logDeletion(loggedMessage, message);
   }
-};
+}
+
+export default new MessageDeleteEvent();

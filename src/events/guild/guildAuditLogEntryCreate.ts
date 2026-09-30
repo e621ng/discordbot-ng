@@ -1,5 +1,6 @@
-import { APIEmbedField, APIRole, AuditLogEvent, Guild, GuildAuditLogsEntry, RoleFlags, SnowflakeUtil } from 'discord.js';
+import { APIEmbedField, APIRole, AuditLogEvent, Client, Guild, GuildAuditLogsEntry, RoleFlags, SnowflakeUtil } from 'discord.js';
 import { Database } from '../../shared/Database';
+import { Event } from '../../types';
 import { CreateDefaultEmbed, formatChanges, formatExtras, formatSnowflake, getTargetType } from '../../utils';
 
 const IGNORED_ACTIONS = [
@@ -33,10 +34,10 @@ async function shouldLogRoleChanges(entry: GuildAuditLogsEntry<AuditLogEvent.Mem
   return false;
 }
 
-export default {
-  event: 'guildAuditLogEntryCreate',
+class GuildAuditLogEntryCreateEvent implements Event<Client, 'guildAuditLogEntryCreate'> {
+  event = 'guildAuditLogEntryCreate' as const;
 
-  handler: async (entry: GuildAuditLogsEntry, guild: Guild) => {
+  async execute(context: Client, entry: GuildAuditLogsEntry, guild: Guild): Promise<void> {
     if (!await shouldLog(entry, guild)) return;
 
     const settings = await Database.getOrCreateSettings(guild.id);
@@ -95,4 +96,6 @@ export default {
       }]
     });
   }
-};
+}
+
+export default new GuildAuditLogEntryCreateEvent();

@@ -1,13 +1,16 @@
-import { AnyThreadChannel } from 'discord.js';
+import { AnyThreadChannel, Client } from 'discord.js';
+import { Event } from '../../types';
 
-export default {
-  event: 'threadCreate',
+class ThreadCreateEvent implements Event<Client, 'threadCreate'> {
+  event = 'threadCreate' as const;
 
-  handler: async (thread: AnyThreadChannel, newlyCreated: boolean) => {
+  async execute(context: Client<boolean>, thread: AnyThreadChannel, _newlyCreated: boolean) {
     try {
       await thread.join();
     } catch (e) {
       console.error(`Failed to join thread: ${thread.name} (${thread.id})`, e);
     }
   }
-};
+}
+
+export default new ThreadCreateEvent();
