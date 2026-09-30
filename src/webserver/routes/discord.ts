@@ -7,6 +7,7 @@ import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { config } from '../../config';
 import { Database } from '../../shared/Database';
 import { AltData, comprehensiveAltLookupFromE621, DiscordOAuth2 } from '../../utils';
+import { ContentfulStatusCode } from 'hono/utils/http-status';
 
 const DEV_BASE_URL = `http://localhost:${config.PORT}`;
 const PROD_BASE_URL = 'https://discord.e621.net';
@@ -237,12 +238,12 @@ function sendBadRequest(c: Context, message: string = ''): Response {
   return render(c, 400, 'Bad Request', message);
 }
 
-function render(c: Context, code: number, title: string = '', message: string = ''): Response {
+function render(c: Context, code: ContentfulStatusCode, title: string = '', message: string = ''): Response {
   const html = PAGE_TEMPLATE
     .replaceAll('{{ title }}', title)
     .replaceAll('{{ message }}', message);
 
-  return c.html(html, code as any);
+  return c.html(html, code);
 }
 
 async function checkAltsForFullBans(altData: AltData[]): Promise<boolean> {

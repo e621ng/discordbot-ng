@@ -8,7 +8,7 @@ import { fixPings, logDebug, removeIssueLinks  } from '../../utils';
 
 const GITHUB_REPO_ID = 169334303;
 
-async function handleGithubRelease(client: Client, c: Context): Promise<Response> {
+async function handleGithubRelease(client: Client, c: Context): Promise<void> {
   logDebug('Received github release webhook');
 
   /*
@@ -21,13 +21,17 @@ async function handleGithubRelease(client: Client, c: Context): Promise<Response
   const signatureHeader = c.req.header('x-hub-signature-256');
   if (!signatureHeader) {
     console.error('Github release webhook signature missing');
-    return c.body(null, 401);
+    c.body(null, 401);
+
+    return;
   }
 
   const signature = signatureHeader.split('=')[1];
   if (!signature) {
     console.error('Github release webhook signature malformed');
-    return c.body(null, 401);
+    c.body(null, 401);
+
+    return;
   }
 
   const computedSignature = crypto.createHmac('sha256', config.RELEASE_SECRET!)
@@ -38,12 +42,14 @@ async function handleGithubRelease(client: Client, c: Context): Promise<Response
   const computedBuffer = Buffer.from(computedSignature, 'hex');
   if (providedBuffer.length !== computedBuffer.length || !crypto.timingSafeEqual(providedBuffer, computedBuffer)) {
     console.error('Github release webhook signature mismatch');
-    return c.body(null, 401);
+    c.body(null, 401);
+
+    return;
   }
 
-  await processGithubRelease(client, Buffer.from(rawBody));
+  c.body(null, 200);
 
-  return c.body(null, 200);
+  void processGithubRelease(client, Buffer.from(rawBody));
 }
 
 async function processGithubRelease(client: Client, rawBody: Buffer): Promise<void> {
@@ -59,7 +65,7 @@ async function processGithubRelease(client: Client, rawBody: Buffer): Promise<vo
 
     const channel = await client.channels.fetch(settings.github_release_channel);
     if (!channel || !channel.isSendable()) {
-      console.error(`Github release channel ${channel ? 'sendable' : 'found'}`);
+      console.error(`Github release channel ${channel ? 'not sendable' : 'found'}`);
       return;
     }
 
