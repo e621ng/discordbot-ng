@@ -61,7 +61,7 @@ async function processGithubRelease(client: Client, rawBody: Buffer): Promise<vo
     if (data.action !== 'published' || data.repository.id !== GITHUB_REPO_ID) return;
 
     const settings = await Database.getOrCreateSettings(config.DISCORD_GUILD_ID!);
-    if (!settings || !settings.github_release_channel) return;
+    if (!settings.github_release_channel) return;
 
     const channel = await client.channels.fetch(settings.github_release_channel);
     if (!channel || !channel.isSendable()) {
