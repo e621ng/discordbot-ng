@@ -3,11 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import { Hono, type Context } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
+import { ContentfulStatusCode } from 'hono/utils/http-status';
 
 import { config } from '../../config';
 import { Database } from '../../shared/Database';
 import { AltData, comprehensiveAltLookupFromE621, DiscordOAuth2 } from '../../utils';
-import { ContentfulStatusCode } from 'hono/utils/http-status';
 
 const DEV_BASE_URL = `http://localhost:${config.PORT}`;
 const PROD_BASE_URL = 'https://discord.e621.net';
