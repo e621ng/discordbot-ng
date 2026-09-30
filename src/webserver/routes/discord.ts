@@ -45,10 +45,6 @@ const enum JoinResponse {
   Underage = 4
 };
 
-function createSessionId(): string {
-  return crypto.randomBytes(32).toString('hex');
-}
-
 // Cleanup expired sessions.
 function cleanupSessions(): void {
   const now = Date.now();
@@ -76,7 +72,7 @@ function getSession(c: Context): SessionData | undefined {
 }
 
 function createSession(c: Context, data: Omit<SessionData, 'expiresAt'>): void {
-  const sessionId = createSessionId();
+  const sessionId = crypto.randomBytes(32).toString('hex');
   sessions.set(sessionId, {
     ...data,
     expiresAt: Date.now() + SESSION_MAX_AGE * 1000
