@@ -1,4 +1,4 @@
-import { Client, REST, RESTPostAPIApplicationCommandsJSONBody, Routes } from 'discord.js';
+import { Client, RESTPostAPIApplicationCommandsJSONBody, Routes } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
 import { config } from '../config';
