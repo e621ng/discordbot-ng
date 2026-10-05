@@ -8,7 +8,7 @@ import { fixPings, logDebug, removeIssueLinks  } from '../../utils';
 
 const GITHUB_REPO_ID = 169334303;
 
-async function handleGithubRelease(client: Client, c: Context): Promise<void> {
+async function handleGithubRelease(client: Client, c: Context): Promise<Response> {
   logDebug('Received github release webhook');
 
   /*
@@ -21,17 +21,13 @@ async function handleGithubRelease(client: Client, c: Context): Promise<void> {
   const signatureHeader = c.req.header('x-hub-signature-256');
   if (!signatureHeader) {
     console.error('Github release webhook signature missing');
-    c.body(null, 401);
-
-    return;
+    return c.body(null, 401);
   }
 
   const signature = signatureHeader.split('=')[1];
   if (!signature) {
     console.error('Github release webhook signature malformed');
-    c.body(null, 401);
-
-    return;
+    return c.body(null, 401);
   }
 
   const computedSignature = crypto.createHmac('sha256', config.RELEASE_SECRET!)
@@ -42,14 +38,12 @@ async function handleGithubRelease(client: Client, c: Context): Promise<void> {
   const computedBuffer = Buffer.from(computedSignature, 'hex');
   if (providedBuffer.length !== computedBuffer.length || !crypto.timingSafeEqual(providedBuffer, computedBuffer)) {
     console.error('Github release webhook signature mismatch');
-    c.body(null, 401);
-
-    return;
+    return c.body(null, 401);
   }
 
-  c.body(null, 200);
-
   void processGithubRelease(client, Buffer.from(rawBody));
+
+  return c.body(null, 200);
 }
 
 async function processGithubRelease(client: Client, rawBody: Buffer): Promise<void> {
