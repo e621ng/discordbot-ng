@@ -1,4 +1,4 @@
-import { Client, Client as DiscordClient, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
+import { Client, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
 import { config } from './config';
 import events from './events';
 import { Database } from './shared/Database';
@@ -14,7 +14,7 @@ let ready = false;
 
 console.log('Starting...');
 
-const client = new DiscordClient({
+const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
@@ -24,11 +24,15 @@ const client = new DiscordClient({
     GatewayIntentBits.MessageContent
   ],
   partials: [Partials.Message, Partials.GuildMember, Partials.User, Partials.Channel],
-  rest: { timeout: 30000 },
+
+  rest: {
+    version: '10'
+  },
+
   allowedMentions: {
     parse: [],
     repliedUser: false
-  }
+  },
 });
 
 const commands: Handler[] = [];
