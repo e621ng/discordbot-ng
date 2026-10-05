@@ -65,7 +65,7 @@ async function processGithubRelease(client: Client, rawBody: Buffer): Promise<vo
 
     const channel = await client.channels.fetch(settings.github_release_channel);
     if (!channel || !channel.isSendable()) {
-      console.error(`Github release channel ${channel ? 'not sendable' : 'found'}`);
+      console.error(`Github release channel not ${channel ? 'sendable' : 'found'}`);
       return;
     }
 
