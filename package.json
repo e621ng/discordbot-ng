@@ -3,8 +3,6 @@
   "devDependencies": {
     "@eslint/js": "9.39.5",
     "@stylistic/eslint-plugin": "5.2.1",
-    "@types/express": "5.0.2",
-    "@types/express-session": "1.18.1",
     "copyfiles": "2.4.1",
     "eslint": "9.39.5",
     "rimraf": "6.0.1",
@@ -14,12 +12,10 @@
   },
   "dependencies": {
     "@clynamic/dmark": "0.0.11",
+    "@hono/node-server": "2.1.1",
     "@redis/client": "5.1.0",
-    "body-parser": "2.3.0",
     "discord.js": "14.27.0",
-    "express": "5.1.0",
-    "express-session": "1.19.0",
-    "memorystore": "1.6.7",
+    "hono": "4.13.10",
     "sqlite": "5.1.1",
     "sqlite3": "6.0.1"
   },
