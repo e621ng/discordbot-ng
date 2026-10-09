@@ -24,6 +24,7 @@ export default {
     await interaction.editReply({ content: 'Ticket closed.' });
 
     channel.edit({
+      name: `[CLOSED] ${channel.name}`.slice(0, 100),
       archived: true,
       locked: true
     });

@@ -21,6 +21,7 @@ export default {
     await interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Ticket closed.' });
 
     channel.edit({
+      name: `[CLOSED] ${channel.name}`.slice(0, 100),
       archived: true,
       locked: true
     });
