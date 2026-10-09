@@ -1,23 +1,25 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ChatInputCommandInteraction, Client, Guild, GuildMember, ModalBuilder, PrivateThreadChannel, TextChannel, TextInputStyle, ThreadAutoArchiveDuration, ThreadChannel, UserContextMenuCommandInteraction } from 'discord.js';
 import { Database } from '../shared/Database';
-import { createTextInput, createYesNoMenu } from './modal-utils';
+import { createTextInput, createYesNoMenu } from '.';
 
 export async function closeOldTickets(client: Client) {
   for (const ticket of await Database.getAllOpenPrivateHelpTickets()) {
+    const thread = await client.channels.fetch(ticket.thread_id) as ThreadChannel;
+    const latestMessage = (await thread.messages.fetch({ limit: 1 })).at(0);
+
+    // We only process tickets older than 5 days.
+    if (latestMessage && latestMessage.createdTimestamp > Date.now() - 432e6) continue;
+
     try {
-      const thread = await client.channels.fetch(ticket.thread_id) as ThreadChannel;
-      const latestMessage = (await thread.messages.fetch({ limit: 1 })).at(0);
-      if (latestMessage && latestMessage.createdTimestamp <= Date.now() - 432e6) {
-        await Database.closePrivateHelpTicket(thread.id);
+      await Database.closePrivateHelpTicket(thread.id);
 
-        await thread.send('This ticket has been closed due to inactivity.');
+      await thread.send('This ticket has been closed due to inactivity.');
 
-        thread.edit({
-          name: `[CLOSED] ${thread.name}`,
-          archived: true,
-          locked: true
-        });
-      }
+      await thread.edit({
+        name: `[CLOSED] ${thread.name}`,
+        archived: true,
+        locked: true,
+      });
     } catch (e) {
       console.error('Error closing ticket due to inactivity:', e);
     }
