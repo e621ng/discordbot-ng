@@ -1,28 +1,55 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ChatInputCommandInteraction, Client, Guild, GuildMember, ModalBuilder, PrivateThreadChannel, TextChannel, TextInputStyle, ThreadAutoArchiveDuration, ThreadChannel, UserContextMenuCommandInteraction } from 'discord.js';
 import { Database } from '../shared/Database';
-import { createTextInput, createYesNoMenu } from '.';
+import { CreateDefaultEmbed, createTextInput, createYesNoMenu, SetSeverity } from '.';
 
 export async function closeOldTickets(client: Client) {
   for (const ticket of await Database.getAllOpenPrivateHelpTickets()) {
-    const thread = await client.channels.fetch(ticket.thread_id) as ThreadChannel;
-    const latestMessage = (await thread.messages.fetch({ limit: 1 })).at(0);
-
-    // We only process tickets older than 5 days.
-    if (latestMessage && latestMessage.createdTimestamp > Date.now() - 432e6) continue;
-
     try {
-      await Database.closePrivateHelpTicket(thread.id);
+      const thread = await client.channels.fetch(ticket.thread_id) as ThreadChannel;
+      const latestMessage = (await thread.messages.fetch({ limit: 1 })).at(0);
+  
+      // Only process stale tickets. (Tickets with 5 days since the last message.)
+      if (latestMessage && latestMessage.createdTimestamp > Date.now() - 432e6) continue;
 
-      await thread.send('This ticket has been closed due to inactivity.');
-
-      await thread.edit({
-        name: `[CLOSED] ${thread.name}`,
-        archived: true,
-        locked: true,
-      });
+      await closeTicket(client, thread, 'This ticket has been closed due to inactivity.');
     } catch (e) {
       console.error('Error closing ticket due to inactivity:', e);
     }
+  }
+}
+
+export async function closeTicket(context: Client, thread: ThreadChannel, reason: string): Promise<boolean> {
+  try {
+    await Database.closePrivateHelpTicket(thread.id);
+
+    await thread.send({
+      embeds: [{
+        ...CreateDefaultEmbed(context),
+        ...SetSeverity('info'),
+
+        title: 'Ticket Closed',
+        description: reason,
+      }],
+    });
+
+    await thread.edit({
+      name: `[CLOSED] ${thread.name}`.slice(0, 100),
+      archived: true,
+      locked: true,
+    });
+
+    return true;
+  } catch (error) {
+    console.log('An error occured while trying to close the ticket:', error);
+
+    await thread.send({
+      embeds: [{
+        ...SetSeverity('error'),
+        description: 'I encountered an error while trying to close this ticket.',
+      }],
+    });
+
+    return false;
   }
 }
 

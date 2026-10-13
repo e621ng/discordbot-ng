@@ -1,5 +1,5 @@
 import { ButtonInteraction, Client, MessageFlags, ChannelType } from 'discord.js';
-import { Database } from '../shared/Database';
+import { closeTicket } from '../utils';
 
 export default {
   name: 'close-ticket',
@@ -7,23 +7,21 @@ export default {
     const channel = await interaction.channel?.fetch();
 
     if (!channel || !channel.isThread() || !channel.isSendable() || channel.type != ChannelType.PrivateThread)
-      return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Oops. Something went wrong. Please report this to a staff member.' });
+      return await interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Oops. Something went wrong. Please report this to a staff member.' });
+
+    await interaction.reply({
+      content: 'Closing, please wait...',
+      flags: MessageFlags.Ephemeral
+    });
 
     await interaction.message.edit({
       content: interaction.message.content,
       components: []
     });
 
-    await Database.closePrivateHelpTicket(channel.id);
+    if (await closeTicket(client, channel, `This ticket has been closed by ${interaction.user}`))
+      return await interaction.editReply({ content: 'An error occured while trying to close this ticket.' });
 
-    await channel.send(`This ticket has been closed by ${interaction.user}`);
-
-    await interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Ticket closed.' });
-
-    channel.edit({
-      name: `[CLOSED] ${channel.name}`.slice(0, 100),
-      archived: true,
-      locked: true
-    });
+    await interaction.editReply({ content: 'Ticket closed.' });
   }
 };
