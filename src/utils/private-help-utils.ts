@@ -7,7 +7,7 @@ export async function closeOldTickets(client: Client) {
     try {
       const thread = await client.channels.fetch(ticket.thread_id) as ThreadChannel;
       const latestMessage = (await thread.messages.fetch({ limit: 1 })).at(0);
-  
+
       // Only process stale tickets. (Tickets with 5 days since the last message.)
       if (latestMessage && latestMessage.createdTimestamp > Date.now() - 432e6) continue;
 
