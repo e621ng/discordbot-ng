@@ -5,7 +5,7 @@ import { Button } from '../types';
 class RoleButtonButton implements Button<Client> {
   id = 'role-button';
 
-  async execute(context: Client<boolean>, interaction: ButtonInteraction, ...args: any[]): Promise<void> {
+  async execute(context: Client<boolean>, interaction: ButtonInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 

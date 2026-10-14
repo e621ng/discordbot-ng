@@ -5,7 +5,7 @@ import { Button } from '../types';
 class DevWatchButton implements Button<Client> {
   id = 'dev-watch';
 
-  async execute(context: Client<boolean>, interaction: ButtonInteraction, ...args: any[]): Promise<void> {
+  async execute(context: Client<boolean>, interaction: ButtonInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 

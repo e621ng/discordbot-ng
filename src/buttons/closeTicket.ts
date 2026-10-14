@@ -1,10 +1,11 @@
 import { ButtonInteraction, Client, MessageFlags, ChannelType } from 'discord.js';
+import { Database } from '../shared/Database';
 import { Button } from '../types';
 
-class CloseModTicketButton implements Button<Client> {
-  id = 'close-mod-ticket';
+class CloseTicketButton implements Button<Client> {
+  id = 'close-ticket';
 
-  async execute(context: Client<boolean>, interaction: ButtonInteraction, ...args: any[]): Promise<void> {
+  async execute(context: Client<boolean>, interaction: ButtonInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
@@ -14,18 +15,18 @@ class CloseModTicketButton implements Button<Client> {
       if (!channel) throw new Error("The interaction channel couldn't be fetched.");
       if (!channel.isThread() || channel.type != ChannelType.PrivateThread) throw new Error('This interaction was not run in a ticket thread.');
       if (!channel.isSendable()) throw new Error("I don't have permission to send messages in this channel.");
-  
-      if (!interaction.memberPermissions.has('KickMembers')) throw new Error("You don't have permission to close this ticket.");
-  
+
       await interaction.message.edit({
         content: interaction.message.content,
         components: []
       });
-  
-      await channel.send('This ticket has been closed by staff.');
-  
-      await interaction.editReply({ content: 'Ticket closed.' });
-  
+
+      await Database.closePrivateHelpTicket(channel.id);
+
+      await channel.send(`This ticket has been closed by ${interaction.user}`);
+
+      await interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Ticket closed.' });
+
       await channel.edit({
         archived: true,
         locked: true
@@ -36,4 +37,4 @@ class CloseModTicketButton implements Button<Client> {
   }
 }
 
-export default new CloseModTicketButton();
+export default new CloseTicketButton();

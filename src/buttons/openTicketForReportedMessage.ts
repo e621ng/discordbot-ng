@@ -5,7 +5,7 @@ import { createPrivateHelpTicketThread } from '../utils';
 class OpenTicketForReportedMessageButton implements Button<Client> {
   id = 'open-ticket-for-reported-message';
 
-  async execute(context: Client<boolean>, interaction: ButtonInteraction, ...args: any[]): Promise<void> {
+  async execute(context: Client<boolean>, interaction: ButtonInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 

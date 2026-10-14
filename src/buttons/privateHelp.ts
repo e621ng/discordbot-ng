@@ -5,7 +5,7 @@ import { canOpenPrivateHelpTicket, createTextInput } from '../utils';
 class PrivateHelpButton implements Button<Client> {
   id = 'private-help';
 
-  async execute(context: Client<boolean>, interaction: ButtonInteraction, ...args: any[]): Promise<void> {
+  async execute(context: Client<boolean>, interaction: ButtonInteraction): Promise<void> {
     try {
       if (!await canOpenPrivateHelpTicket(interaction.user.id))
         throw new Error('You can only have one open ticket at a time that is less than a day old.');
