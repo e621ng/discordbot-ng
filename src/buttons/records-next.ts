@@ -1,15 +1,18 @@
 import { ButtonInteraction, Client } from 'discord.js';
+import { Button } from '../types';
 import { getRecordMessageFromDiscordId } from '../utils';
 
-export default {
-  name: 'records-next',
-  handler: async function (client: Client, interaction: ButtonInteraction, userId: string, page: string) {
+class RecordsNextButton implements Button<Client> {
+  id = 'records-next';
+
+  async execute(context: Client<boolean>, interaction: ButtonInteraction, userId: string, page: string): Promise<void> {
     await interaction.deferUpdate();
 
     const message = await getRecordMessageFromDiscordId(userId, parseInt(page) + 1, interaction.guild!);
-
     if (!message) return;
 
-    interaction.editReply(message);
+    await interaction.editReply(message);
   }
-};
+}
+
+export default new RecordsNextButton();
