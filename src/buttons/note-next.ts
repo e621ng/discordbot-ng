@@ -1,15 +1,18 @@
 import { ButtonInteraction, Client } from 'discord.js';
+import { Button } from '../types';
 import { getNoteMessage } from '../utils';
 
-export default {
-  name: 'note-next',
-  handler: async function (client: Client, interaction: ButtonInteraction, userId: string, page: string) {
+class NoteNextButton implements Button<Client> {
+  id = 'note-next';
+
+  async execute(context: Client<boolean>, interaction: ButtonInteraction, userId: string, page: string): Promise<void> {
     await interaction.deferUpdate();
 
     const message = await getNoteMessage(userId, parseInt(page) + 1);
-
     if (!message) return;
 
-    interaction.editReply(message);
+    await interaction.editReply(message);
   }
-};
+}
+
+export default new NoteNextButton();
