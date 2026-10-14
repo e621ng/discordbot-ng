@@ -1,7 +1,7 @@
 import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, Client, EmbedBuilder, GuildTextBasedChannel, MessageFlags, ModalSubmitInteraction } from 'discord.js';
 import { Database } from '../shared/Database';
-import { canOpenPrivateHelpTicket, createPrivateHelpTicketThread } from '../utils';
 import { Modal } from '../types';
+import { canOpenPrivateHelpTicket, createPrivateHelpTicketThread } from '../utils';
 
 class ReportMessageModal implements Modal<Client> {
   id = 'report-message';
@@ -97,3 +97,5 @@ class ReportMessageModal implements Modal<Client> {
     }
   }
 }
+
+export default new ReportMessageModal();

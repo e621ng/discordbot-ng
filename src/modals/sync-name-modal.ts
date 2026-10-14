@@ -1,32 +1,27 @@
 import { Client, ModalSubmitInteraction } from 'discord.js';
-import { config } from '../config';
+import { Modal } from '../types';
 import { deferInteraction, syncName } from '../utils';
 
-export default {
-  name: 'sync-name-modal',
-  handler: async function (client: Client, interaction: ModalSubmitInteraction, id: string) {
+class SyncNameModal implements Modal<Client> {
+  id = 'sync-name-modal';
+
+  async execute(context: Client<boolean>, interaction: ModalSubmitInteraction, id: string): Promise<void> {
+    if (!interaction.inGuild()) return;
     await deferInteraction(interaction);
 
-    const e621Id = Number(interaction.fields.getTextInputValue('id') ?? 0);
+    try {
+      const e621Id = Number(interaction.fields.getTextInputValue('id') ?? 0);
+      if (isNaN(e621Id)) throw new Error('Provided id is not a number.');
 
-    if (isNaN(e621Id)) return await interaction.editReply('Provided id is not a number');
+      const guild = await context.guilds.fetch(interaction.guildId);
+      const member = await guild.members.fetch(id);
+      if (!member) throw new Error('Unable to fetch the target member.');
 
-    const member = await interaction.guild?.members.fetch(id);
-
-    if (!member) {
-      return interaction.editReply('An error has occurred. Please try again later.');
+      await syncName(interaction, member, e621Id);
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
     }
-
-    const guild = await interaction.client.guilds.fetch(config.DISCORD_GUILD_ID!);
-
-    if (!guild) {
-      return interaction.editReply('An error has occurred. Please try again later.');
-    }
-
-    if (!guild.members.me) {
-      return interaction.editReply('An error has occurred. Please try again later.');
-    }
-
-    await syncName(interaction, member, e621Id);
   }
-};
+}
+
+export default new SyncNameModal();
