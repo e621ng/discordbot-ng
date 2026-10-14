@@ -40,14 +40,14 @@ export async function closeTicket(context: Client, thread: ThreadChannel, reason
 
     return true;
   } catch (error) {
-    console.log('An error occured while trying to close the ticket:', error);
+    console.error('An error occured while trying to close the ticket:', error);
 
     await thread.send({
       embeds: [{
         ...SetSeverity('error'),
         description: 'I encountered an error while trying to close this ticket.',
       }],
-    });
+    }).catch(() => {});
 
     return false;
   }
