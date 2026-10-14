@@ -1,49 +1,41 @@
-import { Client, MessageFlags, ModalSubmitInteraction } from 'discord.js';
+import { Client, ModalSubmitInteraction } from 'discord.js';
 import { Database } from '../shared/Database';
+import { Modal } from '../types';
 import { deferInteraction, logCustomEvent } from '../utils';
 
-export default {
-  name: 'add-knowledgebase-item-modal',
-  handler: async function (client: Client, interaction: ModalSubmitInteraction) {
-    if (!interaction.guild) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Must be ran in guild.' });
+class AddKnowledgebaseItemModal implements Modal<Client> {
+  id = 'add-knowledgebase-item-modal';
 
+  async execute(context: Client<boolean>, interaction: ModalSubmitInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
     await deferInteraction(interaction);
 
-    const name = interaction.fields.getTextInputValue('name');
-    const content = interaction.fields.getTextInputValue('content');
+    try {
+      const name = interaction.fields.getTextInputValue('name');
+      const content = interaction.fields.getTextInputValue('content');
+      if (content.length > 2000) throw new Error('Content cannot be longer than 2000 characters.');
 
-    if (content.length > 2000) return interaction.editReply('Content cannot be over 2000 characters long.');
+      const existing = await Database.getFromKnowledgebaseByName(interaction.guildId, name);
+      if (existing) throw new Error(`A knowledgebase item under \`${name}\` already exists.`);
 
-    const existingItem = await Database.getFromKnowledgebaseByName(interaction.guild.id, name);
+      await logCustomEvent(interaction.guild!, {
+        title: 'Knowledgebase Item Added',
+        description: null,
+        color: 0x00FF00,
+        timestamp: new Date(),
+        fields: [
+          { name: 'User', value: `${interaction.user} (${interaction.user.id})`, inline: false },
+          { name: 'Name', value: name, inline: false },
+          { name: 'Content', value: content, inline: false },
+        ],
+      });
 
-    if (existingItem) return interaction.editReply(`Knowledgebase item ${name} already exists!`);
-
-    logCustomEvent(interaction.guild!, {
-      title: 'Knowledgebase Item Added',
-      description: null,
-      color: 0x00FF00,
-      timestamp: new Date(),
-      fields: [
-        {
-          name: 'User',
-          value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-          inline: true
-        },
-        {
-          name: 'Name',
-          value: name,
-          inline: true
-        },
-        {
-          name: 'Content',
-          value: content,
-          inline: true
-        }
-      ]
-    });
-
-    await Database.addToKnowledgebase(interaction.guild.id, name, content);
-
-    return interaction.editReply(`Entry \`${name}\` added to knowledgebase.`);
+      await Database.addToKnowledgebase(interaction.guildId, name, content);
+      await interaction.editReply(`\`${name}\` has been added to the knowledgebase.`);
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
+    }
   }
-};
+}
+
+export default new AddKnowledgebaseItemModal();
