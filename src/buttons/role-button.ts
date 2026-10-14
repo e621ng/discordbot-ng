@@ -1,6 +1,6 @@
 import { ButtonInteraction, Client, MessageFlags } from 'discord.js';
-import { Button } from '../types';
 import { Database } from '../shared/Database';
+import { Button } from '../types';
 
 class RoleButtonButton implements Button<Client> {
   id = 'role-button';
