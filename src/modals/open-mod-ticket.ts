@@ -14,7 +14,7 @@ class OpenModTicketModal implements Modal<Client> {
 
     try {
       const settings = await Database.getOrCreateSettings(interaction.guildId);
-      if (settings.private_help_channel_id) throw new Error("`private_help_channel_id` hasn't been configured. Please report this error to staff.");
+      if (!settings.private_help_channel_id) throw new Error("`private_help_channel_id` hasn't been configured. Please report this error to staff.");
 
       const guild = await context.guilds.fetch(interaction.guildId);
       const member = await guild.members.fetch(userId);

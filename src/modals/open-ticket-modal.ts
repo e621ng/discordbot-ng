@@ -15,7 +15,7 @@ class OpenTicketModal implements Modal<Client> {
       const member = await guild.members.fetch(interaction.user.id);
 
       const settings = await Database.getOrCreateSettings(interaction.guildId);
-      if (settings.private_help_role_id) throw new Error("`private_help_role_id` hasn't been configured. Please report this error to staff.");
+      if (!settings.private_help_role_id) throw new Error("`private_help_role_id` hasn't been configured. Please report this error to staff.");
 
       const reason = interaction.fields.getTextInputValue('ticket-message');
       const thread = await createPrivateHelpTicketThread(context, guild, member, reason);
