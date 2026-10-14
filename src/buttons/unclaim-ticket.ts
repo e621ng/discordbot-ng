@@ -1,42 +1,52 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, Client, MessageFlags, PermissionFlagsBits } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, Client, MessageFlags } from 'discord.js';
 import { Database } from '../shared/Database';
+import { Button } from '../types';
 
-export default {
-  name: 'unclaim-ticket',
-  handler: async function (client: Client, interaction: ButtonInteraction) {
-    const channel = await interaction.channel?.fetch();
+class UnclaimTicketButton implements Button<Client> {
+  id = 'unclaim-ticket';
 
-    if (!channel || !channel.isThread() || !channel.isSendable() || channel.type != ChannelType.PrivateThread)
-      return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Oops. Something went wrong.' });
+  async execute(context: Client<boolean>, interaction: ButtonInteraction, ...args: any[]): Promise<void> {
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply();
 
-    if (!interaction.memberPermissions) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'An error has occurred.' });
+    try {
+      const channel = await context.channels.fetch(interaction.channelId);
 
-    if (!interaction.memberPermissions.has(PermissionFlagsBits.ManageMessages)) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'You do not have permission to unclaim this ticket.' });
+      if (!channel) throw new Error("The interaction channel couldn't be fetched.");
+      if (!channel.isThread() || channel.type != ChannelType.PrivateThread) throw new Error('This interaction was not run in a ticket thread.');
+      if (!channel.isSendable()) throw new Error("I don't have permission to send messages in this channel.");
 
-    if (!interaction.message.content.split('\n').at(-1)!.includes(`<@${interaction.user.id}>`)) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'You did not claim this ticket.' });
+      const settings = await Database.getOrCreateSettings(interaction.guildId);
+      if (!settings.private_help_role_id) throw new Error("\`private_help_role_id\` hasn't been configured. Please report this error to staff.");
 
-    const guild = await client.guilds.fetch(interaction.guildId!);
+      const guild = await context.guilds.fetch(interaction.guildId);
+      const member = await guild.members.fetch(interaction.user.id);
+      if (!member.roles.cache.has(settings.private_help_role_id)) throw new Error("You don't have permission to claim tickets.");
 
-    const settings = await Database.getOrCreateSettings(guild.id);
-    if (!settings.private_help_role_id) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Failed to unclaim ticket.' });
+      if (!interaction.message.content.split('\n').at(-1)!.includes(`<@${interaction.user.id}>`)) throw new Error(`You haven't claimed this ticket.`);
 
-    const closeButton = new ButtonBuilder()
-      .setCustomId('close-ticket')
-      .setLabel('Click here if you no longer need help')
-      .setStyle(ButtonStyle.Danger);
+      const closeButton = new ButtonBuilder()
+        .setCustomId('close-ticket')
+        .setLabel('Click here if you no longer need help')
+        .setStyle(ButtonStyle.Danger);
 
-    const claimButton = new ButtonBuilder()
-      .setCustomId('claim-ticket')
-      .setLabel('Claim ticket')
-      .setStyle(ButtonStyle.Primary);
+      const claimButton = new ButtonBuilder()
+        .setCustomId('claim-ticket')
+        .setLabel('Claim ticket')
+        .setStyle(ButtonStyle.Primary);
 
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeButton, claimButton);
+      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeButton, claimButton);
 
-    await interaction.message.edit({
-      content: interaction.message.content.split('\n').slice(0, -1).join('\n').trim(),
-      components: [row]
-    });
+      await interaction.message.edit({
+        content: interaction.message.content.split('\n').slice(0, -1).join('\n').trim(),
+        components: [row]
+      });
 
-    await interaction.reply({ content: 'Ticket unclaimed.', flags: [MessageFlags.Ephemeral] });
+      await interaction.reply({ content: 'Ticket unclaimed.', flags: [MessageFlags.Ephemeral] });
+    } catch (error: Error | any) {
+      
+    }
   }
-};
+}
+
+export default new UnclaimTicketButton();
