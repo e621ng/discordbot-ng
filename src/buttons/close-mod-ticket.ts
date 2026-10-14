@@ -20,7 +20,7 @@ export default {
       components: []
     });
 
-    if (!await closeTicket(client, channel, `This ticket has been closed by staff.`))
+    if (!await closeTicket(client, channel, 'This ticket has been closed by staff.'))
       return await interaction.editReply({ content: 'An error occurred while trying to close this ticket.' });
 
     await interaction.editReply({ content: 'Ticket closed.' });
