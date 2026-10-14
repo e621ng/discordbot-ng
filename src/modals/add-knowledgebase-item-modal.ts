@@ -31,7 +31,7 @@ class AddKnowledgebaseItemModal implements Modal<Client> {
       });
 
       await Database.addToKnowledgebase(interaction.guildId, name, content);
-      await interaction.editReply(`\`${name}\` has been added to the knowledgebase.`);
+      await interaction.editReply({ content: `\`${name}\` has been added to the knowledgebase.` });
     } catch (error: Error | any) {
       await interaction.editReply({ content: error.message }).catch(() => {});
     }

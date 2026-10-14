@@ -32,7 +32,7 @@ class EditKnowledgebaseItemModal implements Modal<Client> {
       });
 
       await Database.editKnowledgebaseItem(id, content);
-      await interaction.editReply(`\`${existing.name}\` has been edited.`);
+      await interaction.editReply({ content: `\`${existing.name}\` has been edited.` });
     } catch (error: Error | any) {
       await interaction.editReply({ content: error.message }).catch(() => {});
     }

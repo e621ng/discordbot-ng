@@ -1,7 +1,7 @@
 import { Client, MessageFlags, ModalSubmitInteraction } from 'discord.js';
 import { Database } from '../shared/Database';
-import { createPrivateHelpTicketThread } from '../utils';
 import { Modal } from '../types';
+import { createPrivateHelpTicketThread } from '../utils';
 
 const warning = '\n\n\nLeaving this thread without acknowledgement may result in punishment. Staff will close the thread when they deem your response acceptable.';
 
