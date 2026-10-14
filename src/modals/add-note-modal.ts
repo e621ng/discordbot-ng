@@ -1,40 +1,38 @@
-import { Client, MessageFlags, ModalSubmitInteraction } from 'discord.js';
+import { Client, ModalSubmitInteraction } from 'discord.js';
 import { Database } from '../shared/Database';
-import { logCustomEvent } from '../utils';
+import { deferInteraction, logCustomEvent } from '../utils';
+import { Modal } from '../types';
 
-export default {
-  name: 'add-note-modal',
-  handler: async function (client: Client, interaction: ModalSubmitInteraction, id: string) {
-    const message = interaction.fields.getTextInputValue('note-message');
+class AddNoteModal implements Modal<Client> {
+  id = 'add-note-modal';
 
-    const user = await client.users.fetch(id);
+  async execute(context: Client<boolean>, interaction: ModalSubmitInteraction, id: string): Promise<void> {
+    if (!interaction.inGuild()) return;
+    await deferInteraction(interaction);
 
-    logCustomEvent(interaction.guild!, {
-      title: 'Note Added',
-      description: null,
-      color: 0x00FF00,
-      timestamp: new Date(),
-      fields: [
-        {
-          name: 'Moderator',
-          value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-          inline: true
-        },
-        {
-          name: 'User',
-          value: `<@${id}>\n${user.username}`,
-          inline: true
-        },
-        {
-          name: 'Note',
-          value: message,
-          inline: true
-        }
-      ]
-    });
+    try {
+      const message = interaction.fields.getTextInputValue('note-message');
+      const guild = await context.guilds.fetch(interaction.guildId);
+      const user = await context.users.fetch(id);
 
-    await Database.putNote(id, message, interaction.user.id);
+      await logCustomEvent(guild, {
+        title: 'Note Added',
+        description: null,
+        color: 0x00FF00,
+        timestamp: new Date(),
+        fields: [
+          { name: 'Moderator', value: `${interaction.user} (${interaction.user.id})`, inline: false },
+          { name: 'User', value: `${user.username} (${user.id})`, inline: false },
+          { name: 'Note', value: message, inline: false },
+        ],
+      });
 
-    interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Note added' });
+      await Database.putNote(id, message, interaction.user.id);
+      await interaction.editReply({ content: 'Note added.' });
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
+    }
   }
-};
+}
+
+export default new AddNoteModal();
