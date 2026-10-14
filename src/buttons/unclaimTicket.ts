@@ -42,9 +42,9 @@ class UnclaimTicketButton implements Button<Client> {
         components: [row]
       });
 
-      await interaction.reply({ content: 'Ticket unclaimed.', flags: [MessageFlags.Ephemeral] });
+      await interaction.editReply({ content: 'Ticket unclaimed.' });
     } catch (error: Error | any) {
-      
+      await interaction.editReply({ content: error.message }).catch(() => {});
     }
   }
 }

@@ -95,7 +95,7 @@ client.on('interactionCreate', async (interaction) => {
     for (const button of buttons) {
       if (button.id != id) continue;
 
-      Promise.resolve((button.execute as (context: Client, ...args: unknown[]) => Promise<void>)(client, ...interaction.customId.split('_').slice(1))
+      Promise.resolve((button.execute as (context: Client, ...args: unknown[]) => Promise<void>)(client, interaction, ...interaction.customId.split('_').slice(1))
         .catch(e => console.error('An error occurred while handling a button interaction: ', e)));
       return;
     }

@@ -25,7 +25,7 @@ class CloseTicketButton implements Button<Client> {
 
       await channel.send(`This ticket has been closed by ${interaction.user}`);
 
-      await interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Ticket closed.' });
+      await interaction.editReply({ content: 'Ticket closed.' });
 
       await channel.edit({
         archived: true,
