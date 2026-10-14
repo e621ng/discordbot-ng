@@ -1,28 +1,40 @@
 import { ButtonInteraction, Client, MessageFlags, ChannelType } from 'discord.js';
 import { Database } from '../shared/Database';
+import { Button } from '../types';
 
-export default {
-  name: 'close-ticket',
-  handler: async function (client: Client, interaction: ButtonInteraction) {
-    const channel = await interaction.channel?.fetch();
+class CloseTicketButton implements Button<Client> {
+  id = 'close-ticket';
 
-    if (!channel || !channel.isThread() || !channel.isSendable() || channel.type != ChannelType.PrivateThread)
-      return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Oops. Something went wrong. Please report this to a staff member.' });
+  async execute(context: Client<boolean>, interaction: ButtonInteraction, ...args: any[]): Promise<void> {
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    await interaction.message.edit({
-      content: interaction.message.content,
-      components: []
-    });
+    try {
+      const channel = await context.channels.fetch(interaction.channelId);
+  
+      if (!channel) throw new Error("The interaction channel couldn't be fetched.");
+      if (!channel.isThread() || channel.type != ChannelType.PrivateThread) throw new Error('This interaction was not run in a ticket thread.');
+      if (!channel.isSendable()) throw new Error("I don't have permission to send messages in this channel.");
 
-    await Database.closePrivateHelpTicket(channel.id);
+      await interaction.message.edit({
+        content: interaction.message.content,
+        components: []
+      });
 
-    await channel.send(`This ticket has been closed by ${interaction.user}`);
+      await Database.closePrivateHelpTicket(channel.id);
 
-    await interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Ticket closed.' });
+      await channel.send(`This ticket has been closed by ${interaction.user}`);
 
-    channel.edit({
-      archived: true,
-      locked: true
-    });
+      await interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Ticket closed.' });
+
+      await channel.edit({
+        archived: true,
+        locked: true
+      });
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
+    }
   }
-};
+}
+
+export default new CloseTicketButton();
