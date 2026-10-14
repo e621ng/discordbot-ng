@@ -1,32 +1,38 @@
 import { ButtonInteraction, Client, MessageFlags } from 'discord.js';
 import { Database } from '../shared/Database';
+import { Button } from '../types';
 
-export default {
-  name: 'dev-watch',
-  handler: async function (client: Client, interaction: ButtonInteraction) {
+class DevWatchButton implements Button<Client> {
+  id = 'dev-watch';
+
+  async execute(context: Client<boolean>, interaction: ButtonInteraction, ...args: any[]): Promise<void> {
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
     try {
-      if (!interaction.guild) throw new Error('This action must be run in a guild.');
-
-      const settings = await Database.getOrCreateSettings(interaction.guild.id);
+      const settings = await Database.getOrCreateSettings(interaction.guildId);
       if (!settings.devwatch_role_id) throw new Error('`devwatch_role_id` was not configured. Please configure a role then try again.');
 
-      const member = await interaction.guild.members.fetch(interaction.user.id);
-      if (!member) throw new Error('Unable to retreive the member executing this command.');
+      const guild = await context.guilds.fetch(interaction.guildId);
+      const member = await guild.members.fetch(interaction.user.id);
+      if (!member) throw new Error('Unable to fetch the member executing this command.');
 
-      const bot = await interaction.guild.members.fetchMe();
-      const role = await interaction.guild?.roles.fetch(settings.devwatch_role_id);
+      const bot = await guild.members.fetchMe();
+      const role = await guild.roles.fetch(settings.devwatch_role_id);
       if (!role) throw new Error('The configured `devwatch_role_id` does not exist.');
       if (role.position > bot.roles.highest.position) throw new Error('The configured `devwatch_role_id` is higher than my highest role.');
 
       if (member.roles.cache.has(settings.devwatch_role_id)) {
         await member.roles.remove(settings.devwatch_role_id);
-        await interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Removed role.' });
+        await interaction.editReply({ content: 'Removed role.' });
       } else {
         await member.roles.add(settings.devwatch_role_id);
-        await interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Added role.' });
+        await interaction.editReply({ content: 'Added role.' });
       }
     } catch (error: Error | any) {
-      await interaction.reply({ flags: [MessageFlags.Ephemeral], content: error.message });
+      await interaction.editReply({ content: error.message }).catch(() => {});
     }
   }
-};
+}
+
+export default new DevWatchButton();
