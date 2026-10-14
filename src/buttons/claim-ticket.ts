@@ -7,6 +7,7 @@ class ClaimTicketButton implements Button<Client> {
 
   async execute(context: Client<boolean>, interaction: ButtonInteraction, ...args: any[]): Promise<void> {
     if (!interaction.inGuild()) return;
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     try {
       const channel = await context.channels.fetch(interaction.channelId);
@@ -17,7 +18,10 @@ class ClaimTicketButton implements Button<Client> {
 
       const settings = await Database.getOrCreateSettings(interaction.guildId);
       if (!settings.private_help_role_id) throw new Error("\`private_help_role_id\` hasn't been configured. Please report this error to staff.");
-      if (!(interaction.member.roles as string[]).includes(settings.private_help_role_id)) throw new Error("You don't have permission to claim tickets.");
+
+      const guild = await context.guilds.fetch(interaction.guildId);
+      const member = await guild.members.fetch(interaction.user.id);
+      if (!member.roles.cache.has(settings.private_help_role_id)) throw new Error("You don't have permission to claim tickets.");
 
       const closeButton = new ButtonBuilder()
         .setCustomId('close-ticket')
@@ -36,14 +40,9 @@ class ClaimTicketButton implements Button<Client> {
         components: [row]
       });
 
-      await interaction.reply({ content: `Ticket claimed by ${interaction.user}.` });
+      await interaction.editReply({ content: `Ticket claimed by ${interaction.user}.` });
     } catch (error: Error | any) {
-      await interaction.reply({
-        content: error.message,
-        flags: MessageFlags.Ephemeral,
-      }).catch(() => {});
-
-      return;
+      await interaction.editReply({ content: error.message }).catch(() => {});
     }
   }
 }
