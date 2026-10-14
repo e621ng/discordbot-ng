@@ -11,7 +11,7 @@ class CloseTicketButton implements Button<Client> {
 
     try {
       const channel = await context.channels.fetch(interaction.channelId);
-  
+
       if (!channel) throw new Error("The interaction channel couldn't be fetched.");
       if (!channel.isThread() || channel.type != ChannelType.PrivateThread) throw new Error('This interaction was not run in a ticket thread.');
       if (!channel.isSendable()) throw new Error("I don't have permission to send messages in this channel.");

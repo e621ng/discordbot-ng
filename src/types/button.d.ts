@@ -1,4 +1,4 @@
-import { ButtonInteraction } from "discord.js";
+import { ButtonInteraction } from 'discord.js';
 
 export interface Button<Context> {
   id: string;
