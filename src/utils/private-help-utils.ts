@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ChatInputCommandInteraction, Client, Guild, GuildMember, ModalBuilder, PrivateThreadChannel, TextChannel, TextInputStyle, ThreadAutoArchiveDuration, ThreadChannel, UserContextMenuCommandInteraction } from 'discord.js';
 import { Database } from '../shared/Database';
-import { createTextInput, createYesNoMenu } from './modal-utils';
+import { createTextInput, createCheckbox } from './modal-utils';
 
 export async function closeOldTickets(client: Client) {
   for (const ticket of await Database.getAllOpenPrivateHelpTickets()) {
@@ -92,9 +92,8 @@ export async function openModTicketModal(interaction: UserContextMenuCommandInte
 
   const titleLabel = createTextInput('title', 'Title', `The name of the thread. Defaults to "Mod Ticket For ${member.displayName}" if left empty`, false, TextInputStyle.Short, 100, null);
   const initialMessageLabel = createTextInput('initial-message', 'Inital Message', 'The inital message sent in the thread', false, TextInputStyle.Paragraph, 1800, null);
-  const autoJoinLabel = createYesNoMenu('auto-join-thread', 'Auto Join Thread', 'Whether or not to join you to the thread. Selecting no will not notify you of messages sent!', true);
+  const autoJoinLabel = createCheckbox('auto-join-thread', 'Auto Join Thread', 'Whether or not to automatically add you to the thread.', true);
 
   modal.addLabelComponents(titleLabel, initialMessageLabel, autoJoinLabel);
-
   interaction.showModal(modal);
 }
