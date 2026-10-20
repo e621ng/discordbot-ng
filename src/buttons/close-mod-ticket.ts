@@ -1,4 +1,5 @@
 import { ButtonInteraction, Client, MessageFlags, ChannelType, PermissionFlagsBits } from 'discord.js';
+import { closeTicket } from '../utils';
 
 export default {
   name: 'close-mod-ticket',
@@ -19,13 +20,9 @@ export default {
       components: []
     });
 
-    await channel.send('This ticket has been closed by staff.');
+    if (!await closeTicket(client, channel, 'This ticket has been closed by staff.'))
+      return await interaction.editReply({ content: 'An error occurred while trying to close this ticket.' });
 
     await interaction.editReply({ content: 'Ticket closed.' });
-
-    channel.edit({
-      archived: true,
-      locked: true
-    });
   }
 };
