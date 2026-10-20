@@ -189,7 +189,7 @@ export default {
     const moderatorChannel = interaction.options.getChannel('moderator-channel');
     if (moderatorChannel) {
       await Database.updateSettings(interaction.guildId, 'moderator_channel_id', moderatorChannel.id);
-      response.push(`**moderator_channel_id** has been set to": ${moderatorChannel}.`);
+      response.push(`**moderator_channel_id** has been set to: ${moderatorChannel}.`);
     }
 
     const adminRole = interaction.options.getRole('admin-role');
