@@ -1,5 +1,6 @@
 import { ButtonInteraction, Client, MessageFlags, ChannelType } from 'discord.js';
 import { Button } from '../types';
+import { closeTicket } from '../utils';
 
 class CloseModTicketButton implements Button<Client> {
   id = 'close-mod-ticket';
@@ -22,14 +23,12 @@ class CloseModTicketButton implements Button<Client> {
         components: []
       });
 
-      await channel.send('This ticket has been closed by staff.');
+      if (!await closeTicket(context, channel, 'This ticket has been closed by staff.')) {
+        await interaction.editReply({ content: 'An error occurred while trying to close this ticket.' });
+        return;
+      }
 
       await interaction.editReply({ content: 'Ticket closed.' });
-
-      await channel.edit({
-        archived: true,
-        locked: true
-      });
     } catch (error: Error | any) {
       await interaction.editReply({ content: error.message }).catch(() => {});
     }

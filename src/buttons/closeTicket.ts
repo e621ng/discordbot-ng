@@ -1,6 +1,6 @@
 import { ButtonInteraction, Client, MessageFlags, ChannelType } from 'discord.js';
-import { Database } from '../shared/Database';
 import { Button } from '../types';
+import { closeTicket } from '../utils';
 
 class CloseTicketButton implements Button<Client> {
   id = 'close-ticket';
@@ -16,21 +16,22 @@ class CloseTicketButton implements Button<Client> {
       if (!channel.isThread() || channel.type != ChannelType.PrivateThread) throw new Error('This interaction was not run in a ticket thread.');
       if (!channel.isSendable()) throw new Error("I don't have permission to send messages in this channel.");
 
+      await interaction.reply({
+        content: 'Closing, please wait...',
+        flags: MessageFlags.Ephemeral
+      });
+
       await interaction.message.edit({
         content: interaction.message.content,
         components: []
       });
 
-      await Database.closePrivateHelpTicket(channel.id);
-
-      await channel.send(`This ticket has been closed by ${interaction.user}`);
+      if (!await closeTicket(context, channel, `This ticket has been closed by ${interaction.user}`)) {
+        await interaction.editReply({ content: 'An error occurred while trying to close this ticket.' });
+        return;
+      }
 
       await interaction.editReply({ content: 'Ticket closed.' });
-
-      await channel.edit({
-        archived: true,
-        locked: true
-      });
     } catch (error: Error | any) {
       await interaction.editReply({ content: error.message }).catch(() => {});
     }
