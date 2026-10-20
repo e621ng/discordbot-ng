@@ -1,35 +1,64 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, ChatInputCommandInteraction, Client, Guild, GuildMember, ModalBuilder, PrivateThreadChannel, TextChannel, TextInputStyle, ThreadAutoArchiveDuration, ThreadChannel, UserContextMenuCommandInteraction } from 'discord.js';
 import { Database } from '../shared/Database';
-import { createTextInput, createCheckbox } from './modal-utils';
+import { CreateDefaultEmbed, createTextInput, createCheckbox, SetSeverity } from '.';
 
 export async function closeOldTickets(client: Client) {
   for (const ticket of await Database.getAllOpenPrivateHelpTickets()) {
     try {
       const thread = await client.channels.fetch(ticket.thread_id) as ThreadChannel;
       const latestMessage = (await thread.messages.fetch({ limit: 1 })).at(0);
-      if (latestMessage && latestMessage.createdTimestamp <= Date.now() - 432e6) {
-        await Database.closePrivateHelpTicket(thread.id);
 
-        await thread.send('This ticket has been closed due to inactivity.');
+      // Only process stale tickets. (Tickets with 5 days since the last message.)
+      if (latestMessage && latestMessage.createdTimestamp > Date.now() - 432e6) continue;
 
-        thread.edit({
-          archived: true,
-          locked: true
-        });
-      }
+      await closeTicket(client, thread, 'This ticket has been closed due to inactivity.');
     } catch (e) {
-      console.error('Error closing ticket due to inactivity:');
-      console.error(e);
+      console.error('Error closing ticket due to inactivity:', e);
     }
   }
 }
 
+export async function closeTicket(context: Client, thread: ThreadChannel, reason: string): Promise<boolean> {
+  try {
+    await Database.closePrivateHelpTicket(thread.id);
+
+    await thread.send({
+      embeds: [{
+        ...CreateDefaultEmbed(context),
+        ...SetSeverity('info'),
+
+        title: 'Ticket Closed',
+        description: reason,
+      }],
+    });
+
+    await thread.edit({
+      name: `[CLOSED] ${thread.name}`.slice(0, 100),
+      archived: true,
+      locked: true,
+    });
+
+    return true;
+  } catch (error) {
+    console.error('An error occured while trying to close the ticket:', error);
+
+    await thread.send({
+      embeds: [{
+        ...SetSeverity('error'),
+        description: 'I encountered an error while trying to close this ticket.',
+      }],
+    }).catch(() => {});
+
+    return false;
+  }
+}
+
 export async function createPrivateHelpTicketThread(client: Client, guild: Guild, creator: GuildMember | null, reason: string, customTitle: string = '', additionalMembersToAdd: string[] = []): Promise<PrivateThreadChannel | null> {
-  const guildSettings = await Database.getOrCreateSettings(guild.id);
+  const settings = await Database.getOrCreateSettings(guild.id);
 
-  if (!guildSettings || !guildSettings.private_help_channel_id || !guildSettings.private_help_role_id) return null;
+  if (!settings.private_help_channel_id || !settings.private_help_role_id) return null;
 
-  const channel = await client.channels.fetch(guildSettings.private_help_channel_id) as TextChannel;
+  const channel = await client.channels.fetch(settings.private_help_channel_id) as TextChannel;
 
   const thread = await channel.threads.create({
     name: customTitle ? customTitle : (creator ? `${creator.displayName}'s Ticket` : 'Mod Ticket'),
@@ -54,11 +83,11 @@ export async function createPrivateHelpTicketThread(client: Client, guild: Guild
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeButton, claimButton);
 
     await thread.send({
-      content: `${creator} feel free to direct your questions at any <@&${guildSettings.private_help_role_id}>. Only you and staff members can see this channel.\n\n**Reason for contact:**\n${reason}\n\n-# Tickets will automatically close after 5 days of inactivity.`,
+      content: `${creator} feel free to direct your questions at any <@&${settings.private_help_role_id}>. Only you and staff members can see this channel.\n\n**Reason for contact:**\n${reason}\n\n-# Tickets will automatically close after 5 days of inactivity.`,
       components: [row],
       allowedMentions: {
         users: [creator.id],
-        roles: [guildSettings.private_help_role_id]
+        roles: [settings.private_help_role_id]
       }
     });
   } else {
