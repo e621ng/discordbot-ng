@@ -1,5 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, Client, MessageFlags } from 'discord.js';
-import { Database } from '../shared/Database';
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, Client, MessageFlags, PermissionFlagsBits } from 'discord.js';
 import { Button } from '../types';
 
 class UnclaimTicketButton implements Button<Client> {
@@ -16,12 +15,7 @@ class UnclaimTicketButton implements Button<Client> {
       if (!channel.isThread() || channel.type != ChannelType.PrivateThread) throw new Error('This interaction was not run in a ticket thread.');
       if (!channel.isSendable()) throw new Error("I don't have permission to send messages in this channel.");
 
-      const settings = await Database.getOrCreateSettings(interaction.guildId);
-      if (!settings.private_help_role_id) throw new Error("`private_help_role_id` hasn't been configured. Please report this error to staff.");
-
-      const guild = await context.guilds.fetch(interaction.guildId);
-      const member = await guild.members.fetch(interaction.user.id);
-      if (!member.roles.cache.has(settings.private_help_role_id)) throw new Error("You don't have permission to unclaim tickets.");
+      if (!interaction.memberPermissions.has(PermissionFlagsBits.ManageMessages)) throw new Error("You don't have permission to unclaim tickets.");
 
       if (!interaction.message.content.split('\n').at(-1)!.includes(`<@${interaction.user.id}>`)) throw new Error("You haven't claimed this ticket.");
 
