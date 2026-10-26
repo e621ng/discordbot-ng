@@ -38,8 +38,8 @@ class ClaimTicketButton implements Button<Client> {
       await channel.send({
         embeds: [{
           ...SetSeverity('success'),
-          description: `This ticket was claimed by ${interaction.user}.`
-        }]
+          description: `This ticket has been claimed by ${interaction.user}.`
+        }],
       });
 
       await interaction.editReply({ content: "You've claimed this ticket." });

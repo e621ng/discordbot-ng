@@ -1,5 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, Client, MessageFlags, PermissionFlagsBits } from 'discord.js';
 import { Button } from '../types';
+import { SetSeverity } from '../utils';
 
 class UnclaimTicketButton implements Button<Client> {
   id = 'unclaim-ticket';
@@ -34,6 +35,13 @@ class UnclaimTicketButton implements Button<Client> {
       await interaction.message.edit({
         content: interaction.message.content.split('\n').slice(0, -1).join('\n').trim(),
         components: [row]
+      });
+
+      await channel.send({
+        embeds: [{
+          ...SetSeverity('warning'),
+          description: 'This ticket has been unclaimed.'
+        }],
       });
 
       await interaction.editReply({ content: 'Ticket unclaimed.' });
