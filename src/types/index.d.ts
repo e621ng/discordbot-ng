@@ -1,3 +1,4 @@
+export * from './button.d';
 export * from './command.d';
 export * from './database-types.d';
 export * from './event.d';

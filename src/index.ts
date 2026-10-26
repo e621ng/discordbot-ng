@@ -1,4 +1,5 @@
-import { Client, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
+import { ButtonInteraction, Client, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
+import buttons from './buttons';
 import { config } from './config';
 import events from './events';
 import { Database } from './shared/Database';
@@ -37,7 +38,6 @@ const client = new Client({
 
 const commands: Handler[] = [];
 const contextMenus: Handler[] = [];
-const buttons: Handler[] = [];
 const modals: Handler[] = [];
 const menus: Handler[] = [];
 
@@ -93,10 +93,11 @@ client.on('interactionCreate', async (interaction) => {
     const id = interaction.customId.split('_')[0];
 
     for (const button of buttons) {
-      if (id == button.name) {
-        button.handler(client, interaction, ...interaction.customId.split('_').slice(1));
-        return;
-      }
+      if (button.id != id) continue;
+
+      Promise.resolve((button.execute as (context: Client, interaction: ButtonInteraction, ...args: unknown[]) => Promise<void>)(client, interaction, ...interaction.customId.split('_').slice(1))
+        .catch(e => console.error('An error occurred while handling a button interaction: ', e)));
+      return;
     }
   } else if (interaction.isModalSubmit()) {
     // Handle modal submissions.
@@ -126,14 +127,12 @@ client.on('clientReady', async () => {
 
   await loadHandlersFrom('commands', commands);
   await loadHandlersFrom('context-menus', contextMenus);
-  await loadHandlersFrom('buttons', buttons);
   await loadHandlersFrom('modals', modals);
   await loadHandlersFrom('menus', menus);
 
   await refreshCommands(client);
 
   await initIfNecessary(client, commands);
-  await initIfNecessary(client, buttons);
   await initIfNecessary(client, modals);
   await initIfNecessary(client, menus);
 
