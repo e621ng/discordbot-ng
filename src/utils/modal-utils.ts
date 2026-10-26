@@ -1,4 +1,4 @@
-import { LabelBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { CheckboxBuilder, LabelBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 
 export function createTextInput(customId: string, labelTitle: string, description: string | null, required: boolean, style: TextInputStyle, maxLength: number | null, minLength: number | null): LabelBuilder {
   const input = new TextInputBuilder()
@@ -19,23 +19,13 @@ export function createTextInput(customId: string, labelTitle: string, descriptio
   return label;
 }
 
-export function createYesNoMenu(customId: string, labelTitle: string, description: string | null, defaultYes: boolean): LabelBuilder {
-  const yesNoMenu = new StringSelectMenuBuilder()
-    .setCustomId(customId)
-    .addOptions(
-      new StringSelectMenuOptionBuilder()
-        .setLabel('Yes')
-        .setDefault(defaultYes)
-        .setValue('yes'),
-      new StringSelectMenuOptionBuilder()
-        .setLabel('No')
-        .setDefault(!defaultYes)
-        .setValue('no')
-    );
+export function createCheckbox(customId: string, labelTitle: string, description: string | null, defaultYes: boolean): LabelBuilder {
+  const component = new CheckboxBuilder()
+    .setCustomId(customId);
 
   const yesNoLabel = new LabelBuilder()
     .setLabel(labelTitle)
-    .setStringSelectMenuComponent(yesNoMenu);
+    .setCheckboxComponent(component);
 
   if (description !== null) yesNoLabel.setDescription(description);
 
