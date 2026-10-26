@@ -1,7 +1,8 @@
-import { ButtonInteraction, Client, GatewayIntentBits, MessageFlags, Partials } from 'discord.js';
+import { ButtonInteraction, Client, GatewayIntentBits, MessageFlags, ModalSubmitInteraction, Partials } from 'discord.js';
 import buttons from './buttons';
 import { config } from './config';
 import events from './events';
+import modals from './modals';
 import { Database } from './shared/Database';
 import { openRedisClient } from './shared/RedisClient';
 import { Handler } from './types';
@@ -38,7 +39,6 @@ const client = new Client({
 
 const commands: Handler[] = [];
 const contextMenus: Handler[] = [];
-const modals: Handler[] = [];
 const menus: Handler[] = [];
 
 // Due to their reliance on each other, these two events (interactionCreate, and ready) have to stay here.
@@ -104,10 +104,11 @@ client.on('interactionCreate', async (interaction) => {
     const id = interaction.customId.split('_')[0];
 
     for (const modal of modals) {
-      if (id == modal.name) {
-        modal.handler(client, interaction, ...interaction.customId.split('_').slice(1));
-        return;
-      }
+      if (id != modal.id) continue;
+
+      Promise.resolve((modal.execute as (context: Client, interaction: ModalSubmitInteraction, ...args: unknown[]) => Promise<void>)(client, interaction, ...interaction.customId.split('_').slice(1))
+        .catch(e => console.error('An error occurred while handling a modal interaction: ', e)));
+      return;
     }
   } else if (interaction.isAnySelectMenu()) {
     // Handle menu selections.
@@ -127,13 +128,11 @@ client.on('clientReady', async () => {
 
   await loadHandlersFrom('commands', commands);
   await loadHandlersFrom('context-menus', contextMenus);
-  await loadHandlersFrom('modals', modals);
   await loadHandlersFrom('menus', menus);
 
   await refreshCommands(client);
 
   await initIfNecessary(client, commands);
-  await initIfNecessary(client, modals);
   await initIfNecessary(client, menus);
 
   Encrypter.initialize(config.DATABASE_SECRET!);
