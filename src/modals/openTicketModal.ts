@@ -11,7 +11,7 @@ class OpenTicketModal implements Modal<Client> {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
-      const guild = await context.guilds.fetch(interaction.guildId!);
+      const guild = await context.guilds.fetch(interaction.guildId);
       const member = await guild.members.fetch(interaction.user.id);
 
       const settings = await Database.getOrCreateSettings(interaction.guildId);
