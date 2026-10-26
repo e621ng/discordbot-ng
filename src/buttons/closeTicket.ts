@@ -16,10 +16,7 @@ class CloseTicketButton implements Button<Client> {
       if (!channel.isThread() || channel.type != ChannelType.PrivateThread) throw new Error('This interaction was not run in a ticket thread.');
       if (!channel.isSendable()) throw new Error("I don't have permission to send messages in this channel.");
 
-      await interaction.reply({
-        content: 'Closing, please wait...',
-        flags: MessageFlags.Ephemeral
-      });
+      await interaction.editReply({ content: 'Closing, please wait...' });
 
       await interaction.message.edit({
         content: interaction.message.content,
