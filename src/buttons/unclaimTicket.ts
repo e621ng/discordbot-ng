@@ -21,9 +21,9 @@ class UnclaimTicketButton implements Button<Client> {
 
       const guild = await context.guilds.fetch(interaction.guildId);
       const member = await guild.members.fetch(interaction.user.id);
-      if (!member.roles.cache.has(settings.private_help_role_id)) throw new Error("You don't have permission to claim tickets.");
+      if (!member.roles.cache.has(settings.private_help_role_id)) throw new Error("You don't have permission to unclaim tickets.");
 
-      if (!interaction.message.content.split('\n').at(-1)!.includes(`<@${interaction.user.id}>`)) throw new Error('You haven\'t claimed this ticket.');
+      if (!interaction.message.content.split('\n').at(-1)!.includes(`<@${interaction.user.id}>`)) throw new Error("You haven't claimed this ticket.");
 
       const closeButton = new ButtonBuilder()
         .setCustomId('close-ticket')

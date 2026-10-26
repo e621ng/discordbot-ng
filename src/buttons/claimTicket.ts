@@ -1,6 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelType, Client, MessageFlags } from 'discord.js';
 import { Database } from '../shared/Database';
 import { Button } from '../types';
+import { SetSeverity } from '../utils';
 
 class ClaimTicketButton implements Button<Client> {
   id = 'claim-ticket';
@@ -40,7 +41,14 @@ class ClaimTicketButton implements Button<Client> {
         components: [row]
       });
 
-      await interaction.editReply({ content: `Ticket claimed by ${interaction.user}.` });
+      await channel.send({
+        embeds: [{
+          ...SetSeverity('success'),
+          description: `This ticket was claimed by ${interaction.user}.`
+        }]
+      });
+
+      await interaction.editReply({ content: "You've claimed this ticket." });
     } catch (error: Error | any) {
       await interaction.editReply({ content: error.message }).catch(() => {});
     }
