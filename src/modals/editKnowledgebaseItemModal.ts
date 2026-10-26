@@ -18,7 +18,8 @@ class EditKnowledgebaseItemModal implements Modal<Client> {
       const content = interaction.fields.getTextInputValue('content');
       if (content.length > 2000) throw new Error('Content cannot be longer than 2000 characters.');
 
-      await logCustomEvent(interaction.guild!, {
+      const guild = await context.guilds.fetch(interaction.guildId);
+      await logCustomEvent(guild, {
         title: 'Knowledgebase Item Edited',
         description: null,
         color: 0xFFFF00,

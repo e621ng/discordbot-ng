@@ -11,7 +11,7 @@ class ReportMessageModal implements Modal<Client> {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     try {
-      const guild = await context.guilds.fetch(interaction.guildId!);
+      const guild = await context.guilds.fetch(interaction.guildId);
       const member = await guild.members.fetch(interaction.user.id);
       const reportedMessageChannel = await guild.channels.fetch(channelId) as GuildTextBasedChannel;
       const reportedMessage = await reportedMessageChannel?.messages.fetch(messageId);
@@ -72,12 +72,7 @@ class ReportMessageModal implements Modal<Client> {
           const thread = await createPrivateHelpTicketThread(context, guild, member, `Ticket created with message report (${reportMessage.url}). ${member}, use this channel to talk with staff privately about the reported message (${reportedMessage.url}). ${additionalInfo ? `\n\nAdditional information provided in report:\n${additionalInfo.split('\n').map(c => `> ${c}`).join('\n')}` : ''}`);
           if (thread) {
             replyContent += ` Private help ticket created: ${thread}.`;
-
-            embed.addFields({
-              name: 'Private Help Ticket',
-              value: thread.url,
-              inline: false
-            });
+            embed.addFields({ name: 'Private Help Ticket', value: thread.url, inline: false });
 
             await reportMessage.edit({ embeds: [embed] });
           } else {
