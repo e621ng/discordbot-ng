@@ -31,17 +31,14 @@ async function removeUserMapping(interaction: ChatInputCommandInteraction) {
   const discordId = getIdFromInput(interaction.options.getString('discord-user', true));
   if (!userRegex.test(discordId)) throw new Error('The provided Discord user ID is invalid.');
 
-  const existingMappingId = await Database.getGithubFromDiscordId(discordId);
-  if (!existingMappingId) throw new Error(`<@${discordId}> (${discordId}) isn't mapped to a GitHub username.`);
-
-  await Database.removeGithubUserMapping(discordId);
+  if (!await Database.removeGithubUserMapping(discordId)) throw new Error('No existing GitHub mapping was found.');
 
   await interaction.editReply({
     embeds: [{
       ...SetSeverity('success'),
 
       title: 'GitHub/Discord Mapping | Remove',
-      description: `\`${existingMappingId}\` has been unlinked from <@${discordId}>`,
+      description: `<@${discordId}> is no longer linked.`,
     }],
   });
 }
