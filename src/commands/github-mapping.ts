@@ -66,13 +66,15 @@ export default {
       return interaction.editReply('Mapping added.');
     } else if (subcommand == 'remove') {
       const discordUserInput = interaction.options.getString('discord-user', true);
-
       const idToUse = getIdFromInput(discordUserInput);
 
       Database.removeGithubUserMapping(idToUse);
       return interaction.editReply('Mapping removed.');
     } else if (subcommand == 'list') {
       const allMappings = await Database.getAllGithubUserMappings();
+
+      if (allMappings.length < 1)
+        return await interaction.editReply('No GitHub mappings have been configured.');
 
       return interaction.editReply(allMappings.map(m => `- <@${m.discord_id}> (${m.discord_id}) - ${m.github_username}`).join('\n'));
     }

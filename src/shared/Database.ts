@@ -365,7 +365,7 @@ export class Database {
   }
 
   static async removeGithubUserMapping(discordId: string) {
-    await Database.db.run('DELETE from github_user_mapping WHERE discord_id_hash = ?', Encrypter.encrypt(discordId));
+    await Database.db.run('DELETE from github_user_mapping WHERE discord_id_hash = ?', Encrypter.hash(discordId));
   }
 
   //#endregion
