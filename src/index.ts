@@ -36,6 +36,13 @@ const client = new Client({
   },
 });
 
+events.forEach(event =>
+  client.on(event.event, (...args) =>
+    Promise.resolve((event.execute as (context: Client, ...args: unknown[]) => Promise<void>)(client, ...args))
+      .catch(e => console.error(`Error in ${event.event} handler:`, e))
+  )
+);
+
 const commands: Handler[] = [];
 const contextMenus: Handler[] = [];
 const modals: Handler[] = [];
@@ -151,13 +158,6 @@ client.on('clientReady', async () => {
     if (task.firstRun) handler();
     setInterval(handler, task.interval);
   });
-
-  events.forEach(event =>
-    client.on(event.event, (...args) =>
-      Promise.resolve((event.execute as (context: Client, ...args: unknown[]) => Promise<void>)(client, ...args))
-        .catch(e => console.error(`Error in ${event.event} handler:`, e))
-    )
-  );
 
   ready = true;
   console.log('Ready');
