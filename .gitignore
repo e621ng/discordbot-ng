@@ -1,5 +1,9 @@
-node_modules
-dist
-data/*
+# Directories
+certs/
+data/
+dist/
+node_modules/
+
+# Files
+.DS_Store
 .env
-certs/*
