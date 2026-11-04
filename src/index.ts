@@ -125,6 +125,10 @@ client.on('interactionCreate', async (interaction) => {
 client.on('clientReady', async () => {
   console.log(`Logged in as ${client.user!.tag}!`);
 
+  for (const guild of client.guilds.cache.values()) {
+    if (guild.id != config.DISCORD_GUILD_ID) await guild.leave();
+  }
+
   await loadHandlersFrom('commands', commands);
   await loadHandlersFrom('context-menus', contextMenus);
   await loadHandlersFrom('modals', modals);
