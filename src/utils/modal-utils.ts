@@ -21,7 +21,8 @@ export function createTextInput(customId: string, labelTitle: string, descriptio
 
 export function createCheckbox(customId: string, labelTitle: string, description: string | null, defaultYes: boolean): LabelBuilder {
   const component = new CheckboxBuilder()
-    .setCustomId(customId);
+    .setCustomId(customId)
+    .setDefault(defaultYes);
 
   const yesNoLabel = new LabelBuilder()
     .setLabel(labelTitle)
