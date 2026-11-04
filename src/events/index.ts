@@ -1,4 +1,3 @@
-import clientReady from './client/clientReady';
 import auditLogCreate from './guild/guildAuditLogEntryCreate';
 import guildBanRemove from './guild/guildBanRemove';
 import guildCreate from './guild/guildCreate';
@@ -12,7 +11,6 @@ import voiceStateUpdate from './voice/voiceStateUpdate';
 
 export default [
   auditLogCreate,
-  clientReady,
   guildBanRemove,
   guildCreate,
   guildMemberAdd,

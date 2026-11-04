@@ -36,13 +36,6 @@ const client = new Client({
   },
 });
 
-events.forEach(event =>
-  client.on(event.event, (...args) =>
-    Promise.resolve((event.execute as (context: Client, ...args: unknown[]) => Promise<void>)(client, ...args))
-      .catch(e => console.error(`Error in ${event.event} handler:`, e))
-  )
-);
-
 const commands: Handler[] = [];
 const contextMenus: Handler[] = [];
 const modals: Handler[] = [];
@@ -132,6 +125,10 @@ client.on('interactionCreate', async (interaction) => {
 client.on('clientReady', async () => {
   console.log(`Logged in as ${client.user!.tag}!`);
 
+  for (const guild of client.guilds.cache.values()) {
+    if (guild.id != config.DISCORD_GUILD_ID) await guild.leave();
+  }
+
   await loadHandlersFrom('commands', commands);
   await loadHandlersFrom('context-menus', contextMenus);
   await loadHandlersFrom('modals', modals);
@@ -158,6 +155,13 @@ client.on('clientReady', async () => {
     if (task.firstRun) handler();
     setInterval(handler, task.interval);
   });
+
+  events.forEach(event =>
+    client.on(event.event, (...args) =>
+      Promise.resolve((event.execute as (context: Client, ...args: unknown[]) => Promise<void>)(client, ...args))
+        .catch(e => console.error(`Error in ${event.event} handler:`, e))
+    )
+  );
 
   ready = true;
   console.log('Ready');
