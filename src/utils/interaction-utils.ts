@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, ContextMenuCommandInteraction, GuildBasedChannel, MessageFlags, ModalSubmitInteraction } from 'discord.js';
-import { channelIsInStaffCategory } from './channel-utils';
+import { channelIsInStaffCategory } from '.';
 
 export async function deferInteraction(interaction: ChatInputCommandInteraction | ContextMenuCommandInteraction | ModalSubmitInteraction) {
   const isStaffChannel = await channelIsInStaffCategory(interaction.channel as GuildBasedChannel);
