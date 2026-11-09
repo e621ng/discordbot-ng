@@ -19,7 +19,6 @@ CREATE TABLE
     voice_logs_channel_id TEXT,
     admin_role_id TEXT,
     private_help_role_id TEXT,
-    devwatch_role_id TEXT,
     staff_categories TEXT,
     safe_channels TEXT,
     link_skip_channels TEXT,

@@ -75,12 +75,7 @@ export default {
         .setDescription('Set the private helper role.')
         .setRequired(false)
     )
-    .addRoleOption(option =>
-      option
-        .setName('devwatch-role')
-        .setDescription('Set the DevWatch role.')
-        .setRequired(false)
-    )
+
     .addChannelOption(option =>
       option
         .setName('add-staff-category')
@@ -202,12 +197,6 @@ export default {
     if (privateHelperRole) {
       await Database.updateSettings(interaction.guildId, 'private_help_role_id', privateHelperRole.id);
       response.push(`**private_help_role_id** has been set to: ${privateHelperRole}.`);
-    }
-
-    const devWatchRole = interaction.options.getRole('devwatch-role');
-    if (devWatchRole) {
-      await Database.updateSettings(interaction.guildId, 'devwatch_role_id', devWatchRole.id);
-      response.push(`**devwatch_role_id** has been set to ${devWatchRole}.`);
     }
 
     const addCategory = interaction.options.getChannel('add-staff-category');
