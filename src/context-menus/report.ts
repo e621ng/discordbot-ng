@@ -1,5 +1,4 @@
-import { ApplicationCommandType, ApplicationIntegrationType, Client, ContextMenuCommandBuilder, InteractionContextType, LabelBuilder, MessageContextMenuCommandInteraction, MessageFlags, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
-
+import { ApplicationCommandType, ApplicationIntegrationType, CheckboxBuilder, Client, ContextMenuCommandBuilder, InteractionContextType, LabelBuilder, MessageContextMenuCommandInteraction, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import { Database } from '../shared/Database';
 
 export default {
@@ -28,24 +27,13 @@ export default {
         .setDescription('Any additional information? This will help staff understand your report. 1000 characters maximum.')
         .setTextInputComponent(additionalInfoInput);
 
-      const yesNoMenu = new StringSelectMenuBuilder()
-        .setCustomId('create-private-help-ticket')
-        .setRequired(false)
-        .addOptions(
-          new StringSelectMenuOptionBuilder()
-            .setLabel('No')
-            .setDefault(true)
-            .setValue('no'),
-          new StringSelectMenuOptionBuilder()
-            .setLabel('Yes')
-            .setDefault(false)
-            .setValue('yes')
-        );
+      const createTicketCheckbox = new CheckboxBuilder()
+        .setCustomId('create-private-help-ticket');
 
       const createPrivateTicket = new LabelBuilder()
         .setLabel('Create Private Help Ticket')
         .setDescription('Should a private help ticket be opened with this report? (Does not bypass ticket restrictions)')
-        .setStringSelectMenuComponent(yesNoMenu);
+        .setCheckboxComponent(createTicketCheckbox);
 
       modal.addLabelComponents(additionalInfoLabel, createPrivateTicket);
 
