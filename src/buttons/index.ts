@@ -1,6 +1,7 @@
 import claimTicket from './claimTicket';
 import closeModTicket from './closeModTicket';
 import closeTicket from './closeTicket';
+import devWatch from './devWatch';
 import noteNext from './noteNext';
 import notePrevious from './notePrevious';
 import openTicketForReportedMessage from './openTicketForReportedMessage';
@@ -14,6 +15,7 @@ export default [
   claimTicket,
   closeModTicket,
   closeTicket,
+  devWatch,
   noteNext,
   notePrevious,
   openTicketForReportedMessage,
