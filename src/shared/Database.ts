@@ -364,8 +364,9 @@ export class Database {
     });
   }
 
-  static async removeGithubUserMapping(discordId: string) {
-    await Database.db.run('DELETE from github_user_mapping WHERE discord_id_hash = ?', Encrypter.encrypt(discordId));
+  static async removeGithubUserMapping(discordId: string): Promise<boolean> {
+    const result = await Database.db.run('DELETE FROM github_user_mapping WHERE discord_id_hash = ?', Encrypter.hash(discordId));
+    return (result.changes ?? 0) > 0;
   }
 
   //#endregion
