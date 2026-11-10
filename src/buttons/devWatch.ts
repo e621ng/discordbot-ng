@@ -10,7 +10,7 @@ class DevWatchButton implements Button<Client> {
     await interaction.reply({
       embeds: [{
         ...SetSeverity('warning'),
-        description: "DevWatch roles have been deprecated in favour of the `/role-buttons create` command. Please notify an administrator to setup a new role-button."
+        description: 'DevWatch roles have been deprecated in favour of the `/role-buttons create` command. Please notify an administrator to setup a new role-button.'
       }],
 
       flags: MessageFlags.Ephemeral,
