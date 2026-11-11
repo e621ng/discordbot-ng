@@ -42,7 +42,8 @@ const enum JoinResponse {
   Success = 1,
   Error = 2,
   Banned = 3,
-  Underage = 4
+  Underage = 4,
+  Full = 5
 };
 
 // Cleanup expired sessions.
@@ -133,6 +134,9 @@ async function joinGuild(code: string, userId: string, username: string): Promis
 
       case 20024:
         return JoinResponse.Underage;
+
+      case 30001:
+        return JoinResponse.Full;
     }
 
     console.error(`Error joining user (${userId}) to discord:`, e);
@@ -213,6 +217,9 @@ async function handleCallback(c: Context): Promise<Response> {
 
       case JoinResponse.Underage:
         return sendForbidden(c, 'Discord account flagged as underage by discord.');
+
+      case JoinResponse.Full:
+        return sendForbidden(c, "You're in too many Discord servers. Leave one, then try again.");
     }
   } catch (e) {
     console.error(e);
