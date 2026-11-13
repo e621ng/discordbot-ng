@@ -1,4 +1,4 @@
-import { ButtonInteraction, Client, GatewayIntentBits, MessageFlags, ModalSubmitInteraction, Partials } from 'discord.js';
+import { ButtonInteraction, Client, GatewayIntentBits, Interaction, MessageFlags, ModalSubmitInteraction, Partials } from 'discord.js';
 import buttons from './buttons';
 import { config } from './config';
 import events from './events';
@@ -6,7 +6,7 @@ import modals from './modals';
 import { Database } from './shared/Database';
 import { openRedisClient } from './shared/RedisClient';
 import { Handler } from './types';
-import { initIfNecessary, loadHandlersFrom, refreshCommands } from './utils';
+import { loadHandlersFrom, refreshCommands } from './utils';
 import { initializeWebserver } from './webserver';
 import { Encrypter } from './shared/Encrypter';
 import tasks from './tasks';
@@ -39,20 +39,18 @@ const client = new Client({
 
 const commands: Handler[] = [];
 const contextMenus: Handler[] = [];
-const menus: Handler[] = [];
 
 // Due to their reliance on each other, these two events (interactionCreate, and ready) have to stay here.
 // Alternatively, they can move to another single file. Or use static classes.
-client.on('interactionCreate', async (interaction) => {
+client.on('interactionCreate', async (interaction: Interaction) => {
   if (!ready) {
     if (
       interaction.isChatInputCommand()
       || interaction.isContextMenuCommand()
       || interaction.isButton()
       || interaction.isModalSubmit()
-      || interaction.isAnySelectMenu()
     )
-      interaction.reply({
+      await interaction.reply({
         content: 'Bot is still starting up. Please wait a few seconds.',
         flags: [MessageFlags.Ephemeral],
       });
@@ -61,7 +59,7 @@ client.on('interactionCreate', async (interaction) => {
   }
 
   if (interaction.isChatInputCommand()) {
-    // Handle chat
+    // Handle slash commands.
     for (const command of commands) {
       if (interaction.commandName == command.name) {
         command.handler(client, interaction);
@@ -110,16 +108,6 @@ client.on('interactionCreate', async (interaction) => {
         .catch(e => console.error('An error occurred while handling a modal interaction: ', e)));
       return;
     }
-  } else if (interaction.isAnySelectMenu()) {
-    // Handle menu selections.
-    const id = interaction.customId.split('_')[0];
-
-    for (const menu of menus) {
-      if (id == menu.name) {
-        menu.handler(client, interaction, ...interaction.customId.split('_').slice(1));
-        return;
-      }
-    }
   }
 });
 
@@ -132,12 +120,8 @@ client.on('clientReady', async () => {
 
   await loadHandlersFrom('commands', commands);
   await loadHandlersFrom('context-menus', contextMenus);
-  await loadHandlersFrom('menus', menus);
 
   await refreshCommands(client);
-
-  await initIfNecessary(client, commands);
-  await initIfNecessary(client, menus);
 
   Encrypter.initialize(config.DATABASE_SECRET!);
   await Database.open('./data/discord-main.db');
@@ -163,7 +147,7 @@ client.on('clientReady', async () => {
   );
 
   ready = true;
-  console.log('Ready');
+  console.log('Bot marked as ready. Handlers can now accept interactions.');
 });
 
 client.on('error', console.error);
