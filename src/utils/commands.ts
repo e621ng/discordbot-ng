@@ -1,4 +1,3 @@
-import { Client } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
 import { Handler } from '../types';
@@ -12,11 +11,5 @@ export async function loadHandlersFrom(dir: string, handlerArray: Handler[]): Pr
   for (const file of files) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     handlerArray.push(require(`${ROOT_DIR}/${dir}/${file}`).default);
-  }
-}
-
-export async function initIfNecessary(client: Client, handlers: Handler[]) {
-  for (const handler of handlers) {
-    if (handler.init) await handler.init(client);
   }
 }
