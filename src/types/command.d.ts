@@ -1,9 +1,6 @@
-import { Client, ContextMenuCommandBuilder, SlashCommandBuilder } from 'discord.js';
-import { Handler } from './handler';
+import { ChatInputCommandInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, SlashCommandBuilder } from 'discord.js';
 
-export type CommandBuilder = ContextMenuCommandBuilder | SlashCommandBuilder;
-
-export interface Command extends Handler {
-  data: CommandBuilder | ((client: Client) => Promise<CommandBuilder>);
-  guilds?: string[];
+export interface Command<Context> {
+  data: ContextMenuCommandBuilder | SlashCommandBuilder;
+  execute(context: Context, interaction: ChatInputCommandInteraction | ContextMenuCommandInteraction): Promise<void>;
 }
