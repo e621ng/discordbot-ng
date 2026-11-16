@@ -1,9 +1,9 @@
 import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { Command } from '../types';
 import { openModTicketModal } from '../utils';
 
-export default {
-  name: 'mod-ticket',
-  data: new SlashCommandBuilder()
+class ModTicketCommand implements Command<Client<boolean>> {
+  data = new SlashCommandBuilder()
     .setName('mod-ticket')
     .setDescription('Opens a mod private ticket and pulls the user into it.')
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
@@ -14,15 +14,23 @@ export default {
         .setName('user')
         .setDescription('The user to pull in to the ticket.')
         .setRequired(true)
-    ),
-  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    if (!interaction.guild) return interaction.editReply('This command must be used in a server.');
+    );
 
-    const user = interaction.options.getUser('user', true);
-    const member = await interaction.guild.members.fetch(user.id);
+  async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
 
-    if (!member) return interaction.editReply('Could not find member.');
+    try {
+      const user = interaction.options.getUser('user', true);
 
-    openModTicketModal(interaction, member);
+      const guild = await context.guilds.fetch(interaction.guildId);
+      const member = await guild.members.fetch(user.id);
+      if (!member) throw new Error('Unable to fetch the member.');
+
+      await openModTicketModal(interaction, member);
+    } catch (error: Error | any) {
+      await interaction.reply({ content: error.message }).catch(() => {});
+    }
   }
-};
+}
+
+export default new ModTicketCommand();

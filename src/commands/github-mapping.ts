@@ -1,5 +1,6 @@
 import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
+import { Command } from '../types';
 import { getIdFromInput, SetSeverity } from '../utils';
 
 const userRegex = new RegExp(/^\d{16,20}$/);
@@ -57,9 +58,8 @@ async function listUserMapping(interaction: ChatInputCommandInteraction) {
   });
 }
 
-export default {
-  name: 'github-mapping',
-  data: new SlashCommandBuilder()
+class GitHubMappingCommand implements Command<Client<boolean>> {
+  data = new SlashCommandBuilder()
     .setName('github-mapping')
     .setDescription('Maps github users to discord ids for releases.')
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
@@ -97,8 +97,9 @@ export default {
       subcommand
         .setName('list')
         .setDescription('List all github-discord mappings.')
-    ),
-  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
+    );
+
+  async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
@@ -112,4 +113,6 @@ export default {
       await interaction.editReply({ content: error.message }).catch(() => {});
     }
   }
-};
+}
+
+export default new GitHubMappingCommand();

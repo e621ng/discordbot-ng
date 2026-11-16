@@ -1,7 +1,7 @@
 import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, Guild, GuildMember, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, time, TimestampStyles, User } from 'discord.js';
 import { Database } from '../shared/Database';
-import { AltData, comprehensiveAltLookupFromDiscord, getIdFromInput } from '../utils';
 import { Command } from '../types';
+import { AltData, comprehensiveAltLookupFromDiscord, getIdFromInput } from '../utils';
 
 async function removeAllAlts(altData: AltData[], guild: Guild, moderator: User, fullBan: boolean, reason: string, deleteMessageDays: number, duration: number, expiresAt: Date) {
   for (const data of altData) {
@@ -72,9 +72,9 @@ class BanCommand implements Command<Client<boolean>> {
         .setRequired(false)
     );
 
-  async execute(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
+  async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
-    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
 
@@ -101,7 +101,7 @@ class BanCommand implements Command<Client<boolean>> {
 
       const member = await guild.members.fetch(interaction.user.id);
       if (banMember && member.roles.highest.comparePositionTo(banMember.roles.highest) <= 0) throw new Error("You don't have permission to ban this user.");
-      if (banMember && !banMember.bannable) throw new Error("I don't have permission to ban this user.")
+      if (banMember && !banMember.bannable) throw new Error("I don't have permission to ban this user.");
 
       const expiresAt = new Date(Date.now() + duration);
       await Database.putBan(idToUse, duration > 0 ? expiresAt : null, fullBan);

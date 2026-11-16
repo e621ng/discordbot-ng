@@ -1,10 +1,9 @@
 import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { deferInteraction } from '../utils';
-import { getRecordMessageFromDiscordId } from '../utils/record-utils';
+import { Command } from '../types';
+import { getRecordMessageFromDiscordId } from '../utils';
 
-export default {
-  name: 'records',
-  data: new SlashCommandBuilder()
+class RecordsCommand implements Command<Client<boolean>> {
+  data = new SlashCommandBuilder()
     .setName('records')
     .setDescription("Get a user's on-site records.")
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
@@ -21,25 +20,28 @@ export default {
         .setName('id')
         .setDescription('The discord user id to find the e621 user of.')
         .setRequired(false)
-    ),
-  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    await deferInteraction(interaction);
+    );
 
-    if (!interaction.guild) return interaction.editReply('This command must be used in a server');
+  async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    const user = interaction.options.getUser('user');
-    const id = interaction.options.getString('id');
+    try {
+      const guild = await context.guilds.fetch(interaction.guildId);
+      const user = interaction.options.getUser('user');
+      const id = interaction.options.getString('id');
 
-    if (!user && !id) {
-      return interaction.reply({ content: 'No user or id given.', flags: [MessageFlags.Ephemeral] });
+      if (!user && !id) throw new Error('No username or id was specified.');
+      const idToUse = (user?.id ?? id) as string;
+
+      const recordMessage = await getRecordMessageFromDiscordId(idToUse, 1, guild);
+      if (!recordMessage) throw new Error('No records found on any linked accounts.');
+
+      await interaction.editReply(recordMessage);
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
     }
-
-    const idToUse = (user?.id ?? id) as string;
-
-    const recordMessage = await getRecordMessageFromDiscordId(idToUse, 1, interaction.guild);
-
-    if (!recordMessage) return interaction.editReply('No records found on any linked accounts.');
-
-    interaction.editReply(recordMessage);
   }
-};
+}
+
+export default new RecordsCommand();

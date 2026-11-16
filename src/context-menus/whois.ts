@@ -1,5 +1,5 @@
-import { ApplicationIntegrationType, Client, InteractionContextType, PermissionFlagsBits, ContextMenuCommandBuilder, ApplicationCommandType, UserContextMenuCommandInteraction, GuildBasedChannel } from 'discord.js';
-import { channelIsInStaffCategory, handleWhoIsInteraction } from '../utils';
+import { ApplicationIntegrationType, Client, InteractionContextType, PermissionFlagsBits, ContextMenuCommandBuilder, ApplicationCommandType, UserContextMenuCommandInteraction, MessageFlags } from 'discord.js';
+import { handleWhoIsInteraction } from '../utils';
 
 export default {
   name: 'Whois',
@@ -9,9 +9,17 @@ export default {
     .setContexts(InteractionContextType.Guild)
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .setType(ApplicationCommandType.User),
-  handler: async function (client: Client, interaction: UserContextMenuCommandInteraction) {
-    const idToUse = interaction.targetUser.id;
+  handler: async function (context: Client, interaction: UserContextMenuCommandInteraction) {
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    handleWhoIsInteraction(interaction, idToUse, !(await channelIsInStaffCategory(interaction.channel as GuildBasedChannel)));
+    try {
+      const guild = await context.guilds.fetch(interaction.guildId);
+      const idToUse = interaction.targetUser.id;
+
+      await handleWhoIsInteraction(interaction, guild, idToUse);
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
+    }
   }
 };

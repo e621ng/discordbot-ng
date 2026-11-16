@@ -1,9 +1,48 @@
 import { ActionRowBuilder, ApplicationIntegrationType, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
+import { Command } from '../types';
+import { SetSeverity } from '../utils';
 
-export default {
-  name: 'role-buttons',
-  data: new SlashCommandBuilder()
+async function handleRoleButtonsCreate(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
+  if (!interaction.inGuild()) return;
+  const guild = await context.guilds.fetch(interaction.guildId);
+
+  if (!interaction.channel || !interaction.channel.isSendable()) throw new Error("I don't have permissions to send messages in this channel.");
+
+  const bot = await guild.members.fetchMe();
+
+  const role = interaction.options.getRole('role', true);
+  const label = interaction.options.getString('button-text', true);
+  const content = interaction.options.getString('message-text', true);
+
+  if (role.position > bot.roles.highest.position) throw new Error('I cannot assign a role above my highest role.');
+
+  const button = new ButtonBuilder()
+    .setCustomId('role-button')
+    .setStyle(ButtonStyle.Primary)
+    .setLabel(label);
+
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
+  const message = await interaction.channel.send({
+    components: [row],
+    embeds: [{
+      color: 0x014995,
+      description: content,
+    }],
+  });
+
+  await Database.putRoleButton(message.id, role.id);
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('success'),
+      description: `A button has been created for <@&${role.id}>.`,
+    }],
+  });
+}
+
+class RoleButtonsCommand implements Command<Client<boolean>> {
+  data = new SlashCommandBuilder()
     .setName('role-buttons')
     .setDescription('Manage role buttons.')
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
@@ -32,35 +71,20 @@ export default {
             .setDescription('The message text')
             .setRequired(true)
         )
-    ),
-  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    if (!interaction.guild) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Command must be ran in a guild.' });
+    );
 
-    const subcommand = interaction.options.getSubcommand();
-    if (subcommand == 'create') {
-      if (!interaction.channel || !interaction.channel.isSendable())
-        return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Missing permissions to send to channel.' });
+  async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-      const bot = await interaction.guild.members.fetchMe();
-
-      const role = interaction.options.getRole('role', true);
-      const label = interaction.options.getString('button-text', true);
-      const content = interaction.options.getString('message-text', true);
-
-      if (role.position > bot.roles.highest.position)
-        return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Role is higher than my highest role.' });
-
-      const button = new ButtonBuilder()
-        .setCustomId('role-button')
-        .setStyle(ButtonStyle.Primary)
-        .setLabel(label);
-
-      const row = new ActionRowBuilder<ButtonBuilder>()
-        .addComponents(button);
-
-      const message = await interaction.channel.send({ components: [row], content });
-      await Database.putRoleButton(message.id, role.id);
-      interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Created role button.' });
+    try {
+      switch (interaction.options.getSubcommand()) {
+        case 'create': return await handleRoleButtonsCreate(context, interaction);
+      }
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
     }
   }
-};
+}
+
+export default new RoleButtonsCommand();

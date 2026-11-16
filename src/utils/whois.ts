@@ -1,18 +1,17 @@
-import { CommandInteraction, MessageFlags } from 'discord.js';
+import { CommandInteraction, Guild } from 'discord.js';
 import { getE621Alts } from './alt-utils';
 import { resolveUser } from './discord-user-utils';
+import { SetSeverity } from './embed-utils';
 
-export async function handleWhoIsInteraction(interaction: CommandInteraction, valueToUse: string, ephemeral = false) {
-  if (ephemeral) await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
-  else await interaction.deferReply();
+export async function handleWhoIsInteraction(interaction: CommandInteraction, guild: Guild, valueToUse: string, ephemeral = false) {
+  const user = await resolveUser(interaction.client, valueToUse, guild);
+  if (!user) throw new Error('User not found.');
 
-  if (!interaction.guild) return interaction.editReply('This command must be used in a server');
-
-  const user = await resolveUser(interaction.client, valueToUse, interaction.guild);
-
-  if (!user) return interaction.editReply('User not found.');
-
-  const content = await getE621Alts(user.id, interaction.guild!);
-
-  interaction.editReply(`<@${user.id}>'s (${user.id}) e621 and discord account(s):\n${content}`);
+  const content = await getE621Alts(user.id, guild);
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('info'),
+      description: `<@${user.id}>'s (${user.id}) e621 and discord account(s):\n${content}`,
+    }],
+  });
 }

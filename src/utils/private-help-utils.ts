@@ -124,5 +124,5 @@ export async function openModTicketModal(interaction: UserContextMenuCommandInte
   const autoJoinLabel = createCheckbox('auto-join-thread', 'Auto Join Thread', 'Whether or not to automatically add you to the thread.', true);
 
   modal.addLabelComponents(titleLabel, initialMessageLabel, autoJoinLabel);
-  interaction.showModal(modal);
+  await interaction.showModal(modal, { withResponse: false });
 }

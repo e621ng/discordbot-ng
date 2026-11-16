@@ -1,9 +1,9 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, GuildBasedChannel, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { channelIsInStaffCategory, getIdFromInput, handleWhoIsInteraction } from '../utils';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { Command } from '../types';
+import { getIdFromInput, handleWhoIsInteraction } from '../utils';
 
-export default {
-  name: 'whois',
-  data: new SlashCommandBuilder()
+class WhoisCommand implements Command<Client<boolean>> {
+  data = new SlashCommandBuilder()
     .setName('whois')
     .setDescription("Find a user's e621 account from their discord account, or vice versa.")
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
@@ -14,12 +14,20 @@ export default {
         .setName('user')
         .setDescription('The discord user mention, or ID, to find the e621 user of.')
         .setRequired(true)
-    ),
-  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    const input = interaction.options.getString('user', true);
+    );
 
-    const valueToUse = getIdFromInput(input);
+  async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    handleWhoIsInteraction(interaction, valueToUse, !(await channelIsInStaffCategory(interaction.channel as GuildBasedChannel)));
+    try {
+      const guild = await context.guilds.fetch(interaction.guildId);
+      const valueToUse = getIdFromInput(interaction.options.getString('user', true));
+      await handleWhoIsInteraction(interaction, guild, valueToUse);
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
+    }
   }
-};
+}
+
+export default new WhoisCommand();

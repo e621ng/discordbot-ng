@@ -1,5 +1,6 @@
-import { ButtonInteraction, Client, GatewayIntentBits, Interaction, MessageFlags, ModalSubmitInteraction, Partials } from 'discord.js';
+import { AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, GatewayIntentBits, Interaction, MessageFlags, ModalSubmitInteraction, Partials } from 'discord.js';
 import buttons from './buttons';
+import commands from './commands';
 import { config } from './config';
 import events from './events';
 import modals from './modals';
@@ -37,7 +38,6 @@ const client = new Client({
   },
 });
 
-const commands: Handler[] = [];
 const contextMenus: Handler[] = [];
 
 // Due to their reliance on each other, these two events (interactionCreate, and ready) have to stay here.
@@ -61,8 +61,9 @@ client.on('interactionCreate', async (interaction: Interaction) => {
   if (interaction.isChatInputCommand()) {
     // Handle slash commands.
     for (const command of commands) {
-      if (interaction.commandName == command.name) {
-        command.handler(client, interaction);
+      if (interaction.commandName == command.data.name) {
+        Promise.resolve((command.handleCommand as (context: Client, interaction: ChatInputCommandInteraction) => Promise<void>)(client, interaction)
+          .catch(e => console.error('An error occurred while handling a command interaction: ', e)));
         return;
       }
     }
@@ -77,12 +78,11 @@ client.on('interactionCreate', async (interaction: Interaction) => {
   } else if (interaction.isAutocomplete()) {
     // Handle autocomplete requests.
     for (const command of commands) {
-      if (interaction.commandName == command.name) {
-        if (command.autoComplete) {
-          command
-            .autoComplete(client, interaction)
-            .catch(e => console.error(e));
-        }
+      if (interaction.commandName == command.data.name) {
+        if (!command.handleAutocomplete) return;
+
+        Promise.resolve((command.handleAutocomplete as (context: Client, interaction: AutocompleteInteraction) => Promise<void>)(client, interaction)
+          .catch(e => console.error('An error occurred while handling an autocomplete interaction: ', e)));
         return;
       }
     }
@@ -118,7 +118,6 @@ client.on('clientReady', async () => {
     if (guild.id != config.DISCORD_GUILD_ID) await guild.leave();
   }
 
-  await loadHandlersFrom('commands', commands);
   await loadHandlersFrom('context-menus', contextMenus);
 
   await refreshCommands(client);

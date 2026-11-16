@@ -1,10 +1,10 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { config } from '../config';
-import { deferInteraction, getDiscordAlts, getE621User } from '../utils';
+import { Command } from '../types';
+import { getDiscordAlts, getE621User, SetSeverity } from '../utils';
 
-export default {
-  name: 'finduser',
-  data: new SlashCommandBuilder()
+class FindUserCommand implements Command<Client<boolean>> {
+  data = new SlashCommandBuilder()
     .setName('finduser')
     .setDescription("Find a user's discord account based on their e621 usernamename or id.")
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
@@ -15,28 +15,29 @@ export default {
         .setName('user')
         .setDescription('The e621 username or e621 id to find the discord user of.')
         .setRequired(true)
-    ),
-  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    await deferInteraction(interaction);
+    );
 
-    if (!interaction.guild) return interaction.editReply('This command must be used in a server');
-
-    const user = interaction.options.getString('user', true);
+  async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
-      const e621User = await getE621User(user);
+      const e621User = await getE621User(interaction.options.getString('user', true));
+      if (!e621User) throw new Error("I couldn't find any e621 user with that ID.");
 
-      if (!e621User) {
-        return interaction.editReply('I got lost along the way. Who again?');
-      }
+      const guild = await context.guilds.fetch(interaction.guildId);
+      const content = await getDiscordAlts(e621User.id, guild, 1, [e621User.id]);
 
-      const content = await getDiscordAlts(e621User.id, interaction.guild, 1, [e621User.id]);
-
-      interaction.editReply(`[${e621User.name}](${config.E621_BASE_URL}/users/${e621User.id})<${e621User.id}>'s e621 and discord account(s):\n${content}`);
-    } catch (e) {
-      console.error(e);
-
-      interaction.editReply('I got lost in the net.');
+      await interaction.editReply({
+        embeds: [{
+          ...SetSeverity('success'),
+          description: `[${e621User.name}](${config.E621_BASE_URL}/users/${e621User.id})<${e621User.id}>'s e621 and discord account(s):\n${content}`
+        }]
+      });
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
     }
   }
-};
+}
+
+export default new FindUserCommand();

@@ -1,9 +1,10 @@
 import { ApplicationIntegrationType, ChannelType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
+import { Command } from '../types';
+import { SetSeverity } from '../utils';
 
-export default {
-  name: 'settings',
-  data: new SlashCommandBuilder()
+class SettingsCommand implements Command<Client<boolean>> {
+  data = new SlashCommandBuilder()
     .setName('settings')
     .setDescription('Change server settings.')
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
@@ -123,146 +124,157 @@ export default {
         .setName('site-breaker-role')
         .setDescription('Set the site breaker role.')
         .setRequired(false)
-    ),
-  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    if (!interaction.guildId) return; // This shouldn't occur, but TypeScript doesn't know that.
-    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+    );
 
-    const response: string[] = [];
-    await Database.getOrCreateSettings(interaction.guildId);
+  async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    const generalChannel = interaction.options.getChannel('general-channel');
-    if (generalChannel) {
-      await Database.updateSettings(interaction.guildId, 'general_chat_id', generalChannel.id);
-      response.push(`**general_chat_id** has been set to: ${generalChannel}.`);
+    try {
+      const response: string[] = [];
+      await Database.getOrCreateSettings(interaction.guildId);
+
+      const generalChannel = interaction.options.getChannel('general-channel');
+      if (generalChannel) {
+        await Database.updateSettings(interaction.guildId, 'general_chat_id', generalChannel.id);
+        response.push(`**general_chat_id** has been set to: ${generalChannel}.`);
+      }
+
+      const ticketsChannel = interaction.options.getChannel('tickets-channel');
+      if (ticketsChannel) {
+        await Database.updateSettings(interaction.guildId, 'tickets_channel_id', ticketsChannel.id);
+        response.push(`**tickets_channel_id** has been set to: ${ticketsChannel}.`);
+      }
+
+      const appealsChannel = interaction.options.getChannel('appeals-channel');
+      if (appealsChannel) {
+        await Database.updateSettings(interaction.guildId, 'appeals_channel_id', appealsChannel.id);
+        response.push(`**appeals_channel_id** has been set to ${appealsChannel}.`);
+      }
+
+      const eventLogsChannel = interaction.options.getChannel('event-logs-channel');
+      if (eventLogsChannel) {
+        await Database.updateSettings(interaction.guildId, 'event_logs_channel_id', eventLogsChannel.id);
+        response.push(`**event_logs_channel_id** has been set to: ${eventLogsChannel}.`);
+      }
+
+      const discordLogsChannel = interaction.options.getChannel('discord-logs-channel');
+      if (discordLogsChannel) {
+        await Database.updateSettings(interaction.guildId, 'discord_logs_channel_id', discordLogsChannel.id);
+        response.push(`**discord_logs_channel_id** has been set to: ${discordLogsChannel}.`);
+      }
+
+      const auditLogsChannel = interaction.options.getChannel('audit-logs-channel');
+      if (auditLogsChannel) {
+        await Database.updateSettings(interaction.guildId, 'audit_logs_channel_id', auditLogsChannel.id);
+        response.push(`**audit_logs_channel_id** has been set to: ${auditLogsChannel}.`);
+      }
+
+      const voiceLogsChannel = interaction.options.getChannel('voice-logs-channel');
+      if (voiceLogsChannel) {
+        await Database.updateSettings(interaction.guildId, 'voice_logs_channel_id', voiceLogsChannel.id);
+        response.push(`**voice_logs_channel_id** has been set to: ${voiceLogsChannel}.`);
+      }
+
+      const newMemberLogsChannel = interaction.options.getChannel('new-member-channel');
+      if (newMemberLogsChannel) {
+        await Database.updateSettings(interaction.guildId, 'new_member_channel_id', newMemberLogsChannel.id);
+        response.push(`**new_member_channel_id** has been set to: ${newMemberLogsChannel}.`);
+      }
+
+      const moderatorChannel = interaction.options.getChannel('moderator-channel');
+      if (moderatorChannel) {
+        await Database.updateSettings(interaction.guildId, 'moderator_channel_id', moderatorChannel.id);
+        response.push(`**moderator_channel_id** has been set to: ${moderatorChannel}.`);
+      }
+
+      const adminRole = interaction.options.getRole('admin-role');
+      if (adminRole) {
+        await Database.updateSettings(interaction.guildId, 'admin_role_id', adminRole.id);
+        response.push(`**admin_role_id** has been set to: ${adminRole}.`);
+      }
+
+      const privateHelperRole = interaction.options.getRole('private-helper-role');
+      if (privateHelperRole) {
+        await Database.updateSettings(interaction.guildId, 'private_help_role_id', privateHelperRole.id);
+        response.push(`**private_help_role_id** has been set to: ${privateHelperRole}.`);
+      }
+
+      const addCategory = interaction.options.getChannel('add-staff-category');
+      if (addCategory) {
+        if (addCategory.type == ChannelType.GuildCategory) {
+          await Database.putGuildArraySetting('staff_categories', interaction.guildId, addCategory.id);
+          response.push(`Added ${addCategory.toString()} as a staff category.`);
+        } else response.push(`Error adding staff category: ${addCategory.toString()} isn't a category.`);
+      }
+
+      const removeCategory = interaction.options.getChannel('remove-staff-category');
+      if (removeCategory) {
+        if (removeCategory.type == ChannelType.GuildCategory)
+          if (await Database.removeGuildArraySetting('staff_categories', interaction.guildId, removeCategory.id))
+            response.push(`Removed ${removeCategory.toString()} as a staff category`);
+          else response.push(`Error removing staff category: ${removeCategory.toString()} isn't a staff category.`);
+        else response.push(`Error removing staff category: ${removeCategory.toString()} isn't a category.`);
+      }
+
+      const addSafeChannel = interaction.options.getChannel('add-safe-channel');
+      if (addSafeChannel) {
+        if (addSafeChannel.type == ChannelType.GuildText) {
+          await Database.putGuildArraySetting('safe_channels', interaction.guildId, addSafeChannel.id);
+          response.push(`Added ${addSafeChannel.toString()} as a SFW cannel.`);
+        } else response.push(`Error adding SFW channel: ${addSafeChannel.toString()} isn't a text channel.`);
+      }
+
+      const removeSafeChannel = interaction.options.getChannel('remove-safe-channel');
+      if (removeSafeChannel) {
+        if (removeSafeChannel.type == ChannelType.GuildText)
+          if (await Database.removeGuildArraySetting('safe_channels', interaction.guildId, removeSafeChannel.id))
+            response.push(`Removed ${removeSafeChannel.toString()} as a safe channel`);
+          else response.push(`Error removing safe channel: ${removeSafeChannel.toString()} isn't a safe channel.`);
+        else response.push(`Error removing safe channel: ${removeSafeChannel.toString()} isn't a text channel.`);
+      }
+
+      const addLinkSkipChannel = interaction.options.getChannel('add-link-skip-channel');
+      if (addLinkSkipChannel) {
+        if (addLinkSkipChannel.type == ChannelType.GuildText) {
+          await Database.putGuildArraySetting('link_skip_channels', interaction.guildId, addLinkSkipChannel.id);
+          response.push(`Added ${addLinkSkipChannel.toString()} as a link skip channel.`);
+        } else response.push(`Error adding link skip channel: ${addLinkSkipChannel.toString()} isn't a text channel.`);
+      }
+
+      const removeLinkSkipChannel = interaction.options.getChannel('remove-link-skip-channel');
+      if (removeLinkSkipChannel) {
+        if (removeLinkSkipChannel.type == ChannelType.GuildText)
+          if (await Database.removeGuildArraySetting('link_skip_channels', interaction.guildId, removeLinkSkipChannel.id))
+            response.push(`Removed ${removeLinkSkipChannel.toString()} as a staff category`);
+          else response.push(`Error removing link skip channel: ${removeLinkSkipChannel.toString()} isn't a link skip channel.`);
+        else response.push(`Error removing link skip channel: ${removeLinkSkipChannel.toString()} isn't a text channel.`);
+      }
+
+      const githubReleaseChannel = interaction.options.getChannel('github-release-channel');
+      if (githubReleaseChannel) {
+        await Database.updateSettings(interaction.guildId, 'github_release_channel', githubReleaseChannel.id);
+        response.push(`**github_release_channel** has been set to ${githubReleaseChannel}.`);
+      }
+
+      const siteBreakerRole = interaction.options.getRole('site-breaker-role');
+      if (siteBreakerRole) {
+        await Database.updateSettings(interaction.guildId, 'site_breaker_role_id', siteBreakerRole.id);
+        response.push(`**site_breaker_role_id** has been set to ${siteBreakerRole}.`);
+      }
+
+      if (response.length == 0) throw new Error('No settings have been modified.');
+
+      await interaction.editReply({
+        embeds: [{
+          ...SetSeverity('success'),
+          description: response.join('\n'),
+        }],
+      });
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
     }
-
-    const ticketsChannel = interaction.options.getChannel('tickets-channel');
-    if (ticketsChannel) {
-      await Database.updateSettings(interaction.guildId, 'tickets_channel_id', ticketsChannel.id);
-      response.push(`**tickets_channel_id** has been set to: ${ticketsChannel}.`);
-    }
-
-    const appealsChannel = interaction.options.getChannel('appeals-channel');
-
-    if (appealsChannel) {
-      await Database.updateSettings(interaction.guildId, 'appeals_channel_id', appealsChannel.id);
-
-      response.push(`**appeals_channel_id** has been set to ${appealsChannel}.`);
-    }
-
-    const eventLogsChannel = interaction.options.getChannel('event-logs-channel');
-    if (eventLogsChannel) {
-      await Database.updateSettings(interaction.guildId, 'event_logs_channel_id', eventLogsChannel.id);
-      response.push(`**event_logs_channel_id** has been set to: ${eventLogsChannel}.`);
-    }
-
-    const discordLogsChannel = interaction.options.getChannel('discord-logs-channel');
-    if (discordLogsChannel) {
-      await Database.updateSettings(interaction.guildId, 'discord_logs_channel_id', discordLogsChannel.id);
-      response.push(`**discord_logs_channel_id** has been set to: ${discordLogsChannel}.`);
-    }
-
-    const auditLogsChannel = interaction.options.getChannel('audit-logs-channel');
-    if (auditLogsChannel) {
-      await Database.updateSettings(interaction.guildId, 'audit_logs_channel_id', auditLogsChannel.id);
-      response.push(`**audit_logs_channel_id** has been set to: ${auditLogsChannel}.`);
-    }
-
-    const voiceLogsChannel = interaction.options.getChannel('voice-logs-channel');
-    if (voiceLogsChannel) {
-      await Database.updateSettings(interaction.guildId, 'voice_logs_channel_id', voiceLogsChannel.id);
-      response.push(`**voice_logs_channel_id** has been set to: ${voiceLogsChannel}.`);
-    }
-
-    const newMemberLogsChannel = interaction.options.getChannel('new-member-channel');
-    if (newMemberLogsChannel) {
-      await Database.updateSettings(interaction.guildId, 'new_member_channel_id', newMemberLogsChannel.id);
-      response.push(`**new_member_channel_id** has been set to: ${newMemberLogsChannel}.`);
-    }
-
-    const moderatorChannel = interaction.options.getChannel('moderator-channel');
-    if (moderatorChannel) {
-      await Database.updateSettings(interaction.guildId, 'moderator_channel_id', moderatorChannel.id);
-      response.push(`**moderator_channel_id** has been set to: ${moderatorChannel}.`);
-    }
-
-    const adminRole = interaction.options.getRole('admin-role');
-    if (adminRole) {
-      await Database.updateSettings(interaction.guildId, 'admin_role_id', adminRole.id);
-      response.push(`**admin_role_id** has been set to: ${adminRole}.`);
-    }
-
-    const privateHelperRole = interaction.options.getRole('private-helper-role');
-    if (privateHelperRole) {
-      await Database.updateSettings(interaction.guildId, 'private_help_role_id', privateHelperRole.id);
-      response.push(`**private_help_role_id** has been set to: ${privateHelperRole}.`);
-    }
-
-    const addCategory = interaction.options.getChannel('add-staff-category');
-    if (addCategory) {
-      if (addCategory.type == ChannelType.GuildCategory) {
-        await Database.putGuildArraySetting('staff_categories', interaction.guildId, addCategory.id);
-        response.push(`Added ${addCategory.toString()} as a staff category.`);
-      } else response.push(`Error adding staff category: ${addCategory.toString()} isn't a category.`);
-    }
-
-    const removeCategory = interaction.options.getChannel('remove-staff-category');
-    if (removeCategory) {
-      if (removeCategory.type == ChannelType.GuildCategory)
-        if (await Database.removeGuildArraySetting('staff_categories', interaction.guildId, removeCategory.id))
-          response.push(`Removed ${removeCategory.toString()} as a staff category`);
-        else response.push(`Error removing staff category: ${removeCategory.toString()} isn't a staff category.`);
-      else response.push(`Error removing staff category: ${removeCategory.toString()} isn't a category.`);
-    }
-
-    const addSafeChannel = interaction.options.getChannel('add-safe-channel');
-    if (addSafeChannel) {
-      if (addSafeChannel.type == ChannelType.GuildText) {
-        await Database.putGuildArraySetting('safe_channels', interaction.guildId, addSafeChannel.id);
-        response.push(`Added ${addSafeChannel.toString()} as a SFW cannel.`);
-      } else response.push(`Error adding SFW channel: ${addSafeChannel.toString()} isn't a text channel.`);
-    }
-
-    const removeSafeChannel = interaction.options.getChannel('remove-safe-channel');
-    if (removeSafeChannel) {
-      if (removeSafeChannel.type == ChannelType.GuildText)
-        if (await Database.removeGuildArraySetting('safe_channels', interaction.guildId, removeSafeChannel.id))
-          response.push(`Removed ${removeSafeChannel.toString()} as a safe channel`);
-        else response.push(`Error removing safe channel: ${removeSafeChannel.toString()} isn't a safe channel.`);
-      else response.push(`Error removing safe channel: ${removeSafeChannel.toString()} isn't a text channel.`);
-    }
-
-    const addLinkSkipChannel = interaction.options.getChannel('add-link-skip-channel');
-    if (addLinkSkipChannel) {
-      if (addLinkSkipChannel.type == ChannelType.GuildText) {
-        await Database.putGuildArraySetting('link_skip_channels', interaction.guildId, addLinkSkipChannel.id);
-        response.push(`Added ${addLinkSkipChannel.toString()} as a link skip channel.`);
-      } else response.push(`Error adding link skip channel: ${addLinkSkipChannel.toString()} isn't a text channel.`);
-    }
-
-    const removeLinkSkipChannel = interaction.options.getChannel('remove-link-skip-channel');
-    if (removeLinkSkipChannel) {
-      if (removeLinkSkipChannel.type == ChannelType.GuildText)
-        if (await Database.removeGuildArraySetting('link_skip_channels', interaction.guildId, removeLinkSkipChannel.id))
-          response.push(`Removed ${removeLinkSkipChannel.toString()} as a staff category`);
-        else response.push(`Error removing link skip channel: ${removeLinkSkipChannel.toString()} isn't a link skip channel.`);
-      else response.push(`Error removing link skip channel: ${removeLinkSkipChannel.toString()} isn't a text channel.`);
-    }
-
-    const githubReleaseChannel = interaction.options.getChannel('github-release-channel');
-    if (githubReleaseChannel) {
-      await Database.updateSettings(interaction.guildId, 'github_release_channel', githubReleaseChannel.id);
-      response.push(`**github_release_channel** has been set to ${githubReleaseChannel}.`);
-    }
-
-    const siteBreakerRole = interaction.options.getRole('site-breaker-role');
-    if (siteBreakerRole) {
-      await Database.updateSettings(interaction.guildId, 'site_breaker_role_id', siteBreakerRole.id);
-      response.push(`**site_breaker_role_id** has been set to ${siteBreakerRole}.`);
-    }
-
-    if (response.length == 0) return interaction.editReply({ content: 'No settings have been modified.' });
-    interaction.editReply({ content: response.join('\n') });
   }
-};
+}
+
+export default new SettingsCommand();

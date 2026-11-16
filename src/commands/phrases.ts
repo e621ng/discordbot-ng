@@ -1,17 +1,143 @@
-import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder, User } from 'discord.js';
+import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { TicketPhrase } from '../types';
-import { logCustomEvent } from '../utils';
+import { Command, TicketPhrase } from '../types';
+import { logCustomEvent, SetSeverity } from '../utils';
 
 const MIN_PHRASE_LENGTH = 1;
 const MAX_PHRASE_LENGTH = 512;
 
-type SubcommandGroup = 'admin' | 'personal';
-type Subcommand = 'add' | 'remove' | 'list' | 'dump' | 'purge';
+async function handlePhraseAdd(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
+  if (!interaction.inGuild()) return;
+  const guild = await context.guilds.fetch(interaction.guildId);
 
-export default {
-  name: 'phrases',
-  data: new SlashCommandBuilder()
+  const group = interaction.options.getSubcommandGroup();
+  const phrase = interaction.options.getString('phrase', true);
+
+  await Database.putTicketPhrase(group == 'admin' ? 'admin' : interaction.user.id, phrase);
+
+  await logCustomEvent(guild, {
+    title: 'Ticket Phrase Added',
+    description: null,
+    color: 0x00FF00,
+    timestamp: new Date(),
+    fields: [
+      { name: 'User', value: interaction.user.tag, inline: true },
+      { name: 'Type', value: group == 'admin' ? 'Admin ' : 'Personal', inline: true },
+      { name: 'Phrase', value: phrase, inline: false },
+    ],
+  });
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('success'),
+      title: 'Phrase Added',
+      fields: [
+        { name: 'Phrase', value: phrase, inline: false },
+        { name: 'Alerts', value: group == 'admin' ? 'admins' : 'you', inline: false },
+      ]
+    }]
+  });
+}
+
+async function handlePhraseList(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
+  const group = interaction.options.getSubcommandGroup();
+
+  const phrases = await Database.getTicketPhrasesFor(group == 'admin' ? 'admin' : interaction.user.id);
+  if (phrases.length == 0) throw new Error("There aren't any phrases currently registered.");
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('info'),
+      description: `The following phrases are registered:\n\n${phrases.map(p => (`- \`${p.phrase}\``)).join('\n')}`,
+    }],
+  });
+}
+
+async function handlePhraseRemove(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
+  if (!interaction.inGuild()) return;
+  const guild = await context.guilds.fetch(interaction.guildId);
+
+  const group = interaction.options.getSubcommandGroup();
+  const phraseId = interaction.options.getNumber('phrase', true);
+
+  const phrase = await Database.getTicketPhrase(phraseId);
+  if (!phrase) throw new Error('There is no phrase with that ID.');
+
+  await Database.removeTicketPhrase(phraseId);
+
+  await logCustomEvent(guild, {
+    title: 'Ticket Phrase Removed',
+    description: null,
+    color: 0xFF0000,
+    timestamp: new Date(),
+    fields: [
+      { name: 'User', value: `<@${interaction.user.id}>\n${interaction.user.username}`, inline: true },
+      { name: 'Type', value: group == 'admin' ? 'Admin ' : 'Personal', inline: true },
+      { name: 'Phrase', value: phrase.phrase, inline: true },
+    ],
+  });
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('success'),
+      description: `The phrase will no longer alert ${group == 'admin' ? 'admins' : 'you'}.`,
+    }],
+  });
+}
+
+async function handlePhraseDump(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
+  if (!interaction.inGuild()) return;
+  const settings = await Database.getOrCreateSettings(interaction.guildId);
+
+  let content = '';
+  await Database.getAllTicketPhrases((phrase: TicketPhrase) => {
+    if (phrase.user_id == 'admin' && (!settings.admin_role_id)) return;
+
+    const mention = phrase.user_id == 'admin' ? `<@&${settings.admin_role_id}>` : `<@${phrase.user_id}>`;
+    content += `${mention}: \`${phrase.phrase}\`\n`;
+  });
+
+  if (content.length == 0) throw new Error('There are no phrases to dump.');
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('info'),
+      description: `The following phrases are registered:\n\n${content}`,
+    }],
+  });
+}
+
+async function handlePhrasePurge(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
+  if (!interaction.inGuild()) return;
+  const guild = await context.guilds.fetch(interaction.guildId);
+
+  const user = interaction.options.getUser('user', true);
+
+  const phrases: TicketPhrase[] = await Database.getTicketPhrasesFor(user.id);
+  const count = await Database.removeAllTicketPhrasesFor(user.id);
+
+  await logCustomEvent(guild, {
+    title: 'Ticket Phrases Purged',
+    description: null,
+    color: 0xFF0000,
+    timestamp: new Date(),
+    fields: [
+      { name: 'User', value: `<@${interaction.user.id}>\n${interaction.user.username}`, inline: true },
+      { name: 'Target User', value: `<@${user.id}>\n${user.username}`, inline: true },
+      { name: 'Count', value: count.toString(), inline: true },
+    ],
+  });
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('success'),
+      description: `Purged the following phrases (${count}):\n${phrases.map(p => `- \`${p.phrase}\``).join('\n')}`,
+    }],
+  });
+}
+
+class PhrasesCommand implements Command<Client<boolean>> {
+  data = new SlashCommandBuilder()
     .setName('phrases')
     .setDescription('Manage notified phrases.')
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
@@ -102,151 +228,45 @@ export default {
             .setDescription('The user to purge the phrases of.')
             .setRequired(true)
         )
-    ),
-  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    const subcommandGroup: SubcommandGroup | null = interaction.options.getSubcommandGroup() as SubcommandGroup;
-    const subcommand: Subcommand | null = interaction.options.getSubcommand() as Subcommand;
+    );
 
-    switch (subcommand) {
-      case 'add':
-        return addPhrase(interaction, interaction.options.getString('phrase', true), subcommandGroup!);
-      case 'remove':
-        return removePhrase(interaction, interaction.options.getNumber('phrase', true), subcommandGroup!);
-      case 'list':
-        return listPhrases(interaction, subcommandGroup!);
-      case 'dump':
-        return dumpPhrases(interaction);
-      case 'purge':
-        return purgePhrases(interaction, interaction.options.getUser('user', true));
+  async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    try {
+      const subcommand = interaction.options.getSubcommand();
+
+      switch (subcommand) {
+        case 'add': return await handlePhraseAdd(context, interaction);
+        case 'list': return await handlePhraseList(context, interaction);
+        case 'remove': return await handlePhraseRemove(context, interaction);
+
+        case 'dump': return await handlePhraseDump(context, interaction);
+        case 'purge': return await handlePhrasePurge(context, interaction);
+      }
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
     }
-  },
-  autoComplete: async function (client: Client, interaction: AutocompleteInteraction) {
-    const subcommandGroup: SubcommandGroup | null = interaction.options.getSubcommandGroup() as SubcommandGroup;
+  }
 
-    if (!subcommandGroup) return interaction.respond([]);
+  async handleAutocomplete(context: Client<boolean>, interaction: AutocompleteInteraction): Promise<void> {
+    const group = interaction.options.getSubcommandGroup();
+    if (!group) return interaction.respond([]);
 
     const value = interaction.options.getFocused();
-
-    const phrases: TicketPhrase[] = await Database.getTicketPhrasesFor(subcommandGroup == 'admin' ? 'admin' : interaction.user.id);
+    const phrases = await Database.getTicketPhrasesFor(group == 'admin' ? 'admin' : interaction.user.id);
 
     const toRespond = phrases.filter(p => !value ? true : p.phrase.includes(value));
     if (toRespond.length > 25) toRespond.length = 25;
 
-    interaction.respond(toRespond.map(p => ({
-      name: p.phrase,
-      value: p.id
-    })));
+    await interaction.respond(
+      toRespond.map(p => ({
+        name: p.phrase,
+        value: p.id
+      }))
+    );
   }
-};
-
-async function purgePhrases(interaction: ChatInputCommandInteraction, user: User) {
-  const phrases: TicketPhrase[] = await Database.getTicketPhrasesFor(user.id);
-
-  const count = await Database.removeAllTicketPhrasesFor(user.id);
-
-  logCustomEvent(interaction.guild!, {
-    title: 'Ticket Phrases Purged',
-    description: null,
-    color: 0xFF0000,
-    timestamp: new Date(),
-    fields: [
-      {
-        name: 'User',
-        value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-        inline: true
-      },
-      {
-        name: 'Target User',
-        value: `<@${user.id}>\n${user.username}`,
-        inline: true
-      },
-      {
-        name: 'Count',
-        value: count.toString(),
-        inline: true
-      }
-    ]
-  });
-
-  interaction.reply(`Purged the following phrases (${count}):\n${phrases.map(p => `- \`${p.phrase}\``).join('\n')}`);
 }
 
-async function dumpPhrases(interaction: ChatInputCommandInteraction) {
-  let content = '';
-
-  const settings = await Database.getOrCreateSettings(interaction.guildId!);
-
-  await Database.getAllTicketPhrases((phrase: TicketPhrase) => {
-    if (phrase.user_id == 'admin' && (!settings.admin_role_id)) return;
-
-    const mention = phrase.user_id == 'admin' ? `<@&${settings.admin_role_id}>` : `<@${phrase.user_id}>`;
-
-    content += `${mention}: \`${phrase.phrase}\`\n`;
-  });
-
-  if (content.length == 0) return interaction.reply('No phrases found.');
-
-  interaction.reply('The following phrases are registered:\n\n' + content);
-}
-
-async function addPhrase(interaction: ChatInputCommandInteraction, phrase: string, group: SubcommandGroup) {
-  await Database.putTicketPhrase(group == 'admin' ? 'admin' : interaction.user.id, phrase);
-
-  logCustomEvent(interaction.guild!, {
-    title: `${group == 'admin' ? 'Admin ' : ''}Ticket Phrase Added`,
-    description: null,
-    color: 0x00FF00,
-    timestamp: new Date(),
-    fields: [
-      {
-        name: 'User',
-        value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-        inline: true
-      },
-      {
-        name: 'Phrase',
-        value: phrase,
-        inline: true
-      }
-    ]
-  });
-
-  interaction.reply(`Phrases matching "${phrase}" will now alert ${group == 'admin' ? 'admins' : 'you'}.`);
-}
-
-async function removePhrase(interaction: ChatInputCommandInteraction, phraseId: number, group: SubcommandGroup) {
-  const phrase = await Database.getTicketPhrase(phraseId);
-
-  if (!phrase) return interaction.reply('Phrase not found');
-
-  await Database.removeTicketPhrase(phraseId);
-
-  logCustomEvent(interaction.guild!, {
-    title: `${group == 'admin' ? 'Admin ' : ''}Ticket Phrase Removed`,
-    description: null,
-    color: 0xFF0000,
-    timestamp: new Date(),
-    fields: [
-      {
-        name: 'User',
-        value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-        inline: true
-      },
-      {
-        name: 'Phrase',
-        value: phrase.phrase,
-        inline: true
-      }
-    ]
-  });
-
-  interaction.reply(`Phrase will no longer alert ${group == 'admin' ? 'admins' : 'you'}.`);
-}
-
-async function listPhrases(interaction: ChatInputCommandInteraction, group: SubcommandGroup) {
-  const phrases = await Database.getTicketPhrasesFor(group == 'admin' ? 'admin' : interaction.user.id);
-
-  if (phrases.length == 0) return interaction.reply('No phrases registered');
-
-  interaction.reply(`The following phrases are registered:\n\n${phrases.map(p => (`- \`${p.phrase}\``)).join('\n')}`);
-}
+export default new PhrasesCommand();

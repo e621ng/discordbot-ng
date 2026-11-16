@@ -1,11 +1,67 @@
 import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, ModalBuilder, PermissionFlagsBits, SlashCommandBuilder, TextInputStyle } from 'discord.js';
 import { Database } from '../shared/Database';
-import { KnowledgebaseItem } from '../types';
-import { createTextInput, deferInteraction, logCustomEvent } from '../utils';
+import { Command, KnowledgebaseItem } from '../types';
+import { createTextInput, logCustomEvent, SetSeverity } from '../utils';
 
-export default {
-  name: 'knowledgebase',
-  data: new SlashCommandBuilder()
+async function handleKnowledgebaseAdd(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
+  const modal = new ModalBuilder()
+    .setCustomId('add-knowledgebase-item-modal')
+    .setTitle('Add to Knowledgebase');
+
+  const nameLabel = createTextInput('name', 'Item Name', null, true, TextInputStyle.Short, 300, 1);
+  const contentLabel = createTextInput('content', 'Item Content', null, true, TextInputStyle.Paragraph, 2000, 1);
+  modal.addLabelComponents(nameLabel, contentLabel);
+
+  await interaction.showModal(modal);
+}
+
+async function handleKnowledgebaseEdit(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
+  const id = interaction.options.getInteger('name', true);
+
+  const item = await Database.getFromKnowledgebase(id);
+  if (!item) throw new Error('No knowledgebase item was found with that ID.');
+
+  const modal = new ModalBuilder()
+    .setCustomId(`edit-knowledgebase-item-modal_${id}`)
+    .setTitle(`Editing knowledgebase item ${item.name.slice(0, 18)}`);
+
+  const contentLabel = createTextInput('content', 'New Content', null, true, TextInputStyle.Paragraph, 2000, 1);
+  modal.addLabelComponents(contentLabel);
+
+  await interaction.showModal(modal);
+}
+
+async function handleKnowledgebaseRemove(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  const id = interaction.options.getInteger('name', true);
+
+  const item = await Database.getFromKnowledgebase(id);
+  if (!item) throw new Error('No knowledgebase item was found with that ID.');
+
+  const guild = await context.guilds.fetch(interaction.guildId!);
+  await logCustomEvent(guild, {
+    title: 'Knowledgebase Item Removed',
+    description: null,
+    color: 0xFF0000,
+    timestamp: new Date(),
+    fields: [
+      { name: 'User', value: `${interaction.user.username} (${interaction.user.tag})`, inline: true },
+      { name: 'Name', value: item.name, inline: true },
+      { name: 'Content', value: item.content, inline: true }
+    ]
+  });
+
+  await Database.removeFromKnowledgebase(id);
+  await interaction.reply({
+    embeds: [{
+      ...SetSeverity('success'),
+      description: `The knowledgebase entry for \`${item.name}\` has been removed.`
+    }],
+  });
+}
+
+class KnowledgebaseCommand implements Command<Client<boolean>> {
+  data = new SlashCommandBuilder()
     .setName('knowledgebase')
     .setDescription('Access the compendium of knowledge.')
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
@@ -39,89 +95,38 @@ export default {
             .setRequired(true)
             .setAutocomplete(true)
         )
-    ),
-  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    if (!interaction.guild) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Must be ran in guild.' });
+    );
 
-    const subcommand = interaction.options.getSubcommand(true);
+  async handleAutocomplete(context: Client<boolean>, interaction: AutocompleteInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
 
-    if (subcommand == 'add') {
-      const modal = new ModalBuilder()
-        .setCustomId('add-knowledgebase-item-modal')
-        .setTitle('Add to knowledgebase');
-
-      const nameLabel = createTextInput('name', 'Knowledgebase Item Name', null, true, TextInputStyle.Short, 300, 1);
-      const contentLabel = createTextInput('content', 'Item Content', null, true, TextInputStyle.Paragraph, 2000, 1);
-
-      modal.addLabelComponents(nameLabel, contentLabel);
-
-      return await interaction.showModal(modal);
-    } else if (subcommand == 'remove') {
-      await deferInteraction(interaction);
-      const id = interaction.options.getInteger('name', true);
-
-      const item = await Database.getFromKnowledgebase(id);
-
-      if (!item) return interaction.editReply('Knowledgebase item not found.');
-
-      logCustomEvent(interaction.guild!, {
-        title: 'Knowledgebase Item Removed',
-        description: null,
-        color: 0xFF0000,
-        timestamp: new Date(),
-        fields: [
-          {
-            name: 'User',
-            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-            inline: true
-          },
-          {
-            name: 'Name',
-            value: item.name,
-            inline: true
-          },
-          {
-            name: 'Content',
-            value: item.content,
-            inline: true
-          }
-        ]
-      });
-
-      await Database.removeFromKnowledgebase(id);
-
-      return interaction.editReply(`Removed knowledgebase entry \`${item.name}\`.`);
-    } else if (subcommand == 'edit') {
-      const id = interaction.options.getInteger('name', true);
-
-      const existingItem = await Database.getFromKnowledgebase(id);
-
-      if (!existingItem) return interaction.editReply('Knowledgebase item not found.');
-
-      const modal = new ModalBuilder()
-        .setCustomId(`edit-knowledgebase-item-modal_${id}`)
-        .setTitle(`Editing knowledgebase item ${existingItem.name.slice(0, 18)}`);
-
-      const contentLabel = createTextInput('content', 'New Content', null, true, TextInputStyle.Paragraph, 2000, 1);
-
-      modal.addLabelComponents(contentLabel);
-
-      return await interaction.showModal(modal);
-    }
-  },
-  autoComplete: async function (client: Client, interaction: AutocompleteInteraction) {
-    if (!interaction.guild) return interaction.respond([]);
-
-    const items: KnowledgebaseItem[] = await Database.getAllKnowledgebaseItems(interaction.guild.id);
-
+    const items: KnowledgebaseItem[] = await Database.getAllKnowledgebaseItems(interaction.guildId);
     const value = interaction.options.getFocused();
 
     const toRespond = items.filter(i => !value ? true : i.name.includes(value));
     if (toRespond.length > 25) toRespond.length = 25;
 
-    interaction.respond(toRespond.map(p => ({
-      name: p.name,
-      value: p.id
-    })));
+    await interaction.respond(
+      toRespond.map(p => ({
+        name: p.name,
+        value: p.id
+      }))
+    );
   }
-};
+
+  async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
+
+    try {
+      switch (interaction.options.getSubcommand(true)) {
+        case 'add': return await handleKnowledgebaseAdd(context, interaction);
+        case 'edit': return await handleKnowledgebaseEdit(context, interaction);
+        case 'remove': return await handleKnowledgebaseRemove(context, interaction);
+      }
+    } catch (error: Error | any) {
+      await interaction.reply({ content: error.message }).catch(() => {});
+    }
+  }
+}
+
+export default new KnowledgebaseCommand();

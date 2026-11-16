@@ -1,10 +1,10 @@
 import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { getIdFromInput } from '../utils';
+import { Command } from '../types';
+import { getIdFromInput, SetSeverity } from '../utils';
 
-export default {
-  name: 'database',
-  data: new SlashCommandBuilder()
+class DatabaseCommand implements Command<Client<boolean>> {
+  data = new SlashCommandBuilder()
     .setName('database')
     .setDescription('Database access.')
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
@@ -25,24 +25,37 @@ export default {
                 .setRequired(true)
             )
         )
-    ),
-  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+    );
 
-    const group = interaction.options.getSubcommandGroup(true);
+  async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    const subcommand = interaction.options.getSubcommand(true);
+    try {
+      const group = interaction.options.getSubcommandGroup(true);
+      const subcommand = interaction.options.getSubcommand(true);
 
-    if (group == 'messages') {
-      if (subcommand == 'purge') {
-        const discordUserInput = interaction.options.getString('discord-user', true);
-
-        const idToUse = getIdFromInput(discordUserInput);
-
-        await Database.purgeMessagesFrom(idToUse);
-
-        return interaction.editReply('Messages purged.');
+      switch (`${group}:${subcommand}`) {
+        case 'messages:purge': return await handleMessagesPurge(context, interaction);
       }
+    } catch (error: Error | any) {
+      await interaction.editReply({ content: error.message }).catch(() => {});
     }
   }
-};
+}
+
+async function handleMessagesPurge(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
+  const userId = getIdFromInput(interaction.options.getString('user', true));
+  await Database.purgeMessagesFrom(userId);
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('success'),
+      description: `Messages for <@${userId}> have been purged.`
+    }]
+  });
+
+  return;
+}
+
+export default new DatabaseCommand();
