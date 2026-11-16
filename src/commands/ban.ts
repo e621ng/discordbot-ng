@@ -1,7 +1,7 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, Guild, GuildMember, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder, time, TimestampStyles, User } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, Guild, GuildMember, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder, time, TimestampStyles, User } from 'discord.js';
 import { Database } from '../shared/Database';
 import { Command } from '../types';
-import { AltData, comprehensiveAltLookupFromDiscord, getIdFromInput } from '../utils';
+import { AltData, comprehensiveAltLookupFromDiscord, deferInteraction, getIdFromInput, SetSeverity } from '../utils';
 
 async function removeAllAlts(altData: AltData[], guild: Guild, moderator: User, fullBan: boolean, reason: string, deleteMessageDays: number, duration: number, expiresAt: Date) {
   for (const data of altData) {
@@ -74,7 +74,7 @@ class BanCommand implements Command<Client<boolean>> {
 
   async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await deferInteraction(interaction);
 
     try {
 
@@ -112,7 +112,6 @@ class BanCommand implements Command<Client<boolean>> {
           deleteMessageSeconds: deleteMessageDays
         });
       } catch (e) {
-        console.error(e);
         throw new Error('An error occured while trying to process the ban through Discord.');
       }
 
@@ -121,7 +120,12 @@ class BanCommand implements Command<Client<boolean>> {
         await removeAllAlts([alts], guild, interaction.user, fullBan, reason, deleteMessageDays, duration, expiresAt);
       }
 
-      await interaction.editReply(`<@${idToUse}> (${idToUse}) has been ${fullBan ? 'full banned' : 'banned'}.`);
+      await interaction.editReply({
+        embeds: [{
+          ...SetSeverity('success'),
+          description: `<@${idToUse}> (${idToUse}) has been ${fullBan ? 'full banned' : 'banned'}.`,
+        }],
+      });
     } catch (error: Error | any) {
       await interaction.editReply({ content: error.message }).catch(() => {});
     }

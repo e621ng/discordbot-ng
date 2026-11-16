@@ -1,7 +1,7 @@
-import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
 import { Command, TicketPhrase } from '../types';
-import { logCustomEvent, SetSeverity } from '../utils';
+import { deferInteraction, logCustomEvent, SetSeverity } from '../utils';
 
 const MIN_PHRASE_LENGTH = 1;
 const MAX_PHRASE_LENGTH = 512;
@@ -232,7 +232,7 @@ class PhrasesCommand implements Command<Client<boolean>> {
 
   async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await deferInteraction(interaction);
 
     try {
       const subcommand = interaction.options.getSubcommand();

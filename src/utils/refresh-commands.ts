@@ -1,11 +1,13 @@
 import { Client, RESTPostAPIApplicationCommandsJSONBody, Routes } from 'discord.js';
 import commands from '../commands';
 import { config } from '../config';
+import contextMenus from '../context-menus';
 
 export async function refreshCommands(client: Client) {
   try {
     const deployable: RESTPostAPIApplicationCommandsJSONBody[] = [];
     for (const command of commands) deployable.push(command.data.toJSON());
+    for (const command of contextMenus) deployable.push(command.data.toJSON());
 
     await client.rest.put(Routes.applicationCommands(config.DISCORD_CLIENT_ID!), {
       body: deployable

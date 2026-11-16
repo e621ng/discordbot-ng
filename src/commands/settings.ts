@@ -1,7 +1,7 @@
-import { ApplicationIntegrationType, ChannelType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, ChannelType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
 import { Command } from '../types';
-import { SetSeverity } from '../utils';
+import { deferInteraction, SetSeverity } from '../utils';
 
 class SettingsCommand implements Command<Client<boolean>> {
   data = new SlashCommandBuilder()
@@ -128,7 +128,7 @@ class SettingsCommand implements Command<Client<boolean>> {
 
   async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await deferInteraction(interaction);
 
     try {
       const response: string[] = [];

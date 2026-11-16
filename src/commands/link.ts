@@ -1,8 +1,8 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { config } from '../config';
 import { Database } from '../shared/Database';
 import { Command } from '../types';
-import { getIdFromInput, logCustomEvent, resolveUser, SetSeverity } from '../utils';
+import { deferInteraction, getIdFromInput, logCustomEvent, resolveUser, SetSeverity } from '../utils';
 
 async function handleAccountLinked(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
   const idToUse = getIdFromInput(interaction.options.getString('discord-user', true));
@@ -110,7 +110,7 @@ class LinkCommand implements Command<Client<boolean>> {
 
   async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await deferInteraction(interaction);
 
     try {
       switch (interaction.options.getSubcommand(true)) {

@@ -1,7 +1,7 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, RateLimitError, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, RateLimitError, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
 import { Command } from '../types';
-import { msToHuman, SetSeverity } from '../utils';
+import { deferInteraction, msToHuman, SetSeverity } from '../utils';
 
 class RenameCommand implements Command<Client<boolean>> {
   data = new SlashCommandBuilder()
@@ -19,7 +19,7 @@ class RenameCommand implements Command<Client<boolean>> {
 
   async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await deferInteraction(interaction);
 
     try {
       const guild = await context.guilds.fetch(interaction.guildId);

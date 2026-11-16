@@ -1,6 +1,6 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Command } from '../types';
-import { getRecordMessageFromDiscordId } from '../utils';
+import { deferInteraction, getRecordMessageFromDiscordId } from '../utils';
 
 class RecordsCommand implements Command<Client<boolean>> {
   data = new SlashCommandBuilder()
@@ -24,7 +24,7 @@ class RecordsCommand implements Command<Client<boolean>> {
 
   async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await deferInteraction(interaction);
 
     try {
       const guild = await context.guilds.fetch(interaction.guildId);

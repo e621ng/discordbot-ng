@@ -1,7 +1,7 @@
-import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, ModalBuilder, PermissionFlagsBits, SlashCommandBuilder, TextInputStyle } from 'discord.js';
+import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, ModalBuilder, PermissionFlagsBits, SlashCommandBuilder, TextInputStyle } from 'discord.js';
 import { Database } from '../shared/Database';
 import { Command, KnowledgebaseItem } from '../types';
-import { createTextInput, logCustomEvent, SetSeverity } from '../utils';
+import { createTextInput, deferInteraction, logCustomEvent, SetSeverity } from '../utils';
 
 async function handleKnowledgebaseAdd(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
   const modal = new ModalBuilder()
@@ -32,7 +32,7 @@ async function handleKnowledgebaseEdit(context: Client<boolean>, interaction: Ch
 }
 
 async function handleKnowledgebaseRemove(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await deferInteraction(interaction);
   const id = interaction.options.getInteger('name', true);
 
   const item = await Database.getFromKnowledgebase(id);
@@ -52,7 +52,7 @@ async function handleKnowledgebaseRemove(context: Client<boolean>, interaction: 
   });
 
   await Database.removeFromKnowledgebase(id);
-  await interaction.reply({
+  await interaction.editReply({
     embeds: [{
       ...SetSeverity('success'),
       description: `The knowledgebase entry for \`${item.name}\` has been removed.`

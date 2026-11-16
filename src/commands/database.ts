@@ -1,7 +1,7 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
 import { Command } from '../types';
-import { getIdFromInput, SetSeverity } from '../utils';
+import { deferInteraction, getIdFromInput, SetSeverity } from '../utils';
 
 class DatabaseCommand implements Command<Client<boolean>> {
   data = new SlashCommandBuilder()
@@ -29,7 +29,7 @@ class DatabaseCommand implements Command<Client<boolean>> {
 
   async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await deferInteraction(interaction);
 
     try {
       const group = interaction.options.getSubcommandGroup(true);
@@ -51,8 +51,8 @@ async function handleMessagesPurge(context: Client<boolean>, interaction: ChatIn
   await interaction.editReply({
     embeds: [{
       ...SetSeverity('success'),
-      description: `Messages for <@${userId}> have been purged.`
-    }]
+      description: `Messages for <@${userId}> have been purged.`,
+    }],
   });
 
   return;

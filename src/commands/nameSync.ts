@@ -17,7 +17,6 @@ class NameSyncCommand implements Command<Client<boolean>> {
     );
 
   async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
-    if (!interaction.inGuild()) return;
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {

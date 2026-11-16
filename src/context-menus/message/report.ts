@@ -1,17 +1,25 @@
 import { ApplicationCommandType, ApplicationIntegrationType, CheckboxBuilder, Client, ContextMenuCommandBuilder, InteractionContextType, LabelBuilder, MessageContextMenuCommandInteraction, MessageFlags, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
-import { Database } from '../shared/Database';
+import { Database } from '../../shared/Database';
+import { Command } from '../../types';
 
-export default {
-  name: 'Report Message',
-
-  data: new ContextMenuCommandBuilder()
+class ReportMessageContextMenuCommand implements Command<Client<boolean>> {
+  data = new ContextMenuCommandBuilder()
     .setName('Report Message')
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
     .setContexts(InteractionContextType.Guild)
-    .setType(ApplicationCommandType.Message),
+    .setType(ApplicationCommandType.Message);
 
-  handler: async function (client: Client, interaction: MessageContextMenuCommandInteraction) {
+  async handleCommand(context: Client<boolean>, interaction: MessageContextMenuCommandInteraction): Promise<void> {
+    if (!interaction.inGuild()) return;
+
     try {
+      const settings = await Database.getOrCreateSettings(interaction.guildId);
+      if (!settings.moderator_channel_id) throw new Error('There does not appear to be a configured moderator channel. Please report this issue to staff.');
+
+      const guild = await context.guilds.fetch(interaction.guildId);
+      const reportsChannel = await guild.channels.fetch(settings.moderator_channel_id);
+      if (!reportsChannel || !reportsChannel.isSendable()) throw new Error('I was unable to locate the configured moderator channel. Please report this issue to staff.');
+
       const modal = new ModalBuilder()
         .setCustomId(`report-message_${interaction.targetMessage.channelId}_${interaction.targetMessage.id}`)
         .setTitle(`Report message from ${interaction.targetMessage.member?.displayName ?? interaction.targetMessage.author.displayName}`);
@@ -36,24 +44,11 @@ export default {
         .setCheckboxComponent(createTicketCheckbox);
 
       modal.addLabelComponents(additionalInfoLabel, createPrivateTicket);
-
-      const settings = await Database.getOrCreateSettings(interaction.guildId!);
-      if (!settings.moderator_channel_id)
-        return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Moderator channel missing. Unable to submit report' });
-
-      const reportsChannel = await interaction.guild!.channels.fetch(settings.moderator_channel_id);
-      if (!reportsChannel || !reportsChannel.isSendable())
-        return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Report channel missing. Unable to submit report' });
-
       await interaction.showModal(modal);
-    } catch (error) {
-      console.error(error);
-      if (!interaction.replied) {
-        await interaction.reply({
-          content: 'Hmm, an error occurred while processing your request. If you receive this error more than once, DM a moderator for further assistance.',
-          flags: [MessageFlags.Ephemeral]
-        });
-      }
+    } catch (error: Error | any) {
+      await interaction.reply({ content: error.message, flags: MessageFlags.Ephemeral }).catch(() => {});
     }
   }
-};
+}
+
+export default new ReportMessageContextMenuCommand();

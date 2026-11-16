@@ -1,16 +1,16 @@
-import { AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, GatewayIntentBits, Interaction, MessageFlags, ModalSubmitInteraction, Partials } from 'discord.js';
+import { AutocompleteInteraction, ButtonInteraction, ChatInputCommandInteraction, Client, GatewayIntentBits, Interaction, MessageContextMenuCommandInteraction, MessageFlags, ModalSubmitInteraction, Partials, UserContextMenuCommandInteraction } from 'discord.js';
 import buttons from './buttons';
 import commands from './commands';
 import { config } from './config';
+import contextMenus from './context-menus';
 import events from './events';
 import modals from './modals';
 import { Database } from './shared/Database';
 import { openRedisClient } from './shared/RedisClient';
-import { Handler } from './types';
-import { loadHandlersFrom, refreshCommands } from './utils';
-import { initializeWebserver } from './webserver';
 import { Encrypter } from './shared/Encrypter';
 import tasks from './tasks';
+import { refreshCommands } from './utils';
+import { initializeWebserver } from './webserver';
 
 
 let ready = false;
@@ -37,8 +37,6 @@ const client = new Client({
     repliedUser: false
   },
 });
-
-const contextMenus: Handler[] = [];
 
 // Due to their reliance on each other, these two events (interactionCreate, and ready) have to stay here.
 // Alternatively, they can move to another single file. Or use static classes.
@@ -70,8 +68,9 @@ client.on('interactionCreate', async (interaction: Interaction) => {
   } else if (interaction.isContextMenuCommand()) {
     // Handle context menu commands.
     for (const command of contextMenus) {
-      if (interaction.commandName == command.name) {
-        command.handler(client, interaction);
+      if (interaction.commandName == command.data.name) {
+        Promise.resolve((command.handleCommand as (context: Client, interaction: MessageContextMenuCommandInteraction | UserContextMenuCommandInteraction) => Promise<void>)(client, interaction)
+          .catch(e => console.error('An error occurred while handling a context menu interaction: ', e)));
         return;
       }
     }
@@ -117,8 +116,6 @@ client.on('clientReady', async () => {
   for (const guild of client.guilds.cache.values()) {
     if (guild.id != config.DISCORD_GUILD_ID) await guild.leave();
   }
-
-  await loadHandlersFrom('context-menus', contextMenus);
 
   await refreshCommands(client);
 

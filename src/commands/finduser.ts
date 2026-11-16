@@ -1,7 +1,7 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { config } from '../config';
 import { Command } from '../types';
-import { getDiscordAlts, getE621User, SetSeverity } from '../utils';
+import { deferInteraction, getDiscordAlts, getE621User, SetSeverity } from '../utils';
 
 class FindUserCommand implements Command<Client<boolean>> {
   data = new SlashCommandBuilder()
@@ -19,7 +19,7 @@ class FindUserCommand implements Command<Client<boolean>> {
 
   async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await deferInteraction(interaction);
 
     try {
       const e621User = await getE621User(interaction.options.getString('user', true));
@@ -31,8 +31,8 @@ class FindUserCommand implements Command<Client<boolean>> {
       await interaction.editReply({
         embeds: [{
           ...SetSeverity('success'),
-          description: `[${e621User.name}](${config.E621_BASE_URL}/users/${e621User.id})<${e621User.id}>'s e621 and discord account(s):\n${content}`
-        }]
+          description: `[${e621User.name}](${config.E621_BASE_URL}/users/${e621User.id})<${e621User.id}>'s e621 and discord account(s):\n${content}`,
+        }],
       });
     } catch (error: Error | any) {
       await interaction.editReply({ content: error.message }).catch(() => {});

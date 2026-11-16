@@ -1,7 +1,7 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
 import { Command } from '../types';
-import { getIdFromInput, SetSeverity } from '../utils';
+import { deferInteraction, getIdFromInput, SetSeverity } from '../utils';
 
 const userRegex = new RegExp(/^\d{16,20}$/);
 
@@ -101,7 +101,7 @@ class GitHubMappingCommand implements Command<Client<boolean>> {
 
   async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await deferInteraction(interaction);
 
     try {
       switch (interaction.options.getSubcommand(true)) {

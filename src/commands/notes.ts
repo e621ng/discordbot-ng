@@ -1,7 +1,7 @@
-import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
 import { Command } from '../types';
-import { getIdFromInput, getNoteMessage, logCustomEvent, resolveUser, SetSeverity } from '../utils';
+import { deferInteraction, getIdFromInput, getNoteMessage, logCustomEvent, resolveUser, SetSeverity } from '../utils';
 
 async function handleNoteAdd(context: Client<boolean>, interaction: ChatInputCommandInteraction) {
   if (!interaction.inGuild()) return;
@@ -214,7 +214,7 @@ class NotesCommand implements Command<Client<boolean>> {
 
   async handleCommand(context: Client<boolean>, interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await deferInteraction(interaction);
 
     try {
       switch (interaction.options.getSubcommand(true)) {
