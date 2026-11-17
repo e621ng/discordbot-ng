@@ -38,7 +38,8 @@ class SyncNameUserContextMenuCommand implements Command<Client<boolean>> {
       await deferInteraction(interaction);
       await syncName(interaction, member, null);
     } catch (error: Error | any) {
-      await interaction.reply({ content: error.message, flags: MessageFlags.Ephemeral }).catch(() => {});
+      if (interaction.deferred) await interaction.editReply({ content: error.message }).catch(() => { });
+      else await interaction.reply({ content: error.message }).catch(() => { });
     }
   }
 }

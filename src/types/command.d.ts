@@ -1,7 +1,7 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { AutocompleteInteraction, ChatInputCommandInteraction, ContextMenuCommandBuilder, ContextMenuCommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder } from 'discord.js';
 
 export interface Command<Context> {
-  data: ContextMenuCommandBuilder | SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder;
+  data: ContextMenuCommandBuilder | SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder | SlashCommandOptionsOnlyBuilder;
 
   // Functions.
   handleAutocomplete?(context: Context, interaction: AutocompleteInteraction): Promise<void>;
