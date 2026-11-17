@@ -124,7 +124,8 @@ class KnowledgebaseCommand implements Command<Client<boolean>> {
         case 'remove': return await handleKnowledgebaseRemove(context, interaction);
       }
     } catch (error: Error | any) {
-      await interaction.reply({ content: error.message }).catch(() => {});
+      if (interaction.deferred) await interaction.editReply({ content: error.message }).catch(() => { });
+      else await interaction.reply({ content: error.message }).catch(() => { });
     }
   }
 }
