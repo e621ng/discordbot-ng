@@ -1,7 +1,172 @@
 import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { deferInteraction, getIdFromInput, logCustomEvent, resolveUser } from '../utils';
+import { deferInteraction, getIdFromInput, logCustomEvent, resolveUser, SetSeverity } from '../utils';
 import { getNoteMessage } from '../utils/note-utils';
+
+async function handleNotesAdd(client: Client, interaction: ChatInputCommandInteraction) {
+  const idToUse = getIdFromInput(interaction.options.getString('user', true));
+  const user = await resolveUser(client, idToUse, interaction.guild);
+  if (!user) throw new Error('An error occured while trying to resolve the user.');
+
+  const reason = interaction.options.getString('reason', true);
+
+  await logCustomEvent(interaction.guild!, {
+    title: 'Note Added',
+    description: null,
+    color: 0x00FF00,
+    timestamp: new Date(),
+    fields: [
+      { name: 'Moderator', value: interaction.user.tag, inline: false },
+      { name: 'User', value: user.tag, inline: false },
+      { name: 'Note', value: reason, inline: false },
+    ],
+  });
+
+  if (await Database.putNote(user.id, reason, interaction.user.id) == 0) {
+    interaction.editReply({
+      embeds: [{
+        ...SetSeverity('error'),
+        description: "Your note couldn't be added to the database.",
+      }],
+    });
+
+    return;
+  }
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('success'),
+      description: 'The note was successfully added.',
+      fields: [
+        { name: 'User', value: user.tag, inline: false },
+        { name: 'Reason', value: reason, inline: false },
+      ],
+    }],
+  });
+}
+
+async function handleNotesEdit(client: Client, interaction: ChatInputCommandInteraction) {
+  const idToUse = getIdFromInput(interaction.options.getString('user', true));
+  const user = await resolveUser(client, idToUse, interaction.guild);
+  if (!user) throw new Error('An error occured while trying to resolve the user.');
+
+  const noteId = interaction.options.getInteger('note', true);
+
+  const notes = await Database.getNotes(user.id);
+  const note = notes.find(n => n.id == noteId);
+  if (!note) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: "The note you're trying to remove doesn't exist.",
+      }],
+    });
+
+    return;
+  }
+
+  const reason = interaction.options.getString('new-reason', true);
+
+  await logCustomEvent(interaction.guild!, {
+    title: 'Note Edited',
+    description: null,
+    color: 0x00FF00,
+    timestamp: new Date(),
+    fields: [
+      { name: 'Moderator', value: interaction.user.tag, inline: false },
+      { name: 'User', value: user.tag, inline: false },
+      { name: 'Old reason', value: note.reason, inline: false },
+      { name: 'New reason', value: reason, inline: false },
+    ],
+  });
+
+  // TODO: Check if all actions had been performed successfully.
+  await Database.editNote(noteId, note.reason, reason, interaction.user.id);
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('success'),
+      description: 'The note was successfully edited.',
+      fields: [
+        { name: 'User', value: user.tag, inline: false },
+        { name: 'Old Reason', value: note.reason, inline: false },
+        { name: 'New Reason', value: reason, inline: false },
+      ],
+    }],
+  });
+}
+
+async function handleNotesList(client: Client, interaction: ChatInputCommandInteraction) {
+  const idToUse = getIdFromInput(interaction.options.getString('user', true));
+  const user = await resolveUser(client, idToUse, interaction.guild);
+  if (!user) throw new Error('An error occured while trying to resolve the user.');
+
+  const message = await getNoteMessage(user.id, 1);
+  if (!message) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: `No notes were found for ${user.tag}.`,
+      }],
+    });
+
+    return;
+  }
+
+  await interaction.editReply(message);
+}
+
+async function handleNotesRemove(client: Client, interaction: ChatInputCommandInteraction) {
+  const idToUse = getIdFromInput(interaction.options.getString('user', true));
+  const user = await resolveUser(client, idToUse, interaction.guild);
+  if (!user) throw new Error('An error occured while trying to resolve the user.');
+
+  const noteId = interaction.options.getInteger('note', true);
+
+  const notes = await Database.getNotes(user.id);
+  const note = notes.find(n => n.id == noteId);
+  if (!note) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: "The note you're trying to remove doesn't exist.",
+      }],
+    });
+
+    return;
+  }
+
+  await logCustomEvent(interaction.guild!, {
+    title: 'Note Removed',
+    description: null,
+    color: 0xFF0000,
+    timestamp: new Date(),
+    fields: [
+      { name: 'Moderator', value: interaction.user.tag, inline: false },
+      { name: 'User', value: user.tag, inline: false },
+      { name: 'Author', value: `<@${note.mod_id}>`, inline: false },
+      { name: 'Note', value: note.reason, inline: false },
+    ],
+  });
+
+  if (await Database.removeNote(noteId) == 0) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('error'),
+        description: "The specified note wasn't removed from the database.",
+      }],
+    });
+
+    return;
+  }
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('success'),
+      description: `The note has been removed from ${user.tag} successfully.`,
+    }],
+  });
+}
 
 export default {
   name: 'notes',
@@ -82,150 +247,33 @@ export default {
         )
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    const subcommand = interaction.options.getSubcommand(true);
-
-    const input = interaction.options.getString('user', true);
-
-    const idToUse = getIdFromInput(input);
-
     await deferInteraction(interaction);
 
-    const user = await resolveUser(client, idToUse, interaction.guild);
-
-    if (!user) return interaction.editReply('User not found.');
-
-    if (subcommand == 'add') {
-      const reason = interaction.options.getString('reason', true);
-
-      logCustomEvent(interaction.guild!, {
-        title: 'Note Added',
-        description: null,
-        color: 0x00FF00,
-        timestamp: new Date(),
-        fields: [
-          {
-            name: 'Moderator',
-            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-            inline: true
-          },
-          {
-            name: 'User',
-            value: `<@${user.id}>\n${user.username}`,
-            inline: true
-          },
-          {
-            name: 'Note',
-            value: reason,
-            inline: true
-          }
-        ]
-      });
-
-      await Database.putNote(user.id, reason, interaction.user.id);
-
-      interaction.editReply(`Note added to <@${user.id}> (\`${user.username}\` | \`${user.id}\`).\n\nReason:\n${reason}`);
-    } else if (subcommand == 'remove') {
-      const noteId = interaction.options.getInteger('note', true);
-
-      const notes = await Database.getNotes(user.id);
-      const note = notes.find(n => n.id == noteId);
-
-      if (!note) return interaction.editReply('Note not found.');
-
-      logCustomEvent(interaction.guild!, {
-        title: 'Note Removed',
-        description: null,
-        color: 0xFF0000,
-        timestamp: new Date(),
-        fields: [
-          {
-            name: 'Moderator',
-            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-            inline: true
-          },
-          {
-            name: 'User',
-            value: `<@${user.id}>\n${user.username}`,
-            inline: true
-          },
-          {
-            name: 'Note',
-            value: `${note.reason}\nBy: <@${note.mod_id}>`,
-            inline: true
-          }
-        ]
-      });
-
-      await Database.removeNote(noteId);
-      interaction.editReply('Removed note.');
-    } else if (subcommand == 'edit') {
-      const noteId = interaction.options.getInteger('note', true);
-
-      const notes = await Database.getNotes(user.id);
-      const note = notes.find(n => n.id == noteId);
-
-      if (!note) return interaction.editReply('Note not found.');
-
-      const reason = interaction.options.getString('new-reason', true);
-
-      logCustomEvent(interaction.guild!, {
-        title: 'Note Edited',
-        description: null,
-        color: 0x00FF00,
-        timestamp: new Date(),
-        fields: [
-          {
-            name: 'Moderator',
-            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-            inline: true
-          },
-          {
-            name: 'User',
-            value: `<@${user.id}>\n${user.username}`,
-            inline: true
-          },
-          {
-            name: 'Old reason',
-            value: note.reason
-          },
-          {
-            name: 'New reason',
-            value: reason,
-            inline: true
-          }
-        ]
-      });
-
-      await Database.editNote(noteId, note.reason, reason, interaction.user.id);
-
-      interaction.editReply(`Note on <@${user.id}> (\`${user.username}\` | \`${user.id}\`) edited.\n\nNew reason:\n${reason}`);
-    } else if (subcommand == 'list') {
-      const noteMessage = await getNoteMessage(user.id, 1);
-
-      if (!noteMessage) return interaction.editReply(`No notes found for <@${user.id}> (\`${user.username}\` | \`${user.id}\`)`);
-
-      interaction.editReply(noteMessage);
+    const subcommand = interaction.options.getSubcommand(true);
+    switch (subcommand) {
+      case 'add': return await handleNotesAdd(client, interaction);
+      case 'edit': return await handleNotesEdit(client, interaction);
+      case 'list': return await handleNotesList(client, interaction);
+      case 'remove': return await handleNotesRemove(client, interaction);
     }
   },
   autoComplete: async function (client: Client, interaction: AutocompleteInteraction) {
-    const input = interaction.options.getString('user', true);
-
-    const idToUse = getIdFromInput(input);
-
-    if (!idToUse) return interaction.respond([]);
+    const idToUse = getIdFromInput(interaction.options.getString('user', true));
+    if (!idToUse) return await interaction.respond([]);
 
     const value = interaction.options.getFocused().toLowerCase();
-
     const notes = await Database.getNotes(idToUse);
 
     const toRespond = notes.filter(w => !value ? true : w.reason.toLowerCase().includes(value));
     if (toRespond.length > 25) toRespond.length = 25;
 
-    interaction.respond(toRespond.map((w) => {
-      return {
-        name: w.reason.substring(0, 50),
-        value: w.id
-      };
-    }));
+    await interaction.respond(
+      toRespond.map((w) => {
+        return {
+          name: w.reason.substring(0, 50),
+          value: w.id
+        };
+      })
+    );
   }
 };

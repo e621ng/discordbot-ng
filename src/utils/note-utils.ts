@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, time } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, time } from 'discord.js';
 import { Database } from '../shared/Database';
 import { MessageContent, Note } from '../types';
 
@@ -23,7 +23,6 @@ export async function getNoteMessage(userId: string, page: number): Promise<Mess
 
   for (let i = page * NOTES_PER_PAGE; i < page * NOTES_PER_PAGE + NOTES_PER_PAGE; i++) {
     if (i >= notes.length) break;
-
     noteTexts.push(getNoteText(notes[i]));
   }
 
@@ -43,7 +42,12 @@ export async function getNoteMessage(userId: string, page: number): Promise<Mess
     .addComponents(prevPage, nextPage);
 
   return {
-    content: `<@${userId}>'s Notes\n` + noteTexts.join('\n\n') + `\n\n-# Page ${page + 1}/${maxPage + 1}`,
-    components: [row]
+    embeds: [
+      new EmbedBuilder()
+        .setColor(0x014995)
+        .setDescription(`<@${userId}>'s Notes\n` + noteTexts.join('\n\n') + `\n\n-# Page ${page + 1}/${maxPage + 1}`),
+    ],
+
+    components: [row],
   };
 }
