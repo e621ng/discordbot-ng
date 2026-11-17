@@ -246,6 +246,7 @@ export default {
             .setRequired(true)
         )
     ),
+
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await deferInteraction(interaction);
 
@@ -257,6 +258,7 @@ export default {
       case 'remove': return await handleNotesRemove(client, interaction);
     }
   },
+
   autoComplete: async function (client: Client, interaction: AutocompleteInteraction) {
     const idToUse = getIdFromInput(interaction.options.getString('user', true));
     if (!idToUse) return await interaction.respond([]);
