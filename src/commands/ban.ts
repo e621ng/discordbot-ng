@@ -77,7 +77,6 @@ class BanCommand implements Command<Client<boolean>> {
     await deferInteraction(interaction);
 
     try {
-
       const input = interaction.options.getString('user', true);
       const idToUse = getIdFromInput(input);
 
