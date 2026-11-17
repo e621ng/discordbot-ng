@@ -1,6 +1,6 @@
-import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { KnowledgebaseItem } from '../types';
+import { SetSeverity } from '../utils';
 
 export default {
   name: 'cite',
@@ -17,32 +17,46 @@ export default {
         .setRequired(true)
         .setAutocomplete(true)
     ),
-  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    if (!interaction.guild) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Must be ran in guild.' });
 
+  handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
+    if (!interaction.inGuild()) return;
     await interaction.deferReply();
 
-    const id = interaction.options.getInteger('name', true);
+    const item = await Database.getFromKnowledgebase(interaction.options.getInteger('name', true));
+    if (!item) {
+      await interaction.editReply({
+        embeds: [{
+          ...SetSeverity('warning'),
+          description: "The knowledgebase item you asked for doesn't exist.",
+        }],
+      });
 
-    const item = await Database.getFromKnowledgebase(id);
+      return;
+    }
 
-    if (!item) return interaction.editReply('Knowledgebase item not found.');
-
-    return interaction.editReply(item.content);
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('info'),
+        title: item.name,
+        description: item.content,
+      }],
+    });
   },
+
   autoComplete: async function (client: Client, interaction: AutocompleteInteraction) {
-    if (!interaction.guild) return interaction.respond([]);
+    if (!interaction.inGuild()) return await interaction.respond([]);
 
-    const items: KnowledgebaseItem[] = await Database.getAllKnowledgebaseItems(interaction.guild.id);
-
+    const items = await Database.getAllKnowledgebaseItems(interaction.guildId);
     const value = interaction.options.getFocused();
 
     const toRespond = items.filter(i => !value ? true : i.content.includes(value));
     if (toRespond.length > 25) toRespond.length = 25;
 
-    interaction.respond(toRespond.map(p => ({
-      name: p.name,
-      value: p.id
-    })));
+    await interaction.respond(
+      toRespond.map(p => ({
+        name: p.name,
+        value: p.id
+      }))
+    );
   }
 };
