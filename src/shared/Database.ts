@@ -273,19 +273,19 @@ export class Database {
 
   //#region Notes
 
-  static async putNote(userId: string, reason: string, modId: string): Promise<number> {
-    const response = await Database.db.run('INSERT INTO notes(user_id, user_id_hash, reason, mod_id) VALUES (?, ?, ?, ?)', Encrypter.encrypt(userId), Encrypter.hash(userId), reason, Encrypter.encrypt(modId));
-    return response.changes ?? 0;
+  static async putNote(userId: string, reason: string, modId: string) {
+    await Database.db.run('INSERT INTO notes(user_id, user_id_hash, reason, mod_id) VALUES (?, ?, ?, ?)', Encrypter.encrypt(userId), Encrypter.hash(userId), reason, Encrypter.encrypt(modId));
   }
 
   static async editNote(id: number, oldReason: string, newReason: string, modId: string) {
-    await Database.db.run('UPDATE notes SET reason = ?, mod_id = ? WHERE id = ?', newReason, Encrypter.encrypt(modId), id);
-    await Database.db.run('INSERT INTO note_edits(note_id, mod_id, previous_reason) VALUES (?, ?, ?)', id, Encrypter.encrypt(modId), oldReason);
+    const updateResponse = await Database.db.run('UPDATE notes SET reason = ?, mod_id = ? WHERE id = ?', newReason, Encrypter.encrypt(modId), id);
+    if (!updateResponse.changes || updateResponse.changes === 0) throw new Error('An error occured while trying to update the note reason.');
+    const insertResponse = await Database.db.run('INSERT INTO note_edits(note_id, mod_id, previous_reason) VALUES (?, ?, ?)', id, Encrypter.encrypt(modId), oldReason);
+    if (!insertResponse.changes || insertResponse.changes === 0) throw new Error('An error occured while trying to insert the note edit.');
   }
 
-  static async removeNote(id: number): Promise<number> {
-    const response = await Database.db.run('DELETE from notes WHERE id = ?', id);
-    return response.changes ?? 0;
+  static async removeNote(id: number) {
+    await Database.db.run('DELETE from notes WHERE id = ?', id);
   }
 
   static async getNotes(userId: string): Promise<Note[]> {

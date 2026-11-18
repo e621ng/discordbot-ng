@@ -10,28 +10,19 @@ async function handleNotesAdd(client: Client, interaction: ChatInputCommandInter
 
   const reason = interaction.options.getString('reason', true);
 
+  await Database.putNote(user.id, reason, interaction.user.id);
+
   await logCustomEvent(interaction.guild!, {
     title: 'Note Added',
     description: null,
     color: 0x00FF00,
     timestamp: new Date(),
     fields: [
-      { name: 'Moderator', value: interaction.user.tag, inline: false },
-      { name: 'User', value: user.tag, inline: false },
+      { name: 'Moderator', value: `<@${interaction.user.id}>`, inline: false },
+      { name: 'User', value: `<@${user.id}>`, inline: false },
       { name: 'Note', value: reason, inline: false },
     ],
   });
-
-  if (await Database.putNote(user.id, reason, interaction.user.id) == 0) {
-    interaction.editReply({
-      embeds: [{
-        ...SetSeverity('error'),
-        description: "Your note couldn't be added to the database.",
-      }],
-    });
-
-    return;
-  }
 
   await interaction.editReply({
     embeds: [{
@@ -58,7 +49,7 @@ async function handleNotesEdit(client: Client, interaction: ChatInputCommandInte
     await interaction.editReply({
       embeds: [{
         ...SetSeverity('warning'),
-        description: "The note you're trying to remove doesn't exist.",
+        description: "The note you're trying to edit doesn't exist.",
       }],
     });
 
@@ -73,14 +64,13 @@ async function handleNotesEdit(client: Client, interaction: ChatInputCommandInte
     color: 0x00FF00,
     timestamp: new Date(),
     fields: [
-      { name: 'Moderator', value: interaction.user.tag, inline: false },
-      { name: 'User', value: user.tag, inline: false },
+      { name: 'Moderator', value: `<@${interaction.user.id}>`, inline: false },
+      { name: 'User', value: `<@${user.id}>`, inline: false },
       { name: 'Old reason', value: note.reason, inline: false },
       { name: 'New reason', value: reason, inline: false },
     ],
   });
 
-  // TODO: Check if all actions had been performed successfully.
   await Database.editNote(noteId, note.reason, reason, interaction.user.id);
 
   await interaction.editReply({
@@ -136,29 +126,20 @@ async function handleNotesRemove(client: Client, interaction: ChatInputCommandIn
     return;
   }
 
+  await Database.removeNote(noteId);
+
   await logCustomEvent(interaction.guild!, {
     title: 'Note Removed',
     description: null,
     color: 0xFF0000,
     timestamp: new Date(),
     fields: [
-      { name: 'Moderator', value: interaction.user.tag, inline: false },
-      { name: 'User', value: user.tag, inline: false },
+      { name: 'Moderator', value: `<@${interaction.user.id}>`, inline: false },
+      { name: 'User', value: `<@${user.id}>`, inline: false },
       { name: 'Author', value: `<@${note.mod_id}>`, inline: false },
       { name: 'Note', value: note.reason, inline: false },
     ],
   });
-
-  if (await Database.removeNote(noteId) == 0) {
-    await interaction.editReply({
-      embeds: [{
-        ...SetSeverity('error'),
-        description: "The specified note wasn't removed from the database.",
-      }],
-    });
-
-    return;
-  }
 
   await interaction.editReply({
     embeds: [{
@@ -191,6 +172,7 @@ export default {
             .setName('reason')
             .setDescription('The reason for the note.')
             .setRequired(true)
+            .setMaxLength(1024)
         )
     )
     .addSubcommand(subcommand =>
@@ -215,6 +197,7 @@ export default {
             .setName('new-reason')
             .setDescription('The new reason for the note.')
             .setRequired(true)
+            .setMaxLength(1024)
         )
     )
     .addSubcommand(subcommand =>
@@ -251,11 +234,15 @@ export default {
     await deferInteraction(interaction);
 
     const subcommand = interaction.options.getSubcommand(true);
-    switch (subcommand) {
-      case 'add': return await handleNotesAdd(client, interaction);
-      case 'edit': return await handleNotesEdit(client, interaction);
-      case 'list': return await handleNotesList(client, interaction);
-      case 'remove': return await handleNotesRemove(client, interaction);
+    try {
+      switch (subcommand) {
+        case 'add': return await handleNotesAdd(client, interaction);
+        case 'edit': return await handleNotesEdit(client, interaction);
+        case 'list': return await handleNotesList(client, interaction);
+        case 'remove': return await handleNotesRemove(client, interaction);
+      }
+    } catch (error: Error | any) {
+      await interaction.editReply({ embeds: [{ ...SetSeverity('error'), description: error.message }] }).catch(() => {});
     }
   },
 

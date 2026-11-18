@@ -42,6 +42,8 @@ export async function getNoteMessage(userId: string, page: number): Promise<Mess
     .addComponents(prevPage, nextPage);
 
   return {
+    content: '',
+
     embeds: [
       new EmbedBuilder()
         .setColor(0x014995)
