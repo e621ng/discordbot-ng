@@ -16,6 +16,17 @@ export async function handleWhoIsInteraction(interaction: CommandInteraction, va
   }
 
   const content = await getE621Alts(user.id, interaction.guild!);
+  if (!content) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: 'There are no accounts linked.',
+      }],
+    });
+
+    return;
+  }
+
   await interaction.editReply({
     embeds: [{
       ...SetSeverity('info'),
