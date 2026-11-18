@@ -16,7 +16,7 @@ async function handleHoneypot(context: Client<boolean>, message: Message): Promi
     const guild = await context.guilds.fetch(message.guildId);
     const member = await guild.members.fetch(message.author.id);
     const immuneRoles = await Database.getGuildArraySetting('honeypot_role_ids', message.guildId);
-    if (immuneRoles.some(roleId => member.roles.cache.has(roleId))) {
+    if (!member.bannable || immuneRoles.some(roleId => member.roles.cache.has(roleId))) {
       await message.delete();
       return true;
     }
