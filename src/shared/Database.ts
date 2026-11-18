@@ -338,8 +338,9 @@ export class Database {
   //# GitHub User Mapping
 
   // github_user_mapping
-  static async putGithubUserMapping(discordId: string, githubUsername: string) {
-    await Database.db.run('INSERT INTO github_user_mapping(discord_id, discord_id_hash, github_username) VALUES (?, ?, ?)', Encrypter.encrypt(discordId), Encrypter.hash(discordId), githubUsername);
+  static async putGithubUserMapping(discordId: string, githubUsername: string): Promise<number> {
+    const response = await Database.db.run('INSERT INTO github_user_mapping(discord_id, discord_id_hash, github_username) VALUES (?, ?, ?)', Encrypter.encrypt(discordId), Encrypter.hash(discordId), githubUsername);
+    return response.changes ?? 0;
   }
 
   static async getDiscordIdFromGithub(githubUsername: string): Promise<string | null> {
@@ -364,9 +365,9 @@ export class Database {
     });
   }
 
-  static async removeGithubUserMapping(discordId: string): Promise<boolean> {
+  static async removeGithubUserMapping(discordId: string): Promise<number> {
     const result = await Database.db.run('DELETE FROM github_user_mapping WHERE discord_id_hash = ?', Encrypter.hash(discordId));
-    return (result.changes ?? 0) > 0;
+    return result.changes ?? 0;
   }
 
   //#endregion

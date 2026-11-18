@@ -12,10 +12,38 @@ async function addUserMapping(interaction: ChatInputCommandInteraction) {
   const existingMappingId = await Database.getGithubFromDiscordId(discordId);
   const existingMappingName = await Database.getDiscordIdFromGithub(githubUsername);
 
-  if (existingMappingId) throw new Error(`<@${discordId}> (${discordId}) is already mapped to \`${existingMappingId}\``);
-  if (existingMappingName) throw new Error(`\`${githubUsername}\` is already mapped to <@${existingMappingName}> (${existingMappingName})`);
+  if (existingMappingId) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: `<@${discordId}> (${discordId}) is already mapped to \`${existingMappingId}\``,
+      }],
+    });
 
-  await Database.putGithubUserMapping(discordId, githubUsername);
+    return;
+  }
+
+  if (existingMappingName) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: `\`${githubUsername}\` is already mapped to <@${existingMappingName}> (${existingMappingName})`
+      }]
+    });
+
+    return;
+  }
+
+  if (await Database.putGithubUserMapping(discordId, githubUsername) == 0) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: "I couldn't write the link to the database.",
+      }],
+    });
+
+    return;
+  }
 
   await interaction.editReply({
     embeds: [{
@@ -31,7 +59,16 @@ async function removeUserMapping(interaction: ChatInputCommandInteraction) {
   const discordId = getIdFromInput(interaction.options.getString('discord-user', true));
   if (!userRegex.test(discordId)) throw new Error('The provided Discord user ID is invalid.');
 
-  if (!await Database.removeGithubUserMapping(discordId)) throw new Error('No existing GitHub mapping was found.');
+  if (await Database.removeGithubUserMapping(discordId) == 0) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: `<@${discordId}> isn't linked to any GitHub username.`,
+      }],
+    });
+
+    return;
+  }
 
   await interaction.editReply({
     embeds: [{
@@ -45,7 +82,16 @@ async function removeUserMapping(interaction: ChatInputCommandInteraction) {
 
 async function listUserMapping(interaction: ChatInputCommandInteraction) {
   const allMappings = await Database.getAllGithubUserMappings();
-  if (allMappings.length < 1) throw new Error('No GitHub mappings have been configured.');
+  if (allMappings.length < 1) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: "There aren't any linked GitHub accounts to list.",
+      }],
+    });
+
+    return;
+  }
 
   await interaction.editReply({
     embeds: [{
