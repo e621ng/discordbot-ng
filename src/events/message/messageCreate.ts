@@ -16,7 +16,10 @@ async function handleHoneypot(context: Client<boolean>, message: Message): Promi
     const guild = await context.guilds.fetch(message.guildId);
     const member = await guild.members.fetch(message.author.id);
     const immuneRoles = await Database.getGuildArraySetting('honeypot_role_ids', message.guildId);
-    if (!member.bannable || immuneRoles.some(roleId => member.roles.cache.has(roleId))) return false;
+    if (immuneRoles.some(roleId => member.roles.cache.has(roleId))) {
+      await message.delete();
+      return true;
+    }
 
     // Delete messages within 30 seconds of the ban. This does an okay job at cleanup.
     await Database.putBan(member.id, null);
@@ -29,14 +32,16 @@ async function handleHoneypot(context: Client<boolean>, message: Message): Promi
     const modChannel = await guild.channels.fetch(settings.moderator_channel_id);
     if (!modChannel || !modChannel.isSendable()) return false;
 
+    await message.forward(modChannel.id);
     await modChannel.send({
       embeds: [{
         ...SetSeverity('error'),
-        description: `I was unable to action on ${message.author.tag}. Please review <#${settings.honeypot_channel_id}>.`,
+        title: 'Honeypot | Error',
+        description: `I was unable to ban ${message.author}. Please review the message above in <#${settings.honeypot_channel_id}>.`,
       }],
     });
 
-    return false;
+    return true;
   }
 }
 
