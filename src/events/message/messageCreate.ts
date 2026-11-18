@@ -26,11 +26,11 @@ async function handleHoneypot(context: Client<boolean>, message: Message): Promi
     await member.ban({ reason: "Banned by Honeypot. This ban doesn't expire.", deleteMessageSeconds: 30 });
     return true;
   } catch (error: Error | any) {
-    if (!settings.moderator_channel_id) return false;
+    if (!settings.moderator_channel_id) return true;
 
     const guild = await context.guilds.fetch(message.guildId);
     const modChannel = await guild.channels.fetch(settings.moderator_channel_id);
-    if (!modChannel || !modChannel.isSendable()) return false;
+    if (!modChannel || !modChannel.isSendable()) return true;
 
     await message.forward(modChannel.id);
     await modChannel.send({
