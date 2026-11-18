@@ -6,7 +6,15 @@ import { deferInteraction, getIdFromInput, logCustomEvent, resolveUser, SetSever
 async function handleLinkCreate(client: Client, interaction: ChatInputCommandInteraction) {
   const idToUse = getIdFromInput(interaction.options.getString('discord-user', true));
   const user = await resolveUser(client, idToUse, interaction.guild);
-  if (!user) throw new Error('An error occured while trying to resolve the Discord user.');
+  if (!user) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('error'),
+        description: "Couldn't resolve the specified Discord user.",
+      }],
+    });
+    return;
+  }
 
   const e621Id = interaction.options.getInteger('e621-id', true);
 
@@ -30,8 +38,8 @@ async function handleLinkCreate(client: Client, interaction: ChatInputCommandInt
     color: 0x00FF00,
     timestamp: new Date(),
     fields: [
-      { name: 'Admin', value: interaction.user.tag, inline: false },
-      { name: 'Discord User', value: user.tag, inline: false },
+      { name: 'Admin', value: `${interaction.user} (${interaction.user.id})`, inline: false },
+      { name: 'Discord User', value: `${user} (${user.id})`, inline: false },
       { name: 'E621 User', value: `${config.E621_BASE_URL}/users/${e621Id}`, inline: false },
     ],
   });
@@ -39,7 +47,7 @@ async function handleLinkCreate(client: Client, interaction: ChatInputCommandInt
   await interaction.editReply({
     embeds: [{
       ...SetSeverity('success'),
-      description: `${user.tag} has been successfully linked to ${e621Id}`,
+      description: `${user.tag} has been successfully linked to [#${e621Id}](${config.E621_BASE_URL}/users/${e621Id}).`,
     }],
   });
 }
@@ -47,7 +55,15 @@ async function handleLinkCreate(client: Client, interaction: ChatInputCommandInt
 async function handleLinkRemove(client: Client, interaction: ChatInputCommandInteraction) {
   const idToUse = getIdFromInput(interaction.options.getString('discord-user', true));
   const user = await resolveUser(client, idToUse, interaction.guild);
-  if (!user) return interaction.editReply('An error occured while trying to resolve the Discord user.');
+  if (!user) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('error'),
+        description: "Couldn't resolve the specified Discord user.",
+      }],
+    });
+    return;
+  }
 
   const e621Id = interaction.options.getInteger('e621-id', true);
 
@@ -68,11 +84,11 @@ async function handleLinkRemove(client: Client, interaction: ChatInputCommandInt
   await logCustomEvent(interaction.guild!, {
     title: 'Account Link Removed',
     description: null,
-    color: 0x00FF00,
+    color: 0xFF0000,
     timestamp: new Date(),
     fields: [
-      { name: 'Admin', value: interaction.user.tag, inline: false },
-      { name: 'Discord User', value: user.tag, inline: false },
+      { name: 'Admin', value: `${interaction.user} (${interaction.user.id})`, inline: false },
+      { name: 'Discord User', value: `${user} (${user.id})`, inline: false },
       { name: 'E621 User', value: `${config.E621_BASE_URL}/users/${e621Id}`, inline: false },
     ],
   });
@@ -80,7 +96,7 @@ async function handleLinkRemove(client: Client, interaction: ChatInputCommandInt
   await interaction.editReply({
     embeds: [{
       ...SetSeverity('success'),
-      description: `${user.tag} has been successfully unlinked from ${e621Id}`,
+      description: `${user.tag} has been successfully unlinked from [#${e621Id}](${config.E621_BASE_URL}/users/${e621Id}).`,
     }],
   });
 }
