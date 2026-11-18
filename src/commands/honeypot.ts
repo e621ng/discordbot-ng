@@ -15,6 +15,7 @@ export default {
       .setName('message')
       .setDescription('The message to attach to the channel.')
       .setRequired(true)
+      .setMaxLength(4096)
     ),
 
   handler: async function (context: Client, interaction: ChatInputCommandInteraction) {
