@@ -10,16 +10,17 @@ async function handleHoneypot(context: Client<boolean>, message: Message): Promi
   if (!message.inGuild()) return false;
 
   const settings = await Database.getOrCreateSettings(message.guildId);
-  if (!settings.honeypot_channel_id || message.channelId != settings.honeypot_channel_id) return false;
+  if (!settings.honeypot_channel_id || message.channelId !== settings.honeypot_channel_id) return false;
 
   try {
     const guild = await context.guilds.fetch(message.guildId);
     const member = await guild.members.fetch(message.author.id);
-    if (!member.bannable) return false;
+    const immuneRoles = await Database.getGuildArraySetting('honeypot_role_ids', message.guildId);
+    if (!member.bannable || immuneRoles.some(roleId => member.roles.cache.has(roleId))) return false;
 
-    // Delete messages within 60 seconds of the ban. This does an okay job at cleanup.
+    // Delete messages within 30 seconds of the ban. This does an okay job at cleanup.
     await Database.putBan(member.id, null);
-    await member.ban({ reason: "Banned by Honeypot. This ban doesn't expire.", deleteMessageSeconds: 60 });
+    await member.ban({ reason: "Banned by Honeypot. This ban doesn't expire.", deleteMessageSeconds: 30 });
     return true;
   } catch (error: Error | any) {
     if (!settings.moderator_channel_id) return false;
