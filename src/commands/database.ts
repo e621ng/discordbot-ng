@@ -1,6 +1,28 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { getIdFromInput } from '../utils';
+import { deferInteraction, getIdFromInput, SetSeverity } from '../utils';
+
+async function handleMessagesPurge(client: Client, interaction: ChatInputCommandInteraction): Promise<void> {
+  const idToUse = getIdFromInput(interaction.options.getString('user', true));
+  const result = await Database.purgeMessagesFrom(idToUse);
+  if (result == 0) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: 'The operation was completed but no rows have been affected.'
+      }],
+    });
+
+    return;
+  }
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('success'),
+      description: `Successfully purged ${result} messages for <@${idToUse}>.`,
+    }],
+  });
+}
 
 export default {
   name: 'database',
@@ -26,23 +48,15 @@ export default {
             )
         )
     ),
+
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+    await deferInteraction(interaction);
 
     const group = interaction.options.getSubcommandGroup(true);
-
     const subcommand = interaction.options.getSubcommand(true);
 
-    if (group == 'messages') {
-      if (subcommand == 'purge') {
-        const discordUserInput = interaction.options.getString('discord-user', true);
-
-        const idToUse = getIdFromInput(discordUserInput);
-
-        await Database.purgeMessagesFrom(idToUse);
-
-        return interaction.editReply('Messages purged.');
-      }
+    switch (`${group}:${subcommand}`) {
+      case 'messages:purge': return await handleMessagesPurge(client, interaction);
     }
   }
 };
