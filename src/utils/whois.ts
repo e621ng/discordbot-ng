@@ -15,17 +15,33 @@ export async function handleWhoIsInteraction(interaction: CommandInteraction, va
     return;
   }
 
-  const content = await getE621Alts(user.id, interaction.guild!);
-  if (!content) {
+  let content = '';
+
+  try {
+    content = await getE621Alts(user.id, interaction.guild!);
+  } catch (error: Error | any) {
     await interaction.editReply({
       embeds: [{
-        ...SetSeverity('warning'),
-        description: 'There are no accounts linked.',
+        ...SetSeverity('error'),
+        description: `An error occured while trying to fetch the alt accounts for ${user.tag}.`,
       }],
     });
 
     return;
   }
+
+  if (!content) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: `<@${user.id}> (${user.id}) has no linked accounts.`,
+      }],
+    });
+
+    return;
+  }
+
+  if (content.length > 4000) content = content.slice(0, 3900) + '\n*[...]*';
 
   await interaction.editReply({
     embeds: [{
