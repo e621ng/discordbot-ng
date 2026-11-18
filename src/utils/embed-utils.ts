@@ -1,4 +1,4 @@
-import { APIEmbed, Client } from 'discord.js';
+import { APIEmbed, Client, CommandInteraction } from 'discord.js';
 
 type EmbedSeverity
   = | 'info'
@@ -28,4 +28,15 @@ export function SetSeverity(severity: EmbedSeverity): APIEmbed {
     case 'error': return { color: 0xED4245 };
     case 'success': return { color: 0x57F287 };
   }
+}
+
+
+export async function createResponseEmbed(interaction: CommandInteraction, severity: EmbedSeverity, title: string, description: string): Promise<void> {
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity(severity),
+      title: title,
+      description: description,
+    }],
+  });
 }

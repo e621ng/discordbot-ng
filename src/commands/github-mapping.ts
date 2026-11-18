@@ -1,6 +1,6 @@
 import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { getIdFromInput, SetSeverity } from '../utils';
+import { createResponseEmbed, getIdFromInput, SetSeverity } from '../utils';
 
 const userRegex = new RegExp(/^\d{16,20}$/);
 
@@ -13,93 +13,48 @@ async function addUserMapping(interaction: ChatInputCommandInteraction) {
   const existingMappingName = await Database.getDiscordIdFromGithub(githubUsername);
 
   if (existingMappingId) {
-    await interaction.editReply({
-      embeds: [{
-        ...SetSeverity('warning'),
-        description: `<@${discordId}> (${discordId}) is already mapped to \`${existingMappingId}\``,
-      }],
-    });
-
+    await createResponseEmbed(interaction, 'warning', 'GitHub Mapping | Add', `\`${githubUsername}\` is already mapped to <@${existingMappingName}> (${existingMappingName})`);
     return;
   }
 
   if (existingMappingName) {
-    await interaction.editReply({
-      embeds: [{
-        ...SetSeverity('warning'),
-        description: `\`${githubUsername}\` is already mapped to <@${existingMappingName}> (${existingMappingName})`
-      }]
-    });
-
+    await createResponseEmbed(interaction, 'warning', 'GitHub Mapping | Add', `\`${githubUsername}\` is already mapped to <@${existingMappingName}> (${existingMappingName})`);
     return;
   }
 
-  if (await Database.putGithubUserMapping(discordId, githubUsername) == 0) {
-    await interaction.editReply({
-      embeds: [{
-        ...SetSeverity('warning'),
-        description: "I couldn't write the link to the database.",
-      }],
-    });
-
+  if (await Database.putGithubUserMapping(discordId, githubUsername) === 0) {
+    await createResponseEmbed(interaction, 'warning', 'GitHub Mapping | Add', "I couldn't write the link to the database.");
     return;
   }
 
-  await interaction.editReply({
-    embeds: [{
-      ...SetSeverity('success'),
-
-      title: 'GitHub/Discord Mapping | Add',
-      description: `\`${githubUsername}\` has been linked to <@${discordId}>`,
-    }],
-  });
+  await createResponseEmbed(interaction, 'success', 'GitHub Mapping | Add', `\`${githubUsername}\` has been linked to <@${discordId}>`);
 }
 
 async function removeUserMapping(interaction: ChatInputCommandInteraction) {
   const discordId = getIdFromInput(interaction.options.getString('discord-user', true));
   if (!userRegex.test(discordId)) throw new Error('The provided Discord user ID is invalid.');
 
-  if (await Database.removeGithubUserMapping(discordId) == 0) {
-    await interaction.editReply({
-      embeds: [{
-        ...SetSeverity('warning'),
-        description: `<@${discordId}> isn't linked to any GitHub username.`,
-      }],
-    });
-
+  if (await Database.removeGithubUserMapping(discordId) === 0) {
+    await createResponseEmbed(interaction, 'warning', 'GitHub Mapping | Remove', `<@${discordId}> isn't linked to any GitHub username.`);
     return;
   }
 
-  await interaction.editReply({
-    embeds: [{
-      ...SetSeverity('success'),
-
-      title: 'GitHub/Discord Mapping | Remove',
-      description: `<@${discordId}> is no longer linked.`,
-    }],
-  });
+  await createResponseEmbed(interaction, 'success', 'GitHub Mapping | Remove', `<@${discordId}> is no longer linked.`);
 }
 
 async function listUserMapping(interaction: ChatInputCommandInteraction) {
   const allMappings = await Database.getAllGithubUserMappings();
   if (allMappings.length < 1) {
-    await interaction.editReply({
-      embeds: [{
-        ...SetSeverity('warning'),
-        description: "There aren't any linked GitHub accounts to list.",
-      }],
-    });
-
+    await createResponseEmbed(interaction, 'warning', 'GitHub Mapping | List', "There aren't any linked GitHub accounts to list.");
     return;
   }
 
   await interaction.editReply({
     embeds: [{
       ...SetSeverity('success'),
-
-      title: 'GitHub/Discord Mapping | List',
+      title: 'GitHub Mapping | List',
       description: allMappings.map(m => `- <@${m.discord_id}> (${m.discord_id}) - ${m.github_username}`).join('\n'),
-    }]
+    }],
   });
 }
 
