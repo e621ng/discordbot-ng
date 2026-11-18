@@ -37,7 +37,7 @@ export default {
     await interaction.editReply({
       embeds: [{
         ...SetSeverity('info'),
-        title: item.name,
+        title: item.name.slice(0, 256),
         description: item.content,
       }],
     });
@@ -49,7 +49,7 @@ export default {
     const items = await Database.getAllKnowledgebaseItems(interaction.guildId);
     const value = interaction.options.getFocused();
 
-    const toRespond = items.filter(i => !value ? true : i.content.includes(value));
+    const toRespond = items.filter(i => !value ? true : i.name.includes(value));
     if (toRespond.length > 25) toRespond.length = 25;
 
     await interaction.respond(

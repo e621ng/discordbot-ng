@@ -50,7 +50,7 @@ export default {
         .setCustomId('add-knowledgebase-item-modal')
         .setTitle('Add to knowledgebase');
 
-      const nameLabel = createTextInput('name', 'Knowledgebase Item Name', null, true, TextInputStyle.Short, 300, 1);
+      const nameLabel = createTextInput('name', 'Knowledgebase Item Name', null, true, TextInputStyle.Short, 100, 1);
       const contentLabel = createTextInput('content', 'Item Content', null, true, TextInputStyle.Paragraph, 2000, 1);
 
       modal.addLabelComponents(nameLabel, contentLabel);
