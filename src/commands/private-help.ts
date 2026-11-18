@@ -13,13 +13,13 @@ export default {
     .addStringOption(option =>
       option
         .setName('content')
-        .setDescription('The content of the message.')
-        .setRequired(false)
+        .setDescription('The content of the associated message.')
+        .setRequired(true)
     )
     .addStringOption(option =>
       option
         .setName('button-label')
-        .setDescription('The button label.')
+        .setDescription('The label of the button.')
         .setRequired(false)
     ),
 
@@ -39,7 +39,7 @@ export default {
         return;
       }
 
-      const content = interaction.options.getString('content') ?? '';
+      const content = interaction.options.getString('content', true);
       const label = interaction.options.getString('button-label') ?? 'Get in contact';
 
       const button = new ButtonBuilder()
