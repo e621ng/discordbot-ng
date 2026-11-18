@@ -40,7 +40,7 @@ export default {
         return;
       }
 
-      if (interaction.channel.type != ChannelType.GuildText) {
+      if (interaction.channel.type !== ChannelType.GuildText) {
         await interaction.editReply({
           embeds: [{
             ...SetSeverity('warning'),
