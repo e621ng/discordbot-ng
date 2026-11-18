@@ -22,32 +22,36 @@ export default {
     if (!interaction.inGuild()) return;
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    if (!interaction.channel || !interaction.channel.isSendable()) {
-      await interaction.editReply({
+    try {
+      if (!interaction.channel || !interaction.channel.isSendable()) {
+        await interaction.editReply({
+          embeds: [{
+            ...SetSeverity('warning'),
+            description: "I don't have permissions to send messages in this channel.",
+          }],
+        });
+
+        return;
+      }
+
+      await Database.updateSettings(interaction.guildId, 'honeypot_channel_id', interaction.channelId);
+
+      const message = interaction.options.getString('message') ?? '';
+      await interaction.channel.send({
         embeds: [{
           ...SetSeverity('warning'),
-          description: "I don't have permissions to send messages in this channel.",
+          description: message
         }],
       });
 
-      return;
+      await interaction.editReply({
+        embeds: [{
+          ...SetSeverity('success'),
+          description: 'Done! The honeypot channel is now configured and active.',
+        }],
+      });
+    } catch (error: Error | any) {
+      await interaction.editReply({ embeds: [{ ...SetSeverity('error'), description: error.message }] });
     }
-
-    await Database.updateSettings(interaction.guildId, 'honeypot_channel_id', interaction.channelId);
-
-    const message = interaction.options.getString('message') ?? '';
-    await interaction.channel.send({
-      embeds: [{
-        ...SetSeverity('warning'),
-        description: message
-      }],
-    });
-
-    await interaction.editReply({
-      embeds: [{
-        ...SetSeverity('success'),
-        description: 'Done! The honeypot channel is now configured and active.',
-      }],
-    });
   }
 };
