@@ -2,13 +2,50 @@ import { Client } from 'discord.js';
 import { config } from '../../config';
 import { Database } from '../../shared/Database';
 import { Event } from '../../types';
-import { ALLOWED_MIMETYPES, blacklistIfNecessary, calculateMD5FromURL, getE621PostByMd5, getPostUrl, md5Regex, Message, regexTesters, uniqueRegexMatches } from '../../utils';
+import { ALLOWED_MIMETYPES, blacklistIfNecessary, calculateMD5FromURL, getE621PostByMd5, getPostUrl, md5Regex, Message, regexTesters, SetSeverity, uniqueRegexMatches } from '../../utils';
+
+// TODO: Once commands have been converted to classes, this will receive
+// its own file and event handler to avoid blocking the main handler.
+async function handleHoneypot(context: Client<boolean>, message: Message): Promise<boolean> {
+  if (!message.inGuild()) return false;
+
+  const settings = await Database.getOrCreateSettings(message.guildId);
+  if (!settings.honeypot_channel_id || message.channelId != settings.honeypot_channel_id) return false;
+
+  try {
+    const guild = await context.guilds.fetch(message.guildId);
+    const member = await guild.members.fetch(message.author.id);
+    if (!member.bannable) return false;
+
+    // Delete messages within 60 seconds of the ban. This does an okay job at cleanup.
+    await Database.putBan(member.id, null);
+    await member.ban({ reason: "Banned by Honeypot. This ban doesn't expire.", deleteMessageSeconds: 60 });
+    return true;
+  } catch (error: Error | any) {
+    if (!settings.moderator_channel_id) return false;
+
+    const guild = await context.guilds.fetch(message.guildId);
+    const modChannel = await guild.channels.fetch(settings.moderator_channel_id);
+    if (!modChannel || !modChannel.isSendable()) return false;
+
+    await modChannel.send({
+      embeds: [{
+        ...SetSeverity('error'),
+        description: `I was unable to action on ${message.author.tag}. Please review <#${settings.honeypot_channel_id}>.`,
+      }],
+    });
+
+    return false;
+  }
+}
 
 class MessageCreateEvent implements Event<Client, 'messageCreate'> {
   event = 'messageCreate' as const;
 
   async execute(context: Client<boolean>, message: Message): Promise<void> {
     if (message.author.bot) return;
+    if (await handleHoneypot(context, message)) return; // If true, don't bother handling the message.
+
     if (message.inGuild()) await Database.putMessage(message);
 
     const responses: string[] = [];
