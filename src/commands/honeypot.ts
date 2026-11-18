@@ -33,6 +33,8 @@ export default {
       return;
     }
 
+    await Database.updateSettings(interaction.guildId, 'honeypot_channel_id', interaction.channelId);
+
     const message = interaction.options.getString('message') ?? '';
     await interaction.channel.send({
       embeds: [{
@@ -40,8 +42,6 @@ export default {
         description: message
       }],
     });
-
-    await Database.updateSettings(interaction.guildId, 'honeypot_channel_id', interaction.channelId);
 
     await interaction.editReply({
       embeds: [{
