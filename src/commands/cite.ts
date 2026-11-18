@@ -54,7 +54,7 @@ export default {
 
     await interaction.respond(
       toRespond.map(p => ({
-        name: p.name,
+        name: p.name.slice(0, 100),
         value: p.id
       }))
     );
