@@ -166,8 +166,9 @@ export class Database {
     await Database.db.run('DELETE from messages WHERE datetime(timestamp) < datetime("now", "-28 days")');
   }
 
-  static async purgeMessagesFrom(id: string) {
-    await Database.db.run('DELETE from messages WHERE author_id_hash = ?', Encrypter.hash(id));
+  static async purgeMessagesFrom(id: string): Promise<number> {
+    const response = await Database.db.run('DELETE from messages WHERE author_id_hash = ?', Encrypter.hash(id));
+    return response.changes ?? 0;
   }
 
   //#endregion
