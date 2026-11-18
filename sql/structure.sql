@@ -25,7 +25,9 @@ CREATE TABLE
     link_skip_channels TEXT,
     github_release_channel TEXT,
     moderator_channel_id TEXT,
-    private_help_channel_id TEXT
+    private_help_channel_id TEXT,
+    honeypot_channel_id TEXT,
+    honeypot_role_ids TEXT
   );
 
 CREATE TABLE

@@ -31,9 +31,10 @@ export type GuildSettings = {
   appeals_channel_id?: string
   site_breaker_role_id?: string
   honeypot_channel_id?: string
+  honeypot_role_ids?: string
 };
 
-export type GuildArraySetting = 'staff_categories' | 'safe_channels' | 'link_skip_channels';
+export type GuildArraySetting = 'staff_categories' | 'safe_channels' | 'link_skip_channels' | 'honeypot_role_ids';
 
 export type TicketMessage = {
   id: number
