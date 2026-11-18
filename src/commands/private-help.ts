@@ -15,6 +15,7 @@ export default {
         .setName('content')
         .setDescription('The content of the associated message.')
         .setRequired(true)
+        .setMaxLength(4096)
     )
     .addStringOption(option =>
       option
@@ -28,11 +29,11 @@ export default {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
-      if (!interaction.channel || !interaction.channel.isSendable()) {
+      if (!interaction.channel || !interaction.channel.isSendable() || !interaction.appPermissions?.has(PermissionFlagsBits.SendMessages)) {
         await interaction.editReply({
           embeds: [{
             ...SetSeverity('warning'),
-            description: "I don't have permission to see this channel.",
+            description: "I don't have permission to send messages in this channel.",
           }],
         });
 
@@ -61,10 +62,22 @@ export default {
 
       await Database.updateSettings(interaction.guildId, 'private_help_channel_id', interaction.channelId);
 
+      const settings = await Database.getOrCreateSettings(interaction.guildId);
+      if (!settings.private_help_role_id) {
+        await interaction.editReply({
+          embeds: [{
+            ...SetSeverity('warning'),
+            description: "Private help button posted, however 'private_help_role_id' doesn't appear to be set. Use `/settings private-helper-role:` to configure a role.",
+          }],
+        });
+
+        return;
+      }
+
       await interaction.editReply({
         embeds: [{
           ...SetSeverity('success'),
-          description: 'Private Help has been configured successfully. New tickets will be created in this channel.',
+          description: 'Private help button posted. Tickets will be opened as private threads in this channel.',
         }],
       });
     } catch (error: Error | any) {
