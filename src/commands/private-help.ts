@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ApplicationIntegrationType, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ActionRowBuilder, ApplicationIntegrationType, ButtonBuilder, ButtonStyle, ChannelType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
 import { SetSeverity } from '../utils';
 
@@ -34,6 +34,17 @@ export default {
           embeds: [{
             ...SetSeverity('warning'),
             description: "I don't have permission to send messages in this channel.",
+          }],
+        });
+
+        return;
+      }
+
+      if (interaction.channel.type != ChannelType.GuildText) {
+        await interaction.editReply({
+          embeds: [{
+            ...SetSeverity('warning'),
+            description: 'This is not a valid channel to configure. Please select a regular text channel instead.',
           }],
         });
 
