@@ -15,6 +15,12 @@ updates:
 
     versioning-strategy: increase
 
+    ignore:
+      # TypeScript 7 is the native (Go) compiler and ships no stable JS API yet.
+      # typescript-eslint (and thus our lint setup) only supports TS < 6.1.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+
     # Follow the pull request naming scheme.
     commit-message:
       prefix: "[NPM] "
