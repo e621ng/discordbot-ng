@@ -1,5 +1,5 @@
-import { ApplicationIntegrationType, Client, InteractionContextType, PermissionFlagsBits, ContextMenuCommandBuilder, ApplicationCommandType, UserContextMenuCommandInteraction, GuildBasedChannel } from 'discord.js';
-import { channelIsInStaffCategory, handleWhoIsInteraction } from '../utils';
+import { ApplicationIntegrationType, Client, InteractionContextType, PermissionFlagsBits, ContextMenuCommandBuilder, ApplicationCommandType, UserContextMenuCommandInteraction } from 'discord.js';
+import { deferInteraction, handleWhoIsInteraction } from '../utils';
 
 export default {
   name: 'Whois',
@@ -10,8 +10,10 @@ export default {
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .setType(ApplicationCommandType.User),
   handler: async function (client: Client, interaction: UserContextMenuCommandInteraction) {
-    const idToUse = interaction.targetUser.id;
+    if (!interaction.inGuild()) return;
+    await deferInteraction(interaction);
 
-    handleWhoIsInteraction(interaction, idToUse, !(await channelIsInStaffCategory(interaction.channel as GuildBasedChannel)));
+    const idToUse = interaction.targetUser.id;
+    await handleWhoIsInteraction(interaction, idToUse);
   }
 };

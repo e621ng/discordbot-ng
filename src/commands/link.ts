@@ -1,7 +1,105 @@
-import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { config } from '../config';
 import { Database } from '../shared/Database';
-import { getIdFromInput, logCustomEvent, resolveUser } from '../utils';
+import { deferInteraction, getIdFromInput, logCustomEvent, resolveUser, SetSeverity } from '../utils';
+
+async function handleLinkCreate(client: Client, interaction: ChatInputCommandInteraction) {
+  const idToUse = getIdFromInput(interaction.options.getString('discord-user', true));
+  const user = await resolveUser(client, idToUse, interaction.guild);
+  if (!user) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('error'),
+        description: "Couldn't resolve the specified Discord user.",
+      }],
+    });
+    return;
+  }
+
+  const e621Id = interaction.options.getInteger('e621-id', true);
+
+  const existingLinks = await Database.getDiscordIds(e621Id);
+  if (existingLinks.includes(user.id)) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: 'The specified accounts are already linked.',
+      }],
+    });
+
+    return;
+  }
+
+  await Database.putUser(e621Id, user);
+
+  await logCustomEvent(interaction.guild!, {
+    title: 'Account Link Created',
+    description: null,
+    color: 0x00FF00,
+    timestamp: new Date(),
+    fields: [
+      { name: 'Admin', value: `${interaction.user} (${interaction.user.id})`, inline: false },
+      { name: 'Discord User', value: `${user} (${user.id})`, inline: false },
+      { name: 'E621 User', value: `${config.E621_BASE_URL}/users/${e621Id}`, inline: false },
+    ],
+  });
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('success'),
+      description: `${user.tag} has been successfully linked to [#${e621Id}](${config.E621_BASE_URL}/users/${e621Id}).`,
+    }],
+  });
+}
+
+async function handleLinkRemove(client: Client, interaction: ChatInputCommandInteraction) {
+  const idToUse = getIdFromInput(interaction.options.getString('discord-user', true));
+  const user = await resolveUser(client, idToUse, interaction.guild);
+  if (!user) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('error'),
+        description: "Couldn't resolve the specified Discord user.",
+      }],
+    });
+    return;
+  }
+
+  const e621Id = interaction.options.getInteger('e621-id', true);
+
+  const existingLinks = await Database.getDiscordIds(e621Id);
+  if (!existingLinks.includes(user.id)) {
+    await interaction.editReply({
+      embeds: [{
+        ...SetSeverity('warning'),
+        description: "The specified accounts aren't linked.",
+      }],
+    });
+
+    return;
+  }
+
+  await Database.removeUser(e621Id, user.id);
+
+  await logCustomEvent(interaction.guild!, {
+    title: 'Account Link Removed',
+    description: null,
+    color: 0xFF0000,
+    timestamp: new Date(),
+    fields: [
+      { name: 'Admin', value: `${interaction.user} (${interaction.user.id})`, inline: false },
+      { name: 'Discord User', value: `${user} (${user.id})`, inline: false },
+      { name: 'E621 User', value: `${config.E621_BASE_URL}/users/${e621Id}`, inline: false },
+    ],
+  });
+
+  await interaction.editReply({
+    embeds: [{
+      ...SetSeverity('success'),
+      description: `${user.tag} has been successfully unlinked from [#${e621Id}](${config.E621_BASE_URL}/users/${e621Id}).`,
+    }],
+  });
+}
 
 export default {
   name: 'link',
@@ -45,85 +143,14 @@ export default {
             .setRequired(true)
         )
     ),
+
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+    await deferInteraction(interaction);
 
-    const subcommand = await interaction.options.getSubcommand(true);
-
-    const discordUserInput = interaction.options.getString('discord-user', true);
-
-    const idToUse = getIdFromInput(discordUserInput);
-
-    const user = await resolveUser(client, idToUse, interaction.guild);
-
-    if (!user) return interaction.editReply('User not found.');
-
-    const e621Id = interaction.options.getInteger('e621-id', true);
-
-    if (subcommand == 'create') {
-      const existingLinks = await Database.getDiscordIds(e621Id);
-
-      if (existingLinks.includes(user.id)) return interaction.editReply('Accounts already linked.');
-
-      await Database.putUser(e621Id, user);
-
-      await logCustomEvent(interaction.guild!, {
-        title: 'Account Link Created',
-        description: null,
-        color: 0x00FF00,
-        timestamp: new Date(),
-        fields: [
-          {
-            name: 'Admin',
-            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-            inline: true
-          },
-          {
-            name: 'Discord User',
-            value: `<@${user.id}>\n${user.username}`,
-            inline: true
-          },
-          {
-            name: 'E621 User',
-            value: `${config.E621_BASE_URL}/users/${e621Id}`,
-            inline: true
-          }
-        ]
-      });
-
-      interaction.editReply('Accounts linked');
-    } else if (subcommand == 'remove') {
-      const existingLinks = await Database.getDiscordIds(e621Id);
-
-      if (!existingLinks.includes(user.id)) return interaction.editReply('Accounts not linked.');
-
-      await Database.removeUser(e621Id, user.id);
-
-      await logCustomEvent(interaction.guild!, {
-        title: 'Account Link Removed',
-        description: null,
-        color: 0x00FF00,
-        timestamp: new Date(),
-        fields: [
-          {
-            name: 'Admin',
-            value: `<@${interaction.user.id}>\n${interaction.user.username}`,
-            inline: true
-          },
-          {
-            name: 'Discord User',
-            value: `<@${user.id}>\n${user.username}`,
-            inline: true
-          },
-          {
-            name: 'E621 User',
-            value: `${config.E621_BASE_URL}/users/${e621Id}`,
-            inline: true
-          }
-        ]
-      });
-
-      interaction.editReply('Accounts unlinked');
+    const subcommand = interaction.options.getSubcommand(true);
+    switch (subcommand) {
+      case 'create': return await handleLinkCreate(client, interaction);
+      case 'remove': return await handleLinkRemove(client, interaction);
     }
   }
 };
