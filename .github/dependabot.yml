@@ -15,6 +15,17 @@ updates:
 
     versioning-strategy: increase
 
+    # The lint stack has to move together: eslint majors require matching
+    # @eslint/js, @stylistic and typescript-eslint releases.
+    groups:
+      eslint:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "@stylistic/*"
+          - "typescript-eslint"
+          - "globals"
+
     ignore:
       # TypeScript 7 is the native (Go) compiler and ships no stable JS API yet.
       # typescript-eslint (and thus our lint setup) only supports TS < 6.1.

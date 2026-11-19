@@ -25,7 +25,7 @@ export type E621User = {
   can_upload_free: boolean
   level_string: string
   avatar_id: number
-}
+};
 
 export type E621Post = {
   id: number
@@ -51,7 +51,7 @@ export type E621Post = {
   is_favorited: boolean
   has_notes: boolean
   duration: number | null
-}
+};
 
 export type E621File = {
   width: number
@@ -60,13 +60,13 @@ export type E621File = {
   size: number
   md5: string
   url: string | null
-}
+};
 
 export type E621PreviewFile = {
   width: number
   height: number
   url: string | null
-}
+};
 
 export type E621SampleFile = {
   has: boolean
@@ -75,13 +75,13 @@ export type E621SampleFile = {
   url: string | null
   // Typing this will be a pain in the ass, so I skipped it for now.
   alternates: any
-}
+};
 
 export type E621ScoreData = {
   up: number
   down: number
   total: number
-}
+};
 
 export type E621Tags = {
   general: string[]
@@ -93,7 +93,7 @@ export type E621Tags = {
   invalid: string[]
   meta: string[]
   lore: string[]
-}
+};
 
 export type E621FlagData = {
   pending: boolean
@@ -102,14 +102,14 @@ export type E621FlagData = {
   status_locked: boolean
   rating_locked: boolean
   deleted: boolean
-}
+};
 
 export type E621PostRelationships = {
   parent_id: number | null
   has_children: boolean
   has_active_children: boolean
   children: number[]
-}
+};
 
 export type Ticket = {
   id: number
@@ -153,14 +153,14 @@ export type Appeal = {
   status: 'pending' | 'partial' | 'approved' | 'rejected'
   category: 'flag'
   reason: string
-}
+};
 
 export type AppealUpdate = {
   action: 'claim' | 'create' | 'unclaim' | 'update'
   appeal: Appeal
 };
 
-export type RecordCategory = 'positive' | 'negative' | 'neutral'
+export type RecordCategory = 'positive' | 'negative' | 'neutral';
 
 export type Record = {
   id: number
@@ -172,7 +172,7 @@ export type Record = {
   updated_at: string
   updater_id: number
   is_deleted: boolean
-}
+};
 
 export type PostFlag = {
   id: number
@@ -188,7 +188,7 @@ export type PostFlag = {
   needs_parent_id: boolean
   needs_staff_reason: boolean
   type: string
-}
+};
 
 export type E621Pool = {
   id: number
@@ -202,4 +202,4 @@ export type E621Pool = {
   category: 'collection' | 'series'
   post_ids: number[]
   post_count: number
-}
+};

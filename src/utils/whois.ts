@@ -15,7 +15,7 @@ export async function handleWhoIsInteraction(interaction: CommandInteraction, va
     return;
   }
 
-  let content = '';
+  let content: string;
 
   try {
     content = await getE621Alts(user.id, interaction.guild!);

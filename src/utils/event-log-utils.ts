@@ -11,7 +11,7 @@ type CustomEventLogData = {
   color: number | null
   timestamp: Date | number | null
   fields: APIEmbedField[] | null
-}
+};
 
 export async function logEdit(loggedMessage: LoggedMessage, newMessage: Message<true>) {
   const channel = await getEventLogChannel(newMessage.guild, newMessage.channel);
