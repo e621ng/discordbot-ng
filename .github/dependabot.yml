@@ -1,0 +1,20 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+
+    # Schedule updates for Monday.
+    schedule:
+      interval: weekly
+      day: monday
+
+    # See: https://github.com/e621ng/e621ng/blob/504a2afd1d94669ab8d4c1be96e28f905fbfd312/.github/dependabot.yml#L11-L13
+    cooldown:
+      default-days: 3
+
+    versioning-strategy: increase
+
+    # Follow the pull request naming scheme.
+    commit-message:
+      prefix: "[NPM] "
