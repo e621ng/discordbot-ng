@@ -123,6 +123,18 @@ export default {
         .setName('site-breaker-role')
         .setDescription('Set the site breaker role.')
         .setRequired(false)
+    )
+    .addRoleOption(option =>
+      option
+        .setName('add-honeypot-role')
+        .setDescription('Add a role to honeypot immunity.')
+        .setRequired(false)
+    )
+    .addRoleOption(option =>
+      option
+        .setName('remove-honeypot-role')
+        .setDescription('Remove a role from honeypot immunity.')
+        .setRequired(false)
     ),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.guildId) return; // This shouldn't occur, but TypeScript doesn't know that.
@@ -260,6 +272,18 @@ export default {
     if (siteBreakerRole) {
       await Database.updateSettings(interaction.guildId, 'site_breaker_role_id', siteBreakerRole.id);
       response.push(`**site_breaker_role_id** has been set to ${siteBreakerRole}.`);
+    }
+
+    const addHoneypotRole = interaction.options.getRole('add-honeypot-role');
+    if (addHoneypotRole) {
+      await Database.putGuildArraySetting('honeypot_role_ids', interaction.guildId, addHoneypotRole.id);
+      response.push(`Added ${addHoneypotRole} to **honeypot_role_ids**.`);
+    }
+
+    const removeHoneypotRole = interaction.options.getRole('remove-honeypot-role');
+    if (removeHoneypotRole) {
+      await Database.removeGuildArraySetting('honeypot_role_ids', interaction.guildId, removeHoneypotRole.id);
+      response.push(`Removed ${removeHoneypotRole} from **honeypot_role_ids**.`);
     }
 
     if (response.length == 0) return interaction.editReply({ content: 'No settings have been modified.' });
