@@ -1,4 +1,4 @@
-import { Client } from 'discord.js';
+import { Client, DiscordAPIError } from 'discord.js';
 import { config } from '../../config';
 import { Database } from '../../shared/Database';
 import { Event } from '../../types';
@@ -19,24 +19,31 @@ async function handleHoneypot(context: Client<boolean>, message: Message): Promi
     if (!member.bannable || immuneRoles.some(roleId => member.roles.cache.has(roleId))) return true;
 
     // Delete messages within 30 seconds of the ban. This does an okay job at cleanup.
-    await Database.putBan(member.id, null);
     await member.ban({ reason: "Banned by Honeypot. This ban doesn't expire.", deleteMessageSeconds: 30 });
+    await Database.putBan(member.id, null);
     return true;
   } catch (error: Error | any) {
+    if (error instanceof DiscordAPIError[10007]) return true;
+    console.log('An error occurred while handling a honeypot action: ', error);
+
     if (!settings.moderator_channel_id) return true;
 
-    const guild = await context.guilds.fetch(message.guildId);
-    const modChannel = await guild.channels.fetch(settings.moderator_channel_id);
-    if (!modChannel || !modChannel.isSendable()) return true;
+    try {
+      const guild = await context.guilds.fetch(message.guildId);
+      const modChannel = await guild.channels.fetch(settings.moderator_channel_id);
+      if (!modChannel || !modChannel.isSendable()) return true;
 
-    await message.forward(modChannel.id);
-    await modChannel.send({
-      embeds: [{
-        ...SetSeverity('error'),
-        title: 'Honeypot | Error',
-        description: `I was unable to ban ${message.author}. Please review the message above in <#${settings.honeypot_channel_id}>.`,
-      }],
-    });
+      await message.forward(modChannel.id);
+      await modChannel.send({
+        embeds: [{
+          ...SetSeverity('error'),
+          title: 'Honeypot | Error',
+          description: `I was unable to ban ${message.author}. Please review the message above in <#${settings.honeypot_channel_id}>.`,
+        }],
+      });
+    } catch (error: Error | any) {
+      console.log('An error occurred while trying to send a mod notification: ', error);
+    }
 
     return true;
   }
