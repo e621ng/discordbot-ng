@@ -58,6 +58,8 @@ async function handleNotesEdit(client: Client, interaction: ChatInputCommandInte
 
   const reason = interaction.options.getString('new-reason', true);
 
+  await Database.editNote(noteId, note.reason, reason, interaction.user.id);
+
   await logCustomEvent(interaction.guild!, {
     title: 'Note Edited',
     description: null,
@@ -70,8 +72,6 @@ async function handleNotesEdit(client: Client, interaction: ChatInputCommandInte
       { name: 'New reason', value: reason, inline: false },
     ],
   });
-
-  await Database.editNote(noteId, note.reason, reason, interaction.user.id);
 
   await interaction.editReply({
     embeds: [{
