@@ -13,7 +13,7 @@ async function addUserMapping(interaction: ChatInputCommandInteraction) {
   const existingMappingName = await Database.getDiscordIdFromGithub(githubUsername);
 
   if (existingMappingId) {
-    await createResponseEmbed(interaction, 'warning', 'GitHub Mapping | Add', `\`${githubUsername}\` is already mapped to <@${existingMappingName}> (${existingMappingName})`);
+    await createResponseEmbed(interaction, 'warning', 'GitHub Mapping | Add', `<@${discordId}> (${discordId}) is already mapped to \`${existingMappingId}\``);
     return;
   }
 
