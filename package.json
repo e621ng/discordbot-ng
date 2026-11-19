@@ -8,7 +8,7 @@
     "eslint": "10.15.0",
     "globals": "17.14.0",
     "rimraf": "6.1.4",
-    "tsx": "4.22.4",
+    "tsx": "4.23.15",
     "typescript": "6.0.3",
     "typescript-eslint": "8.73.0"
   },
