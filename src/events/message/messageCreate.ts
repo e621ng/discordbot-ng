@@ -1,4 +1,4 @@
-import { Client, DiscordAPIError } from 'discord.js';
+import { Client, DiscordAPIError, RESTJSONErrorCodes } from 'discord.js';
 import { config } from '../../config';
 import { Database } from '../../shared/Database';
 import { Event } from '../../types';
@@ -23,7 +23,7 @@ async function handleHoneypot(context: Client<boolean>, message: Message): Promi
     await Database.putBan(member.id, null);
     return true;
   } catch (error: Error | any) {
-    if (error instanceof DiscordAPIError[10007]) return true;
+    if (error instanceof DiscordAPIError && error.code === RESTJSONErrorCodes.UnknownMember) return true;
     console.log('An error occurred while handling a honeypot action: ', error);
 
     if (!settings.moderator_channel_id) return true;
