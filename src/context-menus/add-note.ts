@@ -18,8 +18,7 @@ export default {
       .setCustomId(`add-note-modal_${idToUse}`)
       .setTitle(`Adding note to ${member ? member.displayName : idToUse}`);
 
-    const inputLabel = createTextInput('note-message', 'Note Message', null, true, TextInputStyle.Paragraph, 1500, 2);
-
+    const inputLabel = createTextInput('note-message', 'Note Message', null, true, TextInputStyle.Paragraph, 1024, 2);
     modal.addLabelComponents(inputLabel);
 
     await interaction.showModal(modal);
