@@ -1,10 +1,10 @@
 import { APIEmbed, Client, CommandInteraction } from 'discord.js';
 
-type EmbedSeverity
-  = | 'info'
+type EmbedSeverity =
+  | 'info'
   | 'warning'
   | 'error'
-  | 'success'
+  | 'success';
 
 export function CreateDefaultEmbed(context: Client): APIEmbed {
   if (!context.user) return {};

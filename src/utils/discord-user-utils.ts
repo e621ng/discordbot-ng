@@ -2,7 +2,7 @@ import { Client, Guild, MessageMentions, User } from 'discord.js';
 import { Database, PrivateHelpTicketStatus } from '../shared/Database';
 
 export async function resolveUser(client: Client, value: string, guild: Guild | null = null): Promise<User | null | undefined> {
-  let user: User | null | undefined = null;
+  let user: User | null | undefined;
 
   try {
     user = await client.users.fetch(value);

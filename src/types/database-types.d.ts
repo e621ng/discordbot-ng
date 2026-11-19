@@ -9,7 +9,7 @@ export type LoggedMessage = {
   stickers: string
   content: string
   timestamp: Date
-}
+};
 
 export type GuildSettings = {
   guild_id: string
@@ -30,26 +30,26 @@ export type GuildSettings = {
   private_help_channel_id?: string
   appeals_channel_id?: string
   site_breaker_role_id?: string
-}
+};
 
 export type GuildArraySetting = 'staff_categories' | 'safe_channels' | 'link_skip_channels';
 
 export type TicketMessage = {
   id: number
   message_id: string
-}
+};
 
 export type AppealMessage = {
   id: number
   message_id: string
-}
+};
 
 export type TicketPhrase = {
   id: number
   user_id: string
   user_id_hash: string
   phrase: string
-}
+};
 
 export type Note = {
   id: number
@@ -58,7 +58,7 @@ export type Note = {
   reason: string
   mod_id: string
   timestamp: string
-}
+};
 
 export type Ban = {
   id: number
@@ -67,21 +67,21 @@ export type Ban = {
   expires: 0 | 1
   expires_at: string
   full_ban: 0 | 1
-}
+};
 
 export type GithubUserMapping = {
   id: number
   discord_id: string
   discord_id_hash: string
   github_username: string
-}
+};
 
 export type KnowledgebaseItem = {
   id: number
   guild_id: string
   name: string
   content: string
-}
+};
 
 export type PrivateHelpTicket = {
   id: number
@@ -90,10 +90,10 @@ export type PrivateHelpTicket = {
   thread_id: string
   status: PrivateHelpTicketStatus
   timestamp: string
-}
+};
 
 export type RoleButton = {
   id: number
   message_id: string
   role_id: string
-}
+};

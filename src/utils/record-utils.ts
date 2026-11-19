@@ -4,7 +4,7 @@ import { E621User, MessageContent, Record, RecordCategory } from '../types';
 import { comprehensiveAltLookupFromDiscord, e621IdsFromAltData } from './alt-utils';
 import { getE621User, getUserRecords } from './e621-utils';
 
-type RecordWithUserData = Record & { user: E621User, creator: E621User, updater: E621User }
+type RecordWithUserData = Record & { user: E621User, creator: E621User, updater: E621User };
 type AllRecords = RecordWithUserData[];
 
 const RECORDS_PER_PAGE = 5;

@@ -18,13 +18,13 @@ type TokenResponse = {
   expires_in: number
   refresh_token: string
   scope: string
-}
+};
 
 type DiscordUser = {
   id: string
   username: string
   // bunch of other stuff we don't use
-}
+};
 
 type AddMemberOptions = {
   accessToken: string
@@ -32,7 +32,7 @@ type AddMemberOptions = {
   guildId: string
   userId: string
   nickname?: string
-}
+};
 
 const OAUTH_BASE_URL = 'https://discord.com/oauth2';
 const OAUTH_API_BASE_URL = 'https://discord.com/api/oauth2';

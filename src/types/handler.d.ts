@@ -1,6 +1,6 @@
 import { Client, Interaction } from 'discord.js';
 
-type HandlerFunction = (client: Client, interaction: Interaction, ...args: any) => Promise<void>
+type HandlerFunction = (client: Client, interaction: Interaction, ...args: any) => Promise<void>;
 
 export interface Handler {
   name: string;
