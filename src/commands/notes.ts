@@ -1,7 +1,6 @@
 import { ApplicationIntegrationType, AutocompleteInteraction, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { Database } from '../shared/Database';
-import { deferInteraction, getIdFromInput, logCustomEvent, resolveUser, SetSeverity } from '../utils';
-import { getNoteMessage } from '../utils/note-utils';
+import { deferInteraction, getIdFromInput, getNoteMessage, logCustomEvent, resolveUser, SetSeverity } from '../utils';
 
 async function handleNotesAdd(client: Client, interaction: ChatInputCommandInteraction) {
   const idToUse = getIdFromInput(interaction.options.getString('user', true));
@@ -29,7 +28,7 @@ async function handleNotesAdd(client: Client, interaction: ChatInputCommandInter
       ...SetSeverity('success'),
       description: 'The note was successfully added.',
       fields: [
-        { name: 'User', value: user.tag, inline: false },
+        { name: 'User', value: `${user}`, inline: false },
         { name: 'Reason', value: reason, inline: false },
       ],
     }],
@@ -78,7 +77,7 @@ async function handleNotesEdit(client: Client, interaction: ChatInputCommandInte
       ...SetSeverity('success'),
       description: 'The note was successfully edited.',
       fields: [
-        { name: 'User', value: user.tag, inline: false },
+        { name: 'User', value: `${user}`, inline: false },
         { name: 'Old Reason', value: note.reason, inline: false },
         { name: 'New Reason', value: reason, inline: false },
       ],
@@ -96,7 +95,7 @@ async function handleNotesList(client: Client, interaction: ChatInputCommandInte
     await interaction.editReply({
       embeds: [{
         ...SetSeverity('warning'),
-        description: `No notes were found for ${user.tag}.`,
+        description: `No notes were found for ${user}.`,
       }],
     });
 
@@ -144,7 +143,7 @@ async function handleNotesRemove(client: Client, interaction: ChatInputCommandIn
   await interaction.editReply({
     embeds: [{
       ...SetSeverity('success'),
-      description: `The note has been removed from ${user.tag} successfully.`,
+      description: `The note has been removed from ${user} successfully.`,
     }],
   });
 }
