@@ -40,9 +40,9 @@ export async function syncName(interaction: ChatInputCommandInteraction | UserCo
   } catch (error) {
     if (error instanceof DiscordAPIError) {
       switch (error.code) {
-        case RESTJSONErrorCodes.UnknownGuild: throw new Error('I was unable to fetch the server.');
-        case RESTJSONErrorCodes.UnknownMember: throw new Error(`I was unable to fetch <@${userId}> as a server member.`);
-        case RESTJSONErrorCodes.MissingPermissions: throw new Error(`I don't have permission to manage the nickname for <@${userId}>.`);
+        case RESTJSONErrorCodes.UnknownGuild: throw new Error('I was unable to fetch the server.', { cause: error });
+        case RESTJSONErrorCodes.UnknownMember: throw new Error(`I was unable to fetch <@${userId}> as a server member.`, { cause: error });
+        case RESTJSONErrorCodes.MissingPermissions: throw new Error(`I don't have permission to manage the nickname for <@${userId}>.`, { cause: error });
       }
     }
 
