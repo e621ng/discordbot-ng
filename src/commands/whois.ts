@@ -13,8 +13,7 @@ export default {
       option
         .setName('user')
         .setDescription('The discord user mention, or ID, to find the e621 user of.')
-        .setRequired(true)
-    ),
+        .setRequired(true)),
 
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.inGuild()) return;

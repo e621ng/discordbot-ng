@@ -13,23 +13,20 @@ export default {
       option
         .setName('user')
         .setDescription('The discord user to softban.')
-        .setRequired(true)
-    )
+        .setRequired(true))
     .addStringOption(option =>
       option
         .setName('reason')
         .setDescription('The reason for the softban')
         .setRequired(false)
-        .setMaxLength(400)
-    )
+        .setMaxLength(400))
     .addNumberOption(option =>
       option
         .setName('days')
         .setDescription('How far back to delete messages (in days, default: 7 days).')
         .setRequired(false)
         .setMinValue(0)
-        .setMaxValue(7)
-    ),
+        .setMaxValue(7)),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await deferInteraction(interaction);
 

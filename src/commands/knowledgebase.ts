@@ -14,8 +14,7 @@ export default {
     .addSubcommand(subcommand =>
       subcommand
         .setName('add')
-        .setDescription('Add to the knowledgebase.')
-    )
+        .setDescription('Add to the knowledgebase.'))
     .addSubcommand(subcommand =>
       subcommand
         .setName('remove')
@@ -25,9 +24,7 @@ export default {
             .setName('name')
             .setDescription('The name of the entry to remove.')
             .setRequired(true)
-            .setAutocomplete(true)
-        )
-    )
+            .setAutocomplete(true)))
     .addSubcommand(subcommand =>
       subcommand
         .setName('edit')
@@ -37,9 +34,7 @@ export default {
             .setName('name')
             .setDescription('The name of the entry to edit.')
             .setRequired(true)
-            .setAutocomplete(true)
-        )
-    ),
+            .setAutocomplete(true))),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.guild) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Must be ran in guild.' });
 

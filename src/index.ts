@@ -142,9 +142,7 @@ client.on('clientReady', async () => {
   events.forEach(event =>
     client.on(event.event, (...args) =>
       Promise.resolve((event.execute as (context: Client, ...args: unknown[]) => Promise<void>)(client, ...args))
-        .catch(e => console.error(`Error in ${event.event} handler:`, e))
-    )
-  );
+        .catch(e => console.error(`Error in ${event.event} handler:`, e))));
 
   ready = true;
   console.log('Bot marked as ready. Handlers can now accept interactions.');

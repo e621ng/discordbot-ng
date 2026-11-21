@@ -14,14 +14,12 @@ export default {
       option
         .setName('user')
         .setDescription('The discord user to find the e621 user of.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addStringOption(option =>
       option
         .setName('id')
         .setDescription('The discord user id to find the e621 user of.')
-        .setRequired(false)
-    ),
+        .setRequired(false)),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await deferInteraction(interaction);
 

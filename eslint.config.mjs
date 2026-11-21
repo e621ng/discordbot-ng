@@ -33,7 +33,6 @@ const config = tseslint.config(
       '@stylistic/semi': ['error'],
       '@stylistic/indent': ['error', 2, { 'SwitchCase': 1 }],
       '@stylistic/arrow-parens': ['error', 'as-needed', { 'requireForBlockBody': true }],
-      '@stylistic/array-bracket-spacing': ['error', 'never'],
       '@stylistic/block-spacing': ['error'],
       '@stylistic/brace-style': ['error', '1tbs', { 'allowSingleLine': true }],
       '@stylistic/comma-dangle': ['error', {
@@ -47,9 +46,25 @@ const config = tseslint.config(
       '@stylistic/key-spacing': ['error'],
       '@stylistic/no-trailing-spaces': ['error'],
       '@stylistic/no-whitespace-before-property': ['error'],
-      '@stylistic/object-curly-newline': ['error', {
-        'multiline': true,
-        'consistent': true
+      '@stylistic/list-style': ['error', {
+        'singleLine': {
+          'spacing': 'never'
+        },
+        'multiLine': {
+          'minItems': 1
+        },
+        'overrides': {
+          '{}': {
+            'singleLine': {
+              'spacing': 'always'
+            }
+          },
+          '[]': {
+            'singleLine': {
+              'spacing': 'never'
+            }
+          }
+        }
       }],
       '@stylistic/operator-linebreak': ['error', 'before'],
       '@stylistic/space-infix-ops': ['error']
@@ -66,6 +81,5 @@ const config = tseslint.config(
     },
   }
 );
-
 
 export default config;

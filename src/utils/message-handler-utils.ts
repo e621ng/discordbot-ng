@@ -19,7 +19,9 @@ export const md5Regex = new RegExp('^([a-f0-9]{32}).(?:png|apng|jpg|jpeg|gif|web
 export const regexTesters = [
   { runInDev: false, regex: postRegex, handler: postHandler.bind(null, null) },
   {
-    runInDev: false, regex: postShareRegex, handler: postHandler.bind(null, (idString: string) => {
+    runInDev: false,
+    regex: postShareRegex,
+    handler: postHandler.bind(null, (idString: string) => {
       return parseInt(idString, 32);
     })
   },

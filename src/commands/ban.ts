@@ -14,47 +14,40 @@ export default {
       option
         .setName('user')
         .setDescription('The discord user mention, or ID, to ban.')
-        .setRequired(true)
-    )
+        .setRequired(true))
     .addStringOption(option =>
       option
         .setName('reason')
         .setDescription('The reason for the ban')
         .setRequired(false)
-        .setMaxLength(400)
-    )
+        .setMaxLength(400))
     .addNumberOption(option =>
       option
         .setName('hours')
         .setDescription('The duration of the ban, added with other options (0 for permanent).')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addNumberOption(option =>
       option
         .setName('minutes')
         .setDescription('The duration of the ban, added with other options (0 for permanent).')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addNumberOption(option =>
       option
         .setName('seconds')
         .setDescription('The duration of the ban, added with other options (0 for permanent).')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addNumberOption(option =>
       option
         .setName('delete-message-days')
         .setDescription('How far back to delete messages (in days, default: 0 days).')
         .setRequired(false)
         .setMinValue(0)
-        .setMaxValue(7)
-    )
+        .setMaxValue(7))
     .addBooleanOption(option =>
       option
         .setName('full-ban')
         .setDescription('Whether or not to prevent the user from joining on known alts (and ban all existing alts).')
-        .setRequired(false)
-    ),
+        .setRequired(false)),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await deferInteraction(interaction);
 

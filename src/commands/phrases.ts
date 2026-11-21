@@ -31,9 +31,7 @@ export default {
                 .setDescription('The phrase to add.')
                 .setRequired(true)
                 .setMinLength(MIN_PHRASE_LENGTH)
-                .setMaxLength(MAX_PHRASE_LENGTH)
-            )
-        )
+                .setMaxLength(MAX_PHRASE_LENGTH)))
         .addSubcommand(subcommand =>
           subcommand
             .setName('remove')
@@ -43,15 +41,11 @@ export default {
                 .setName('phrase')
                 .setDescription('The phrase to remove.')
                 .setRequired(true)
-                .setAutocomplete(true)
-            )
-        )
+                .setAutocomplete(true)))
         .addSubcommand(subcommand =>
           subcommand
             .setName('list')
-            .setDescription('Get a list of the current admin notification phrases.')
-        )
-    )
+            .setDescription('Get a list of the current admin notification phrases.')))
     .addSubcommandGroup(subcommandGroup =>
       subcommandGroup
         .setName('personal')
@@ -66,9 +60,7 @@ export default {
                 .setDescription('The phrase to add.')
                 .setRequired(true)
                 .setMinLength(MIN_PHRASE_LENGTH)
-                .setMaxLength(MAX_PHRASE_LENGTH)
-            )
-        )
+                .setMaxLength(MAX_PHRASE_LENGTH)))
         .addSubcommand(subcommand =>
           subcommand
             .setName('remove')
@@ -78,20 +70,15 @@ export default {
                 .setName('phrase')
                 .setDescription('The phrase to remove.')
                 .setRequired(true)
-                .setAutocomplete(true)
-            )
-        )
+                .setAutocomplete(true)))
         .addSubcommand(subcommand =>
           subcommand
             .setName('list')
-            .setDescription('Get a list of the current personal notification phrases.')
-        )
-    )
+            .setDescription('Get a list of the current personal notification phrases.')))
     .addSubcommand(subcommand =>
       subcommand
         .setName('dump')
-        .setDescription('List all notification phrases.')
-    )
+        .setDescription('List all notification phrases.'))
     .addSubcommand(subcommand =>
       subcommand
         .setName('purge')
@@ -100,9 +87,7 @@ export default {
           option
             .setName('user')
             .setDescription('The user to purge the phrases of.')
-            .setRequired(true)
-        )
-    ),
+            .setRequired(true))),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     const subcommandGroup: SubcommandGroup | null = interaction.options.getSubcommandGroup() as SubcommandGroup;
     const subcommand: Subcommand | null = interaction.options.getSubcommand() as Subcommand;

@@ -14,8 +14,7 @@ export default {
       option
         .setName('user')
         .setDescription('The e621 username or e621 id to find the discord user of.')
-        .setRequired(true)
-    ),
+        .setRequired(true)),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await deferInteraction(interaction);
 

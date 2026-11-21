@@ -117,15 +117,12 @@ export default {
           option
             .setName('discord-user')
             .setDescription('The discord user id, or mention, of the user.')
-            .setRequired(true)
-        )
+            .setRequired(true))
         .addIntegerOption(option =>
           option
             .setName('e621-id')
             .setDescription('The id of the e621 user.')
-            .setRequired(true)
-        )
-    )
+            .setRequired(true)))
     .addSubcommand(subcommand =>
       subcommand
         .setName('remove')
@@ -134,15 +131,12 @@ export default {
           option
             .setName('discord-user')
             .setDescription('The discord user id, or mention, of the user.')
-            .setRequired(true)
-        )
+            .setRequired(true))
         .addIntegerOption(option =>
           option
             .setName('e621-id')
             .setDescription('The id of the e621 user.')
-            .setRequired(true)
-        )
-    ),
+            .setRequired(true))),
 
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await deferInteraction(interaction);

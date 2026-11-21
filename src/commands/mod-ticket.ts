@@ -13,8 +13,7 @@ export default {
       option
         .setName('user')
         .setDescription('The user to pull in to the ticket.')
-        .setRequired(true)
-    ),
+        .setRequired(true)),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.guild) return interaction.editReply('This command must be used in a server.');
 
