@@ -48,5 +48,4 @@ export async function syncName(interaction: ChatInputCommandInteraction | UserCo
 
     throw error;
   }
-
 }
