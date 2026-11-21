@@ -34,7 +34,7 @@ export async function syncName(interaction: ChatInputCommandInteraction | UserCo
         fields: [
           { name: 'Old Nickname', value: `${oldNickname}`, inline: true },
           { name: 'New Nickname', value: `${member.nickname}`, inline: true },
-        ]
+        ],
       }],
     });
   } catch (error) {
