@@ -1,6 +1,6 @@
 import { Client, ModalSubmitInteraction } from 'discord.js';
 import { Modal } from '../types';
-import { deferInteraction, syncName } from '../utils';
+import { deferInteraction, SetSeverity, syncName } from '../utils';
 
 class SyncNameModal implements Modal<Client> {
   id = 'sync-name-modal';
@@ -13,13 +13,9 @@ class SyncNameModal implements Modal<Client> {
       const e621Id = Number(interaction.fields.getTextInputValue('id') ?? 0);
       if (isNaN(e621Id)) throw new Error('Provided id is not a number.');
 
-      const guild = await context.guilds.fetch(interaction.guildId);
-      const member = await guild.members.fetch(id);
-      if (!member) throw new Error('Unable to fetch the target member.');
-
-      await syncName(interaction, member, e621Id);
+      await syncName(interaction, id, e621Id);
     } catch (error: Error | any) {
-      await interaction.editReply({ content: error.message }).catch(() => {});
+      await interaction.editReply({ embeds: [{ ...SetSeverity('error'), description: error.message }] });
     }
   }
 }
