@@ -23,12 +23,18 @@ export async function syncName(interaction: ChatInputCommandInteraction | UserCo
       e621User = await getE621User(id);
 
     if (!e621User) throw new Error("I couldn't find a user with the given ID. Check the given ID and try again, or contact an administrator.");
+
+    const oldNickname = member.nickname;
     await member.setNickname(e621User.name);
 
     await interaction.editReply({
       embeds: [{
         ...SetSeverity('success'),
         description: `I've set ${res} nickname to: ${e621User.name}`,
+        fields: [
+          { name: 'Old Nickname', value: `${oldNickname}`, inline: true },
+          { name: 'New Nickname', value: `${member.nickname}`, inline: true },
+        ]
       }],
     });
   } catch (error) {

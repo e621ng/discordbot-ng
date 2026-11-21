@@ -27,7 +27,7 @@ export default {
         .setCustomId(`sync-name-modal_${interaction.targetId}`)
         .setTitle(`Syncing ${member.user.username.slice(0, 20)}'s nickname.`);
 
-        const inputLabel = createTextInput('id', `${member.user.username} has multiple linked accounts. Please specify an account.`, null, false, TextInputStyle.Short, null, null);
+        const inputLabel = createTextInput('id', 'Multiple linked accounts. Specify an ID.', null, false, TextInputStyle.Short, null, null);
         modal.addLabelComponents(inputLabel);
 
         await interaction.showModal(modal);
