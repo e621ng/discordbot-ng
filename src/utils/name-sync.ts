@@ -12,7 +12,7 @@ export async function syncName(interaction: ChatInputCommandInteraction | UserCo
     // This check is here intentionally to avoid wasting a call
     // to the e6 api if the user cannot have their nickname set.
     const res = interaction.user.id == member.id ? 'your' : `${member.user}'s`;
-    if (!member.manageable) throw new Error(`I cannot update ${res} nickname due to your position in the role hierarchy.`);
+    if (!member.manageable) throw new Error(`I cannot update ${res} nickname due to my position in the role hierarchy.`);
 
     const availableIds = await Database.getE621Ids(userId);
     let e621User: E621User | null;
