@@ -4,6 +4,7 @@ import closeTicket from './closeTicket';
 import devWatch from './devWatch';
 import noteNext from './noteNext';
 import notePrevious from './notePrevious';
+import noteText from './noteText';
 import openTicketForReportedMessage from './openTicketForReportedMessage';
 import privateHelp from './privateHelp';
 import recordsNext from './recordsNext';
@@ -18,6 +19,7 @@ export default [
   devWatch,
   noteNext,
   notePrevious,
+  noteText,
   openTicketForReportedMessage,
   privateHelp,
   recordsNext,
