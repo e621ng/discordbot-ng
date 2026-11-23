@@ -38,8 +38,13 @@ export async function getNoteMessage(userId: string, page: number): Promise<Mess
     .setDisabled(page >= maxPage)
     .setStyle(ButtonStyle.Primary);
 
+  const generateText = new ButtonBuilder()
+    .setLabel('Generate text file')
+    .setCustomId(`note-text_${userId}`)
+    .setStyle(ButtonStyle.Secondary);
+
   const row = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(prevPage, nextPage);
+    .addComponents(prevPage, nextPage, generateText);
 
   return {
     content: '',
