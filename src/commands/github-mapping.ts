@@ -74,15 +74,12 @@ export default {
           option
             .setName('discord-user')
             .setDescription('The discord user id, or mention, of the user.')
-            .setRequired(true)
-        )
+            .setRequired(true))
         .addStringOption(option =>
           option
             .setName('github-name')
             .setDescription('The github username of the user (case sensitive).')
-            .setRequired(true)
-        )
-    )
+            .setRequired(true)))
     .addSubcommand(subcommand =>
       subcommand
         .setName('remove')
@@ -91,14 +88,11 @@ export default {
           option
             .setName('discord-user')
             .setDescription('The discord user id, or mention, of the user.')
-            .setRequired(true)
-        )
-    )
+            .setRequired(true)))
     .addSubcommand(subcommand =>
       subcommand
         .setName('list')
-        .setDescription('List all github-discord mappings.')
-    ),
+        .setDescription('List all github-discord mappings.')),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.inGuild()) return;
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });

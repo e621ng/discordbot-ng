@@ -164,16 +164,13 @@ export default {
           option
             .setName('user')
             .setDescription('The discord user mention, or ID, to add a note to.')
-            .setRequired(true)
-        )
+            .setRequired(true))
         .addStringOption(option =>
           option
             .setName('reason')
             .setDescription('The reason for the note.')
             .setRequired(true)
-            .setMaxLength(1024)
-        )
-    )
+            .setMaxLength(1024)))
     .addSubcommand(subcommand =>
       subcommand
         .setName('edit')
@@ -182,23 +179,19 @@ export default {
           option
             .setName('user')
             .setDescription('The discord user mention, or ID, to edit the notes of.')
-            .setRequired(true)
-        )
+            .setRequired(true))
         .addIntegerOption(option =>
           option
             .setName('note')
             .setDescription('The note to edit.')
             .setRequired(true)
-            .setAutocomplete(true)
-        )
+            .setAutocomplete(true))
         .addStringOption(option =>
           option
             .setName('new-reason')
             .setDescription('The new reason for the note.')
             .setRequired(true)
-            .setMaxLength(1024)
-        )
-    )
+            .setMaxLength(1024)))
     .addSubcommand(subcommand =>
       subcommand
         .setName('remove')
@@ -207,16 +200,13 @@ export default {
           option
             .setName('user')
             .setDescription('The discord user mention, or ID, to remove a note from.')
-            .setRequired(true)
-        )
+            .setRequired(true))
         .addIntegerOption(option =>
           option
             .setName('note')
             .setDescription('The note to remove.')
             .setRequired(true)
-            .setAutocomplete(true)
-        )
-    )
+            .setAutocomplete(true)))
     .addSubcommand(subcommand =>
       subcommand
         .setName('list')
@@ -225,9 +215,7 @@ export default {
           option
             .setName('user')
             .setDescription('The discord user mention, or ID, to list the notes of.')
-            .setRequired(true)
-        )
-    ),
+            .setRequired(true))),
 
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await deferInteraction(interaction);

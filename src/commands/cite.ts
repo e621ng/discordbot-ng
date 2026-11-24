@@ -15,8 +15,7 @@ export default {
         .setName('name')
         .setDescription('The name of the entry.')
         .setRequired(true)
-        .setAutocomplete(true)
-    ),
+        .setAutocomplete(true)),
 
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.inGuild()) return;

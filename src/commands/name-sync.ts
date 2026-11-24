@@ -13,8 +13,7 @@ export default {
       option
         .setName('id')
         .setDescription('The id of the e621 user to sync your nickname to.')
-        .setRequired(false)
-    ),
+        .setRequired(false)),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
     const id = interaction.options.getInteger('id');

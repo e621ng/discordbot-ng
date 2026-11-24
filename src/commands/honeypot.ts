@@ -60,13 +60,10 @@ export default {
         .setName('message')
         .setDescription('The message to attach to the channel.')
         .setRequired(true)
-        .setMaxLength(4096)
-      )
-    )
+        .setMaxLength(4096)))
     .addSubcommand(builder => builder
       .setName('disable')
-      .setDescription('Clear the honeypot configuration.')
-    ),
+      .setDescription('Clear the honeypot configuration.')),
 
   handler: async function (context: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.inGuild()) return;

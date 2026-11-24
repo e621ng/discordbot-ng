@@ -17,22 +17,18 @@ export default {
           option
             .setName('role')
             .setDescription('The role to give')
-            .setRequired(true)
-        )
+            .setRequired(true))
         .addStringOption(option =>
           option
             .setName('button-text')
             .setDescription('The button text')
             .setMaxLength(80)
-            .setRequired(true)
-        )
+            .setRequired(true))
         .addStringOption(option =>
           option
             .setName('message-text')
             .setDescription('The message text')
-            .setRequired(true)
-        )
-    ),
+            .setRequired(true))),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.guild) return interaction.reply({ flags: [MessageFlags.Ephemeral], content: 'Command must be ran in a guild.' });
 

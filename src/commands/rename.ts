@@ -14,8 +14,7 @@ export default {
       option
         .setName('new-name')
         .setDescription('The new name of the general channel.')
-        .setRequired(true)
-    ),
+        .setRequired(true)),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     const settings = await Database.getOrCreateSettings(interaction.guildId!);
     if (!settings.general_chat_id) return interaction.reply('No general chat id found.');

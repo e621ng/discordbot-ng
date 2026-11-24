@@ -44,10 +44,7 @@ export default {
               option
                 .setName('user')
                 .setDescription('The discord user id, or mention, of the user.')
-                .setRequired(true)
-            )
-        )
-    ),
+                .setRequired(true)))),
 
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     await deferInteraction(interaction);

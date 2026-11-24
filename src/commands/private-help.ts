@@ -15,14 +15,12 @@ export default {
         .setName('content')
         .setDescription('The content of the associated message.')
         .setRequired(true)
-        .setMaxLength(4096)
-    )
+        .setMaxLength(4096))
     .addStringOption(option =>
       option
         .setName('button-label')
         .setDescription('The label of the button.')
-        .setRequired(false)
-    ),
+        .setRequired(false)),
 
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.inGuild()) return;

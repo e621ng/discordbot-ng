@@ -13,129 +13,108 @@ export default {
       option
         .setName('general-channel')
         .setDescription('Set the general channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('tickets-channel')
         .setDescription('Set the ticket logs channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('appeals-channel')
         .setDescription('Set the appeal logs channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('event-logs-channel')
         .setDescription('Set the event logs channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('discord-logs-channel')
         .setDescription('Set the discord logs channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('audit-logs-channel')
         .setDescription('Set the audit logs channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('voice-logs-channel')
         .setDescription('Set the voice logs channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('new-member-channel')
         .setDescription('Set the new member logs channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('moderator-channel')
         .setDescription('Set the site moderator channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addRoleOption(option =>
       option
         .setName('admin-role')
         .setDescription('Set the admin role.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addRoleOption(option =>
       option
         .setName('private-helper-role')
         .setDescription('Set the private helper role.')
-        .setRequired(false)
-    )
+        .setRequired(false))
 
     .addChannelOption(option =>
       option
         .setName('add-staff-category')
         .setDescription('Add a category to staff categories.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('remove-staff-category')
         .setDescription('Remove a category from staff categories.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('add-safe-channel')
         .setDescription('Add a SFW channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('remove-safe-channel')
         .setDescription('Remove a SFW channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('add-link-skip-channel')
         .setDescription('Add a link skip channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('remove-link-skip-channel')
         .setDescription('Remove a link skip channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addChannelOption(option =>
       option
         .setName('github-release-channel')
         .setDescription('Set the github release channel.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addRoleOption(option =>
       option
         .setName('site-breaker-role')
         .setDescription('Set the site breaker role.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addRoleOption(option =>
       option
         .setName('add-honeypot-role')
         .setDescription('Add a role to honeypot immunity.')
-        .setRequired(false)
-    )
+        .setRequired(false))
     .addRoleOption(option =>
       option
         .setName('remove-honeypot-role')
         .setDescription('Remove a role from honeypot immunity.')
-        .setRequired(false)
-    ),
+        .setRequired(false)),
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
     if (!interaction.guildId) return; // This shouldn't occur, but TypeScript doesn't know that.
     await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
