@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@clynamic/dmark": "0.0.11",
-    "@hono/node-server": "2.1.8",
+    "@hono/node-server": "2.1.9",
     "@redis/client": "5.1.0",
     "discord.js": "14.28.1",
     "hono": "4.13.19",
