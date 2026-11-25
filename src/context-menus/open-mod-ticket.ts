@@ -1,5 +1,5 @@
 import { ApplicationIntegrationType, Client, InteractionContextType, PermissionFlagsBits, ContextMenuCommandBuilder, ApplicationCommandType, UserContextMenuCommandInteraction } from 'discord.js';
-import { openModTicketModal } from '../utils';
+import { fetchGuildMember, openModTicketModal, SetSeverity } from '../utils';
 
 export default {
   name: 'Open Mod Ticket',
@@ -10,10 +10,13 @@ export default {
     .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
     .setType(ApplicationCommandType.User),
   handler: async function (client: Client, interaction: UserContextMenuCommandInteraction) {
-    const member = await interaction.guild?.members.fetch(interaction.targetUser.id);
+    try {
+      if (!interaction.inGuild()) return;
 
-    if (!member) return interaction.editReply('Could not find member.');
-
-    openModTicketModal(interaction, member);
+      const member = await fetchGuildMember(client, interaction.guildId, interaction.targetId);
+      await openModTicketModal(interaction, member);
+    } catch (error: Error | any) {
+      await interaction.reply({ embeds: [{ ...SetSeverity('error'), description: error.message }] });
+    }
   }
 };

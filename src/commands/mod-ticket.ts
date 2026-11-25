@@ -1,5 +1,5 @@
 import { ApplicationIntegrationType, ChatInputCommandInteraction, Client, InteractionContextType, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { openModTicketModal } from '../utils';
+import { fetchGuildMember, openModTicketModal, SetSeverity } from '../utils';
 
 export default {
   name: 'mod-ticket',
@@ -15,14 +15,17 @@ export default {
         .setDescription('The user to pull in to the ticket.')
         .setRequired(true)
     ),
+
   handler: async function (client: Client, interaction: ChatInputCommandInteraction) {
-    if (!interaction.guild) return interaction.editReply('This command must be used in a server.');
+    try {
+      if (!interaction.inGuild()) return;
 
-    const user = interaction.options.getUser('user', true);
-    const member = await interaction.guild.members.fetch(user.id);
+      const user = interaction.options.getUser('user', true);
+      const member = await fetchGuildMember(client, interaction.guildId, user.id);
 
-    if (!member) return interaction.editReply('Could not find member.');
-
-    openModTicketModal(interaction, member);
+      await openModTicketModal(interaction, member);
+    } catch (error: Error | any) {
+      await interaction.reply({ embeds: [{ ...SetSeverity('error'), description: error.message }] });
+    }
   }
 };
